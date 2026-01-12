@@ -2,8 +2,8 @@
 name: User Story
 about: Utilisez ce modèle pour créer une user story avec des critères d'acceptation
   et des tâches claires.
-title: ''
-labels: ''
+title: US{NUMBER OF THE US} {USTITLE}
+labels: User story
 assignees: ''
 
 ---

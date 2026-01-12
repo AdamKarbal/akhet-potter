@@ -1,8 +1,8 @@
 ---
 name: T{NUMBER OF THE US}.{NUMBER OF THE TASK} {TASK TITLE}
 about: Template pour les task
-title: ''
-labels: ''
+title: T{NUMBER OF THE US}.{NUMBER OF THE TASK} {TASK TITLE}
+labels: Task
 assignees: ''
 
 ---
