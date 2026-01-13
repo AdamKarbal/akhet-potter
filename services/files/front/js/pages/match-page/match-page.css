@@ -1,0 +1,10 @@
+/*.container{
+    display: grid;
+    grid-template-columns: 10% 60% 30%;
+    grid-template-rows: 15% 70% 15%;
+}
+
+chat-component{
+    grid-column: 3;
+    grid-row: 2;
+}
