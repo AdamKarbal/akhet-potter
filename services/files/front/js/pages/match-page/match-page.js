@@ -19,6 +19,7 @@ export class MatchComponent extends HTMLElement{
                     min-height: 100vh;
                     margin: 0;
                 }
+                
                 .container{
                     display: grid;
                     grid-template-columns: 10% 60% 30%;
@@ -56,6 +57,7 @@ export class MatchComponent extends HTMLElement{
                     grid-row: 2;
                     background-color: rgba(20, 15, 10, 0.55);
                     box-shadow: 0 0 15px #d4af37, inset 0 0 20px rgba(212, 175, 55, 0.3);
+                    margin: 5vh;
                 }
                 
                 

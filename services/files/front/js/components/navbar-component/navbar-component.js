@@ -11,7 +11,6 @@ export class NavbarComponent extends HTMLElement{
                 flex-direction: column;
                 gap : 1rem;
                 width: 55px;
-                height: 100%;
                 border: 2px double #c5a059;
                 border-radius: 10px;
                 margin: 0.5rem;
@@ -32,7 +31,7 @@ export class NavbarComponent extends HTMLElement{
             
             #help{
                 width: 55px;
-                margin-top: 22rem;
+                margin-top: 10rem;
             }
             
             #help > img{
@@ -46,11 +45,11 @@ export class NavbarComponent extends HTMLElement{
         
         <div class="navbar">
             <div class="navElem"><img src="assets/jouer.png"></div>
-            <div class="navElem"><img src=""> Chat</div>
+            <div class="navElem"><img src="assets/globalchat.png"></div>
             <div class="navElem"><img src="assets/social.png"></div>
-            <div class="navElem"><img src="assets/jouer.png"></div>
-            <div class="navElem"><img src="assets/jouer.png"></div>
-            <div id="help"><img src="assets/jouer.png"></div>
+            <div class="navElem"><img src="assets/reglages.png"></div>
+            <div class="navElem">...</div>
+            <div id="help"><img src="assets/aide.png"></div>
         </div>
         `;
     }

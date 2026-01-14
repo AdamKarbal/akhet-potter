@@ -6,20 +6,9 @@ export class MovesComponent extends HTMLElement{
     connectedCallback(){
         this.innerHTML = `
         <style>
-            /*.back-and-forth{
-                display: flex;
-                flex-direction: row;
+            img{
+                width: 30%;
             }
-            
-            .arrow{
-                padding-left : 30px;
-                padding-right : 30px;
-                padding-bottom : 3px;
-                padding-top : 3px;
-                border : 1px solid black;       
-                margin : 5px;
-                border-radius : 5px;
-            }*/
             
             .movesbox{
                 padding : 10px;
@@ -93,7 +82,7 @@ export class MovesComponent extends HTMLElement{
         </style>
         
         <div class="movesbox">
-            <div class="title">COUPS <img src=""></div>
+            <img src="assets/coups.png">
             <div id="movesContent"> e2 - e3 </div>
             <div class="back-and-forth">
                 <div class="arrow"><</div>
