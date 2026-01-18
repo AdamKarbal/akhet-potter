@@ -1,8 +1,103 @@
+/* --- UI GENERALE --- */
 body {
-    margin: 0;
-    background-color: #2c241b; /* Fond marron */
+    font-family: 'Cinzel', serif; /* Si tu as une police style Harry Potter */
+    background-color: #1a1a1a;
+    color: white;
+}
+
+/* Panneau du haut */
+.ui-panel {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.turn-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 30px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid #444;
+    border-radius: 50px;
+}
+
+#turn-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px currentColor;
+}
+
+/* Couleurs des équipes */
+.team-p1 { background-color: #ff3333; box-shadow: 0 0 15px #ff3333; } /* Griffondor/Harry */
+.team-p2 { background-color: #33ff33; box-shadow: 0 0 15px #33ff33; } /* Serpentard/Voldemort */
+
+/* --- ECRAN DE VICTOIRE --- */
+.victory-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.victory-content {
+    background: linear-gradient(135deg, #2a2a2a, #111);
+    padding: 40px 60px;
+    border-radius: 15px;
+    border: 2px solid gold;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+    transform: scale(1);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.victory-content h1 {
+    color: gold;
+    font-size: 3rem;
+    margin: 0 0 10px 0;
+    text-shadow: 0 2px 4px black;
+}
+
+.victory-content p {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    color: #ddd;
+}
+
+button#restart-btn {
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    background: transparent;
+    color: gold;
+    border: 2px solid gold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    text-transform: uppercase;
+}
+
+button#restart-btn:hover {
+    background: gold;
+    color: black;
+    box-shadow: 0 0 20px gold;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
