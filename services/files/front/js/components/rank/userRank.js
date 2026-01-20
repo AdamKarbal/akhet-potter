@@ -10,9 +10,9 @@ export class PlayerRank extends HTMLElement {
             <style>
                 .rankContainer {
                     display: flex;
-                    flex-direction: column;
+                    flex-direction: row;
                     align-items: center;
-                    gap: 1vh;
+                    gap: 0.75vh;
                 }
                 
                 .userRank {

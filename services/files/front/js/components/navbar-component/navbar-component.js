@@ -31,7 +31,7 @@ export class NavbarComponent extends HTMLElement{
             
             #help{
                 width: 55px;
-                margin-top: 10rem;
+                margin-top: 17rem;
             }
             
             #help > img{
