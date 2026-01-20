@@ -31,4 +31,6 @@ http.createServer(function (request, response) {
         response.end(`Something in your request (${request.url}) is strange...`);
     }
 // For the server to be listening to request, it needs a port, which is set thanks to the listen function.
-}).listen(8000);
+}).listen(8000, () => {
+    console.log(`Gateway server demarré (port 8001)`);
+});
