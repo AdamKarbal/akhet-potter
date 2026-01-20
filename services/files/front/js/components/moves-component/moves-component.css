@@ -1,0 +1,11 @@
+.movesbox{
+    display:flex;
+    flex-direction:column;
+}
+
+.back-andd-forth{
+    display:flex;
+    flex-direction:row;
+    justify-content:center;
+    align-items:center;
+}

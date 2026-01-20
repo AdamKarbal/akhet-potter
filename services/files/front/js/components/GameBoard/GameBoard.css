@@ -1,0 +1,60 @@
+:host {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.board-wrapper {
+    position: relative;
+
+    height: 75vh;
+
+    width: auto;
+
+    aspect-ratio: 1024 / 851;
+
+    max-width: 90vw;
+
+    border: 5px solid #4a3b2a;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    background-color: #000;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Z-Index */
+#layer-board  { z-index: 1; }
+#layer-pieces { z-index: 2; }
+#layer-vfx    { z-index: 3; cursor: crosshair; }
+
+
+:host {
+    /* Le composant se comporte comme un bloc qui a une taille */
+    display: block;
+    /* C'est ICI qu'on définit la taille du jeu */
+    height: 75vh; /* 75% de la hauteur de l'écran */
+    width: auto;  /* La largeur s'adaptera au ratio */
+}
+
+.board-wrapper {
+    position: relative;
+    height: 100%; /* Remplit le host (75vh) */
+    width: auto;  /* Laisse le ratio décider */
+
+    /* Le ratio important (si tu veux un carré parfait, mets 1 / 1) */
+    aspect-ratio: 1024 / 851;
+
+    /* Ta bordure interne (optionnel) */
+    background-color: #000;
+}
+
