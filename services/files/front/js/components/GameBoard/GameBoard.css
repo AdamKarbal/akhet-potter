@@ -36,3 +36,25 @@ canvas {
 #layer-board  { z-index: 1; }
 #layer-pieces { z-index: 2; }
 #layer-vfx    { z-index: 3; cursor: crosshair; }
+
+
+:host {
+    /* Le composant se comporte comme un bloc qui a une taille */
+    display: block;
+    /* C'est ICI qu'on définit la taille du jeu */
+    height: 75vh; /* 75% de la hauteur de l'écran */
+    width: auto;  /* La largeur s'adaptera au ratio */
+}
+
+.board-wrapper {
+    position: relative;
+    height: 100%; /* Remplit le host (75vh) */
+    width: auto;  /* Laisse le ratio décider */
+
+    /* Le ratio important (si tu veux un carré parfait, mets 1 / 1) */
+    aspect-ratio: 1024 / 851;
+
+    /* Ta bordure interne (optionnel) */
+    background-color: #000;
+}
+
