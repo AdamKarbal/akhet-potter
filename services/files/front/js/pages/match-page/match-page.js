@@ -10,7 +10,6 @@ export class MatchComponent extends HTMLElement{
     }
 
     connectedCallback() {
-        // language=HTML
         this.innerHTML = `
             <style>
                 body{
