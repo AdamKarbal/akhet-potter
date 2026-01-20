@@ -2,6 +2,7 @@ import '../../components/player-layout/player-layout.js'
 import '../../components/moves-component/moves-component.js'
 import '../../components/chat-component/chat-component.js'
 import '../../components/navbar-component/navbar-component.js'
+import '../../components/GameBoard/GameBoard.js'
 
 export class MatchComponent extends HTMLElement{
     constructor() {
@@ -13,7 +14,7 @@ export class MatchComponent extends HTMLElement{
         this.innerHTML = `
             <style>
                 body{
-                    background-image: url("assets/background1v1.png");
+                    background-image: url("../../../assets/background1v1.png");
                     background-size: 100% 100%;
                     background-repeat: no-repeat;
                     min-height: 100vh;
@@ -22,7 +23,7 @@ export class MatchComponent extends HTMLElement{
                 
                 .container{
                     display: grid;
-                    grid-template-columns: 10% 60% 30%;
+                    grid-template-columns: 10% auto 25%;
                     grid-template-rows: 15% 70% 15%;
                 }
                 
@@ -58,13 +59,29 @@ export class MatchComponent extends HTMLElement{
                     background-color: rgba(20, 15, 10, 0.55);
                     box-shadow: 0 0 15px #d4af37, inset 0 0 20px rgba(212, 175, 55, 0.3);
                     margin: 5vh;
+                    display: inline-block;
+                    padding: 5px;
+                }
+                
+                .board-container {
+                    grid-column: 2;
+                    grid-row: 2;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 100%;
+                    height: 100%;
                 }
                 
                 
             </style>
         <div class="container">
             <navbar-component id="nav"></navbar-component>
-            <div class="board"></div>
+            <div class="board-container">
+                <div class="board">
+                    <game-board></game-board>
+                </div>
+            </div>            
             <div id="right-aside">
                 <chat-component></chat-component>
                 <moves-component></moves-component>

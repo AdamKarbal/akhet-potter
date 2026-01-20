@@ -1,5 +1,7 @@
 import {PLAYER, PIECE_TYPE, DIRECTION} from "./model.js";
 
+
+// QUAND ON PASSE DANS LE BACK FAIRE UN PETIT REFACTOR RAPIDE (CRéer DES VRAI CLASSES CELL, BOARD, PLAYER INTERFACE POUR L'IA....)
 export class GameEngine {
     constructor() {
         this.board = [];
