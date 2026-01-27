@@ -67,7 +67,6 @@ export class AlphaBeta extends Minimax {
   }
 }
 
-
 // Abstract base class for strategies (acts like an 'interface')
 export class Strategy {
   constructor(adapter, maxDepth) {
@@ -142,12 +141,3 @@ export class AlphaBetaStrategy extends Strategy {
     return bestMove;
   }
 }
-
-function getDirection(coordinates){
-  return coordinates >> 7;
-}
-
-function getPosition(coordinates){
-  return coordinates & 127;
-}
-
