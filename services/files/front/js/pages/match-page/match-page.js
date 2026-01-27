@@ -3,6 +3,7 @@ import '../../components/moves-component/moves-component.js'
 import '../../components/chat-component/chat-component.js'
 import '../../components/navbar-component/navbar-component.js'
 import '../../components/GameBoard/GameBoard.js'
+import '../../components/quit-component/quit-component.js'
 
 export class MatchComponent extends HTMLElement{
     constructor() {
@@ -22,7 +23,7 @@ export class MatchComponent extends HTMLElement{
                 
                 .container{
                     display: grid;
-                    grid-template-columns: 10% 55% 35%;
+                    grid-template-columns: 10% 60% 30% ;
                     grid-template-rows: 10% 80% 10%;
                 }
                 
@@ -32,17 +33,20 @@ export class MatchComponent extends HTMLElement{
                 }
 
                 #pl2{
-                    grid-column: 3;
-                    grid-row: 2;
+                    grid-column: 2;
+                    grid-row: 3;
                     margin-right: 5vw;
-                    align-self: end;
+                    justify-items: center;
+                    margin-left: 5vw;
                 }
                 
                 #pl1{
-                    grid-column: 3;
-                    grid-row: 2;
+                    grid-column: 2;
+                    grid-row: 1;
                     margin-right: 5vw;
-                    align-self: start;
+                    justify-items: center;
+                    margin-left: 5vw;
+                    align-self: center;
                 }
                 
                 #right-aside{
@@ -51,7 +55,9 @@ export class MatchComponent extends HTMLElement{
                     display: flex;
                     flex-direction: column;
                     gap: 1rem;
-                    place-self:center;
+                    place-self: center;
+                    align-items: center;
+                    margin: 2vw;
                 }
                 
                 .board{
@@ -64,6 +70,7 @@ export class MatchComponent extends HTMLElement{
                     width: fit-content;
                     height: fit-content;
                     padding: 0;
+                    place-self: center;
                 }
                 
                 
@@ -74,6 +81,7 @@ export class MatchComponent extends HTMLElement{
             <div id="right-aside">
                 <chat-component></chat-component>
                 <moves-component></moves-component>
+                <quit-component></quit-component>
             </div>
             <player-layout id="pl1"></player-layout>
             <player-layout id="pl2"></player-layout>

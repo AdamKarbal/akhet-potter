@@ -16,7 +16,6 @@ export class PlayerLayout extends HTMLElement {
                     gap: 1rem;
                     justify-content: center;
                     align-items: center;
-                    margin-top: 2vh;
                     height: 75%;
                 }
             </style>
