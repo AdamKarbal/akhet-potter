@@ -1,4 +1,4 @@
-import {PIECE_TYPE} from "./model.js";
+import {PIECE_TYPE} from "../Model/model.js";
 
 export class Renderer {
     constructor(gameBoardComponent) {
@@ -17,9 +17,14 @@ export class Renderer {
 
     async init(gameEngine) {
         this.gameState = gameEngine;
-        this.gameState.onPieceDeathEffect = (x, y, owner) => {
+        if (typeof this.gameState.getBoard !== 'function') {
+            console.error("GameEngine is missing 'getBoard' method!");
+        }
+        if (!this.gameState.handlers) this.gameState.handlers = {};
+        this.gameState.handlers.onPieceDeathEffect = (x, y, owner) => {
             this.triggerAshEffect(x, y, owner);
         };
+
         await new Promise(r => setTimeout(r, 100));
         this.contexts = this.gameBoard.getContexts();
         if (!this.contexts) {
@@ -39,6 +44,22 @@ export class Renderer {
         await Promise.all(promises);
         this.setupResizeHandler();
         this.handleResize();
+    }
+
+    screenToGrid(clientX, clientY) {
+        const canvas = this.contexts?.vfx?.canvas;
+        if (!canvas) return null;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const rawX = (clientX - rect.left) * scaleX;
+        const rawY = (clientY - rect.top) * scaleY;
+        const col = Math.floor(rawX / this.cellWidth);
+        const row = Math.floor(rawY / this.cellHeight);
+        const relX = (rawX % this.cellWidth) / this.cellWidth;
+        const relY = (rawY % this.cellHeight) / this.cellHeight;
+        if (col < 0 || col >= 10 || row < 0 || row >= 10) return null;
+        return { x: col, y: row, relX, relY };
     }
 
     loadAsset(name, src) {
@@ -94,20 +115,13 @@ export class Renderer {
         if (this.assets['map']) {
             ctx.drawImage(this.assets['map'], 0, 0, this.canvasWidth, this.canvasHeight);
         }
-
-        // Dessin de la grille sur la map
         ctx.strokeStyle = "rgba(139, 90, 43, 1)";
         ctx.lineWidth = 1;
-
-        // Boucle de 0 à 10 pour tracer les lignes.
         for (let i = 0; i <= 10; i++) {
-            // Verticale
             ctx.beginPath();
             ctx.moveTo(i * this.cellWidth, 0);
             ctx.lineTo(i * this.cellWidth, this.canvasHeight);
             ctx.stroke();
-
-            // Horizontale
             ctx.beginPath();
             ctx.moveTo(0, i * this.cellHeight);
             ctx.lineTo(this.canvasWidth, i * this.cellHeight);
@@ -133,40 +147,24 @@ export class Renderer {
         const key = `${piece.type}t${piece.owner}`;
         const img = this.assets[key];
         if (!img) return;
-
         const centerX = x * this.cellWidth + this.cellWidth / 2;
         const centerY = y * this.cellHeight + this.cellHeight / 2;
-
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate((piece.rotation + 180) * Math.PI / 180);
-        // --- MODIFICATION TAILLE ---
         const maxCellDimension = Math.min(this.cellWidth, this.cellHeight);
-
-        // On passe à 1.25 (125%) pour que la figurine déborde un peu des lignes
-        // Ça donne un effet "3D" bien plus lisible
         const destinationSize = maxCellDimension * 1.25;
-
-        // Calcul du recadrage (Crop) pour garder le carré central
         const sourceSize = Math.min(img.width, img.height);
         const sx = (img.width - sourceSize) / 2;
         const sy = (img.height - sourceSize) / 2;
-
-        // On renforce un peu l'ombre pour accompagner la taille
         ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
         ctx.shadowBlur = 15;
         ctx.shadowOffsetX = 5;
         ctx.shadowOffsetY = 5;
-
-        ctx.drawImage(
-            img,
-            sx, sy, sourceSize, sourceSize,
-            -destinationSize / 2, -destinationSize / 2,
-            destinationSize, destinationSize
-        );
-
+        ctx.drawImage(img, sx, sy, sourceSize, sourceSize, -destinationSize / 2, -destinationSize / 2, destinationSize, destinationSize);
         ctx.restore();
     }
+
 
     drawHighlights() {
         const ctx = this.contexts.vfx;
@@ -188,7 +186,7 @@ export class Renderer {
             const key = `pyramidt${player}`;
             const img = this.assets[key];
             if (img) {
-                ctx.globalAlpha = 0.6; // Transparence
+                ctx.globalAlpha = 0.6;
                 ctx.translate(cx, cy);
                 const rotationRad = (pending.rotation + 180) * Math.PI / 180;
                 ctx.rotate(rotationRad);
@@ -197,15 +195,11 @@ export class Renderer {
                 const sourceSize = Math.min(img.width, img.height);
                 const sx = (img.width - sourceSize) / 2;
                 const sy = (img.height - sourceSize) / 2;
-                ctx.drawImage(
-                    img,
-                    sx, sy, sourceSize, sourceSize,
-                    -destinationSize/2, -destinationSize/2,
-                    destinationSize, destinationSize
-                );
+                ctx.drawImage(img, sx, sy, sourceSize, sourceSize, -destinationSize/2, -destinationSize/2, destinationSize, destinationSize);
                 ctx.rotate(-rotationRad);
                 ctx.translate(-cx, -cy);
             }
+            this.drawLaserPrediction(ctx, pending);
             ctx.fillStyle = "white";
             ctx.font = `${this.cellWidth / 2.5}px Arial`;
             ctx.textAlign = "center";
@@ -213,33 +207,45 @@ export class Renderer {
             ctx.shadowColor = "black";
             ctx.shadowBlur = 4;
             ctx.fillText("↻", cx, cy);
-            const btnSize = this.cellWidth * 0.25;
-            const btnX = x + this.cellWidth - btnSize/1.2;
-            const btnY = y + this.cellHeight - btnSize/1.2;
-            ctx.beginPath();
-            ctx.fillStyle = "#00FF00";
-            ctx.arc(btnX, btnY, btnSize/2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "white";
-            ctx.font = "bold 16px Arial";
-            ctx.fillText("✓", btnX, btnY + 1);
+            this.drawCheckmarkButton(ctx, x, y);
+            ctx.restore();
+            return;
+        }
 
+        const rotating = this.gameState.pendingRotation;
+        if (rotating) {
+            const x = rotating.x * this.cellWidth;
+            const y = rotating.y * this.cellHeight;
+            ctx.save();
+            ctx.strokeStyle = "#FFFF00";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(x, y, this.cellWidth, this.cellHeight);
+            ctx.fillStyle = "white";
+            ctx.font = `${this.cellWidth / 2.5}px Arial`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.shadowColor = "black";
+            ctx.shadowBlur = 4;
+            ctx.fillText("↻", x + this.cellWidth / 2, y + this.cellHeight / 2);
+            this.drawCheckmarkButton(ctx, x, y);
             ctx.restore();
             return;
         }
         const selected = this.gameState.selectedPiece;
         if (!selected) return;
-        const piece = this.gameState.board[selected.x][selected.y];
+        const boardGrid = this.gameState.getBoard();
+        const piece = boardGrid[selected.x][selected.y];
         if (!piece) return;
         if (piece.type === 'scarab') {
-            const cooldowns = this.gameState.swapCooldowns[piece.owner];
+            const playerObj = this.gameState.players[piece.owner];
             for(let cx=0; cx<10; cx++){
                 for(let cy=0; cy<10; cy++){
-                    const target = this.gameState.board[cx][cy];
+                    const target = boardGrid[cx][cy];
                     if(target && target.owner === piece.owner) {
                         let canSwap = false;
-                        if (target.type === 'sphinx' && cooldowns.sphinx === 0) canSwap = true;
-                        if (target.type === 'pharaon' && cooldowns.pharaon === 0) canSwap = true;
+                        if (target.type === 'sphinx' && playerObj.isActionAllowed('sphinx')) canSwap = true;
+                        if (target.type === 'pharaon' && playerObj.isActionAllowed('pharaon')) canSwap = true;
+
                         if (canSwap) {
                             const tx = cx * this.cellWidth + this.cellWidth/2;
                             const ty = cy * this.cellHeight + this.cellHeight/2;
@@ -293,30 +299,97 @@ export class Renderer {
         ctx.restore();
     }
 
-    // Positionner le debut du laser en fonction de la position de la wand
+    drawLaserPrediction(ctx, pending) {
+        if (typeof this.gameState.getLaserPath !== 'function') return;
+        const currentPath = this.gameState.getLaserPath(this.gameState.turn);
+        if (!currentPath) return;
+        const hitIndex = currentPath.findIndex(p => p.x === pending.x && p.y === pending.y);
+        if (hitIndex > 0) {
+            const prevPoint = currentPath[hitIndex - 1];
+            let incomingDir = null;
+            if (pending.x > prevPoint.x) incomingDir = 90;
+            else if (pending.x < prevPoint.x) incomingDir = 270;
+            else if (pending.y > prevPoint.y) incomingDir = 180;
+            else if (pending.y < prevPoint.y) incomingDir = 0;
+            if (incomingDir !== null) {
+                const reflectedDir = this.predictReflection(pending.rotation, incomingDir);
+                if (reflectedDir !== null) {
+                    this.drawPredictionArrow(ctx, pending.x, pending.y, reflectedDir);
+                }
+            }
+        }
+    }
+
+    predictReflection(pyramidRot, incomingDir) {
+        if (pyramidRot === 0) {
+            if (incomingDir === 270) return 180;
+            if (incomingDir === 0) return 90;
+        }
+        if (pyramidRot === 90) {
+            if (incomingDir === 90) return 180;
+            if (incomingDir === 0) return 270;
+        }
+        if (pyramidRot === 180) {
+            if (incomingDir === 90) return 0;
+            if (incomingDir === 180) return 270;
+        }
+        if (pyramidRot === 270) {
+            if (incomingDir === 270) return 0;
+            if (incomingDir === 180) return 90;
+        }
+        return null;
+    }
+
+    drawPredictionArrow(ctx, gridX, gridY, direction) {
+        const cx = gridX * this.cellWidth + this.cellWidth / 2;
+        const cy = gridY * this.cellHeight + this.cellHeight / 2;
+        const offset = this.cellWidth * 0.35; // Distance du centre
+        ctx.save();
+        ctx.translate(cx, cy);
+        let rotationRad = 0;
+        if (direction === 90) rotationRad = Math.PI / 2;
+        if (direction === 180) rotationRad = Math.PI;
+        if (direction === 270) rotationRad = -Math.PI / 2;
+        ctx.rotate(rotationRad);
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(255, 255, 0, 0.6)";
+        ctx.moveTo(0, -offset - 10);
+        ctx.lineTo(-8, -offset + 5);
+        ctx.lineTo(8, -offset + 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowColor = "yellow";
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    drawCheckmarkButton(ctx, x, y) {
+        const btnSize = this.cellWidth * 0.25;
+        const btnX = x + this.cellWidth - btnSize/1.2;
+        const btnY = y + this.cellHeight - btnSize/1.2;
+        ctx.beginPath();
+        ctx.fillStyle = "#00FF00";
+        ctx.arc(btnX, btnY, btnSize/2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "white";
+        ctx.font = "bold 16px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("✓", btnX, btnY + 1);
+    }
+
     getWandTip(x, y, rotation) {
         const cx = x * this.cellWidth + this.cellWidth / 2;
         const cy = y * this.cellHeight + this.cellHeight / 2;
         const forward = this.cellWidth * 0.30;
         const side = this.cellWidth * 0.1;
-        let tipX = cx;
-        let tipY = cy;
-        if (rotation === 0) {
-            tipY -= forward;
-            tipX += side;
-        }
-        else if (rotation === 90) {
-            tipX += forward;
-            tipY += side;
-        }
-        else if (rotation === 180) {
-            tipY += forward;
-            tipX -= side;
-        }
-        else if (rotation === 270) {
-            tipX -= forward;
-            tipY -= side;
-        }
+        let tipX = cx; let tipY = cy;
+        if (rotation === 0) { tipY -= forward; tipX += side; }
+        else if (rotation === 90) { tipX += forward; tipY += side; }
+        else if (rotation === 180) { tipY += forward; tipX -= side; }
+        else if (rotation === 270) { tipX -= forward; tipY -= side; }
         return { x: tipX, y: tipY };
     }
 
@@ -338,7 +411,6 @@ export class Renderer {
         this.updateAndDrawParticles(ctx);
     }
 
-
     updateAndDrawParticles(ctx) {
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
@@ -356,13 +428,10 @@ export class Renderer {
             ctx.translate(p.x, p.y);
             ctx.rotate(p.rotation);
             ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-
             ctx.restore();
         }
     }
 
-
-    // Les lasers du début de tours
     drawMagicLaser(ctx) {
         if (!this.gameState.isProcessingTurn) return;
         const player = this.gameState.turn;
@@ -371,7 +440,19 @@ export class Renderer {
         let colorCore = "#FFFFFF";
         let colorGlow = "#FF0000";
         if (player === 2) colorGlow = "#00FF00";
-        const startPiece = this.gameState.findSphinx(player);
+        let startPiece = null;
+        const grid = this.gameState.getBoard();
+        for(let x=0; x<10; x++) {
+            for(let y=0; y<10; y++) {
+                const p = grid[x][y];
+                if(p && p.type === 'sphinx' && p.owner === player) {
+                    startPiece = {x, y, piece: p};
+                    break;
+                }
+            }
+        }
+        if(!startPiece) return;
+
         const startPoint = this.getWandTip(startPiece.x, startPiece.y, startPiece.piece.rotation);
         ctx.save();
         const startGrad = ctx.createRadialGradient(startPoint.x, startPoint.y, 0, startPoint.x, startPoint.y, this.cellWidth * 0.25);
@@ -446,7 +527,6 @@ export class Renderer {
         const lastPoint = path[path.length - 1];
         const impactX = lastPoint.x * this.cellWidth + this.cellWidth / 2;
         const impactY = lastPoint.y * this.cellHeight + this.cellHeight / 2;
-
         for(let k=0; k<10; k++) {
             ctx.fillStyle = colorGlow;
             const px = impactX + (Math.random() - 0.5) * 50;
@@ -458,12 +538,9 @@ export class Renderer {
             ctx.fill();
             ctx.globalAlpha = 1.0;
         }
-
         ctx.restore();
     }
 
-
-    // Effet poussiere quand on detruit une piece
     triggerAshEffect(gridX, gridY, owner) {
         const centerX = gridX * this.cellWidth + this.cellWidth / 2;
         const centerY = gridY * this.cellHeight + this.cellHeight / 2;
