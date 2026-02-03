@@ -142,7 +142,7 @@ export class LoginComponent extends HTMLElement {
                 </div>
 
                 <div id="right-aside">
-                    <img src="assets/logo.png" style="max-width:300px">
+                    <img src="assets/logo.png" style="max-width:400px">
                     <p>Jouer au jeu KHET #1 sous le thème Harry Potter</p>
                     <div class="button-group">
                         <button class="btn-hp" id="btn-register">S'enregistrer</button>
