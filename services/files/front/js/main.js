@@ -1,5 +1,6 @@
 import './pages/match-page/match-page.js'
 import './pages/vsordi-page/vsordi-page.js'
+import './pages/login-page/login-page.js'
 function updateView() {
     const app = document.getElementById('app');
     const hash = window.location.hash;
@@ -13,7 +14,12 @@ function updateView() {
         console.log("Mode JcO activé");
         app.innerHTML = '<vsordi-page></vsordi-page>';
 
-    } else {
+    }
+    else if (hash === '#LGN') {
+        console.log("Page login activé");
+        app.innerHTML = '<login-page></login-page>';
+    }
+    else {
         console.log("Accueil");
         // language=HTML
         app.innerHTML = `
@@ -21,11 +27,14 @@ function updateView() {
                 <h1>Bienvenue sur Akhet Potter</h1>
                 <button id="btn-JcJ">Jouer JcJ</button>
                 <button id="btn-JcO">Jouer JcO</button>
+                <button id="btn-LGN">Login</button>
+
             </div>
         `;
 
         const btnJcJ = document.getElementById('btn-JcJ');
         const btnJcO = document.getElementById('btn-JcO');
+        const btnLGN = document.getElementById('btn-LGN');
         if(btnJcJ){
             btnJcJ.addEventListener('click', () => {
                 window.location.hash = 'JCJ';
@@ -36,7 +45,12 @@ function updateView() {
                 window.location.hash = 'JCO';
             });
         }
+        if(btnLGN){
+            btnLGN.addEventListener('click', () => {
+                window.location.hash = 'LGN';
+            });
     }
+}
 }
 
 window.addEventListener('load', updateView);
