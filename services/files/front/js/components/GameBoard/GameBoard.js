@@ -1,6 +1,6 @@
-import { GameEngine } from "../../game/GameEngine.js";
-import { Renderer } from "../../game/Renderer.js";
-import { InputHandler } from "../../game/InputManager.js"
+import { GameEngine } from "../../game/Logic/GameEngine.js";
+import { Renderer } from "../../game/Utils/Renderer.js";
+import { InputHandler } from "../../game/Utils/InputManager.js"
 
 export class GameBoard extends HTMLElement {
     constructor(){
@@ -24,9 +24,26 @@ export class GameBoard extends HTMLElement {
 
         requestAnimationFrame(async () => {
             await this.renderer.init(this.gameEngine);
+            this.gameEngine.setHandlers({
+                onRenderRequest: () => this.renderer.renderAll(),
+                onPieceDeathEffect: (x, y, owner) => {
+                    if (this.renderer.triggerAshEffect) {
+                        this.renderer.triggerAshEffect(x, y, owner);
+                    }
+                },
+                onGameEnd: (winner) => {
+                    const name = winner === 1 ? "Joueur 1" : "Joueur 2";
+                    setTimeout(() => {
+                        alert(`VICTOIRE ! Bravo ${name} !`);
+                        this.gameEngine.restart();
+                    }, 500);
+                },
+                delay: (ms) => new Promise(r => setTimeout(r, ms))
+            });
             this.inputHandler = new InputHandler(this, this.renderer, this.gameEngine);
             this.inputHandler.init();
-            console.log("Inputs initialisés !");
+
+            console.log("Inputs initialisés et Handlers connectés !");
         });
     }
 

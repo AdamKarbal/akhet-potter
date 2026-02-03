@@ -17,3 +17,15 @@ export const DIRECTION = {
     DOWN:180,
     LEFT:270
 }
+
+export class Piece {
+    constructor(type, owner, rotation){
+        this.type = type;
+        this.owner = owner;
+        this.rotation = rotation;
+    }
+
+    rotate(direction = 90){
+        this.rotation = (this.rotation + direction) % 360;
+    }
+}
