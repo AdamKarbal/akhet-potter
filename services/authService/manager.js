@@ -14,7 +14,6 @@ async function login(username, password) {
 }
 
 async function signup(username, password) {
-    const users = getCollection('users');
     const existing = await getUser(username);
     if (existing) return { error: "Existe déjà", status: 409 };
     await users.insertOne({ username, password });
