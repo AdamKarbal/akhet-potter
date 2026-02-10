@@ -1,0 +1,3 @@
+Faire un handler (qui envoie vers le manager)
+Faire un routeur (qui renvoie en fonction de l'url)
+dans l'index juste créer le serveur a un certain port

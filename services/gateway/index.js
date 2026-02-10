@@ -18,13 +18,25 @@ http.createServer(function (request, response) {
     try {
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
-            //TODO: Add middlewares and call microservices depending on the request.
-
-        // If it doesn't start by /api, then it's a request for a file.
+            const route = filePath[2];
+            if (route === "login" || route === "signup") {
+                request.url = request.url.replace('/api', '');
+                console.log(`[API] Redirection vers AuthService : ${route}`);
+                proxy.web(request, response, { target: "http://auth:8002" });
+            }
+            if (route === "login" || route === "signup" || route === "refresh") {
+                console.log(`[API] Redirection vers AuthService : ${route}`);
+                request.url = request.url.replace('/api', '');
+                proxy.web(request, response, { target: "http://auth:8002" });
+            }
+            else {
+                response.statusCode = 404;
+                response.end("API Endpoint introuvable");
+            }
         } else {
             console.log("Request for a file received, transferring to the file service")
-            proxy.web(request, response, {target: "http://127.0.0.1:8001"});
-        }
+            const targetUrl = process.env.FILES_URL || "http://127.0.0.1:8001";
+            proxy.web(request, response, { target: targetUrl });        }
     } catch(error) {
         console.log(`error while processing ${request.url}: ${error}`)
         response.statusCode = 400;
