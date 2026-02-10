@@ -1,12 +1,11 @@
-const { getCollection } = require('./database');
+const { getUser } = require('./database');
 const jwt = require('jsonwebtoken');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'akhetpottermeilleurjeu';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'akhetpotterrefresh';
 
 async function login(username, password) {
-    const users = getCollection('users');
-    const user = await users.findOne({ username });
+    const user = await getUser(username);
     if (!user) return { error: "Utilisateur inconnu", status: 401 };
     if (user.password !== password) return { error: "Mot de passe incorrect", status: 401 };
     const accessToken = jwt.sign({ username: user.username }, SECRET_KEY, { expiresIn: '15m' });
@@ -16,7 +15,7 @@ async function login(username, password) {
 
 async function signup(username, password) {
     const users = getCollection('users');
-    const existing = await users.findOne({ username });
+    const existing = await getUser(username);
     if (existing) return { error: "Existe déjà", status: 409 };
     await users.insertOne({ username, password });
     return { message: "Utilisateur créé", status: 201 };

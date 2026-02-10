@@ -23,4 +23,9 @@ function getCollection(name) {
     return db.collection(name);
 }
 
-module.exports = { connect, getCollection };
+async function getUser(username) {
+    if (!db) throw new Error("La base de données n'est pas initialisée.");
+    return await db.collection('users').findOne({username});
+}
+
+module.exports = { connect, getUser, getCollection };
