@@ -7,6 +7,18 @@
  * @property {function(any): any} getCurrentPlayer
  */
 
+// ------------------------------
+// "Defines" / paramètres globaux
+// ------------------------------
+// Encodage d'une "coordonnée" dans un Uint16:
+// - bits 0..7  : position (0..255)
+// - bits 8..15 : direction
+const COORD_POSITION_MASK = 0xff;
+const COORD_DIRECTION_SHIFT = 8;
+
+// Pièces / encodages (à compléter au besoin)
+const PIECE_PYRAMID = 1 << 7;
+
 /**
  * Strategy contract (typedef)
  * @typedef {Object} Strategy
@@ -143,11 +155,94 @@ export class AlphaBetaStrategy extends Strategy {
   }
 }
 
+export function setup(initialPositions, isFirstPlayer) {
+  const state = new Uint16Array(24);
+
+  const SELF_OFFSET = isFirstPlayer ? 0 : 12;
+  const OPP_OFFSET  = isFirstPlayer ? 12 : 0;
+
+  {
+    const sph = initialPositions.sphinx;
+    const sphMirror = 99 - sph;
+    const ph = initialPositions.pharaoh;
+    const phMirror = 99 - ph;
+
+    // Sphinx / Pharaoh
+    state[SELF_OFFSET + 0] = sph;
+    state[OPP_OFFSET + 0] = sphMirror;
+
+    state[SELF_OFFSET + 1] = ph;
+    state[OPP_OFFSET + 1] = phMirror;
+
+    // Pièce(s) liées au pharaoh (selon ton encodage)
+    const phCol = getColumn(ph);
+    state[SELF_OFFSET + 2]  = computeCoordinates(computePosition(5, phCol), 2);
+    state[OPP_OFFSET + 2] = computeCoordinates(computePosition(6, 11 - phCol), 0);
+
+    // Pièce(s) liées au sphinx (selon ton encodage)
+    state[SELF_OFFSET + 4]  = computeCoordinates(computePosition(3, getColumn(sphMirror)), 2);
+    state[OPP_OFFSET + 3] = computeCoordinates(computePosition(8, 11 - getColumn(sph)), 0);
+
+    // Scarab
+    const sp = initialPositions.scarab.position;
+    const so = initialPositions.scarab.orientation;
+    state[SELF_OFFSET + 5]  = computeCoordinates(sp, shitDirection2Direction(so));
+    state[OPP_OFFSET + 4] = computeCoordinates(99 - sp, shitDirection2Direction(9 - so));
+
+    // Pyramides (remplissage bloc)
+    state.fill(PIECE_PYRAMID, SELF_OFFSET + 6, SELF_OFFSET + 12);
+    state.fill(PIECE_PYRAMID, OPP_OFFSET + 5, OPP_OFFSET + 12);
+  }
+
+  return state;
+}
+
+
+function direction2ShitDirection(shitDirection){
+  switch (shitDirection) {
+    case 0: return 0;
+    case 1: return 9;
+    case 2: return 90;
+    case 3: return 99;
+    default: throw new Error(`Invalid shitDirection: ${shitDirection}`);
+  }
+}
+
+function shitDirection2Direction(direction){
+  switch (direction) {
+    case 0: return 0;
+    case 9: return 1;
+    case 90: return 2;
+    case 99: return 3;
+    default: throw new Error(`Invalid direction: ${direction}`);
+  }
+}
+
+function getLine(coordinates){
+  return (getPosition(coordinates) / 10 | 0) + 1;
+}
+
+function getColumn(coordinates){
+  return (getPosition(coordinates) % 10) + 1;
+}
+
+function computePosition(line, column){
+  return (line - 1) * 10 + (column - 1);
+}
+
+function computeCoordinates(position, direction){
+  return position | (direction << COORD_DIRECTION_SHIFT);
+}
+
+export function nextMove(opponentAction) {
+  // To be implemented
+}
+
+
 function getDirection(coordinates){
-  return coordinates >> 7;
+  return coordinates >> COORD_DIRECTION_SHIFT;
 }
 
 function getPosition(coordinates){
-  return coordinates & 127;
+  return coordinates & COORD_POSITION_MASK;
 }
-
