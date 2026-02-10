@@ -1,0 +1,38 @@
+const { getCollection } = require('./database');
+const jwt = require('jsonwebtoken');
+
+const SECRET_KEY = process.env.JWT_SECRET || 'akhetpottermeilleurjeu';
+const REFRESH_SECRET = process.env.REFRESH_SECRET || 'akhetpotterrefresh';
+
+async function login(username, password) {
+    const users = getCollection('users');
+    const user = await users.findOne({ username });
+    if (!user) return { error: "Utilisateur inconnu", status: 401 };
+    if (user.password !== password) return { error: "Mot de passe incorrect", status: 401 };
+    const accessToken = jwt.sign({ username: user.username }, SECRET_KEY, { expiresIn: '15m' });
+    const refreshToken = jwt.sign({ username: user.username }, REFRESH_SECRET, { expiresIn: '7d' });
+    return { accessToken, refreshToken, message: "Succès", status: 200 };
+}
+
+async function signup(username, password) {
+    const users = getCollection('users');
+    const existing = await users.findOne({ username });
+    if (existing) return { error: "Existe déjà", status: 409 };
+    await users.insertOne({ username, password });
+    return { message: "Utilisateur créé", status: 201 };
+}
+
+async function refresh(oldRefreshToken) {
+    try {
+        // On vérifie si le refresh token est valide
+        const decoded = jwt.verify(oldRefreshToken, REFRESH_SECRET);
+        // Si oui, on génère un nv Access Token
+        const newAccessToken = jwt.sign({ username: decoded.username }, SECRET_KEY, { expiresIn: '15m' });
+
+        return { accessToken: newAccessToken, status: 200 };
+    } catch (e) {
+        return { error: "Refresh token invalide ou expiré", status: 403 };
+    }
+}
+
+module.exports = { login, signup, refresh };

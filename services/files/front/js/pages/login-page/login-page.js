@@ -1,9 +1,6 @@
 import '../../components/player-layout/player-layout.js'
-import '../../components/moves-component/moves-component.js'
-import '../../components/chat-component/chat-component.js'
 import '../../components/navbar-component/navbar-component.js'
-import '../../components/GameBoard/GameBoard.js'
-import '../../components/quit-component/quit-component.js'
+import '../../components/auth-modal/auth-modal.js'
 
 export class LoginComponent extends HTMLElement {
     constructor() {
@@ -76,62 +73,6 @@ export class LoginComponent extends HTMLElement {
                     box-shadow: 0 0 15px #ffd700;
                     transform: scale(1.05);
                 }
-
-                /* --- STYLE DE LA MODALE (LE FORMULAIRE) --- */
-                .modal {
-                    display: none; /* Caché par défaut */
-                    position: fixed;
-                    z-index: 100;
-                    left: 0;
-                    top: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0,0,0,0.8);
-                    backdrop-filter: blur(5px);
-                    justify-content: center;
-                    align-items: center;
-                }
-
-                .modal-content {
-                    background: #2a1a0a;
-                    border: 3px solid #ffd700;
-                    padding: 40px;
-                    width: 350px;
-                    border-radius: 10px;
-                    position: relative;
-                    box-shadow: 0 0 50px #000;
-                    animation: spell-appear 0.5s ease-out;
-                }
-
-                @keyframes spell-appear {
-                    from { transform: scale(0.5); opacity: 0; }
-                    to { transform: scale(1); opacity: 1; }
-                }
-
-                .close-btn {
-                    position: absolute;
-                    right: 15px;
-                    top: 10px;
-                    color: #ffd700;
-                    cursor: pointer;
-                    font-size: 24px;
-                }
-
-                form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 15px;
-                }
-
-                input {
-                    padding: 10px;
-                    background: #3a2a1a;
-                    border: 1px solid #ffd700;
-                    color: white;
-                    border-radius: 4px;
-                }
-
-                h2 { color: #ffd700; margin-top: 0; }
             </style>
             
             <div class="container">
@@ -152,40 +93,20 @@ export class LoginComponent extends HTMLElement {
                 </div>
             </div>
 
-            <div id="auth-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close-btn">&times;</span>
-                    <h2 id="modal-title">Connexion</h2>
-                    <form id="auth-form">
-                        <input type="text" placeholder="Nom de sorcier" required>
-                        <input type="password" placeholder="Mot de passe" required>
-                        <button type="submit" class="btn-hp" style="width: 100%">Lancer le sort</button>
-                    </form>
-                </div>
-            </div>
+            <auth-modal id="my-auth-modal"></auth-modal>
         `;
 
         this.setupEventListeners();
     }
 
     setupEventListeners() {
-        const modal = this.querySelector('#auth-modal');
-        const title = this.querySelector('#modal-title');
-        const closeBtn = this.querySelector('.close-btn');
-
+        const authModal = this.querySelector('#my-auth-modal');
         this.querySelector('#btn-register').onclick = () => {
-            title.innerText = "S'enregistrer";
-            modal.style.display = 'flex';
+            authModal.openForRegister();
         };
 
         this.querySelector('#btn-login').onclick = () => {
-            title.innerText = "Se connecter";
-            modal.style.display = 'flex';
-        };
-
-        closeBtn.onclick = () => modal.style.display = 'none';
-        window.onclick = (event) => {
-            if (event.target == modal) modal.style.display = 'none';
+            authModal.openForLogin();
         };
     }
 }

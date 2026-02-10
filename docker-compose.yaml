@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db:
+    image: mongo
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  auth:
+    build: ./services/authService
+    restart: always
+    environment:
+      - MONGO_URL=mongodb://db:27017
+      - JWT_SECRET=super_secret_key
+    networks:
+      - app-network
+    depends_on:
+      - db
+
+  files:
+    build: ./services/files
+    restart: always
+    networks:
+      - app-network
+
+  gateway:
+    build: ./services/gateway
+    restart: always
+    ports:
+      - "8000:8000" #POUR FAIRE VPC
+    environment:
+      - AUTH_URL=http://auth:8002
+      - FILES_URL=http://files:8001
+    networks:
+      - app-network
+    depends_on:
+      - auth
+      - files
+
+volumes:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge
