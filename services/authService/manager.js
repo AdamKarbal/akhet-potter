@@ -1,4 +1,4 @@
-const { getUser } = require('./database');
+const { getUser, getCollection } = require('./database');
 const jwt = require('jsonwebtoken');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'akhetpottermeilleurjeu';
@@ -16,6 +16,7 @@ async function login(username, password) {
 async function signup(username, password) {
     const existing = await getUser(username);
     if (existing) return { error: "Existe déjà", status: 409 };
+    const users = getCollection('users');
     await users.insertOne({ username, password });
     return { message: "Utilisateur créé", status: 201 };
 }
