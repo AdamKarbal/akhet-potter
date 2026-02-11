@@ -34,13 +34,6 @@ const server = http.createServer(function (request, response) {
                 response.end("API Endpoint introuvable");
             }
         } else {
-            console.log("Request for a file received, transferring to the file service")
-            const targetUrl = process.env.FILES_URL || "http://127.0.0.1:8001";
-            proxy.web(request, response, { target: targetUrl });        }
-            //TODO: Add middlewares and call microservices depending on the request.
-
-            // If it doesn't start by /api, then it's a request for a file.
-        } else {
             console.log("Request for a file/socket received, transferring to the file service");
             proxy.web(request, response, {target: "http://files:8001"});
         }
