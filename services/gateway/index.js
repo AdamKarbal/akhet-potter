@@ -8,7 +8,7 @@ const proxy = httpProxy.createProxyServer();
 /* The http module contains a createServer function, which takes one argument, which is the function that
 ** will be called whenever a new request arrives to the server.
  */
-http.createServer(function (request, response) {
+const server = http.createServer(function (request, response) {
     // First, let's check the URL to see if it's a REST request or a file request.
     // We will remove all cases of "../" in the url for security purposes.
     let filePath = request.url.split("/").filter(function(elem) {
@@ -37,12 +37,26 @@ http.createServer(function (request, response) {
             console.log("Request for a file received, transferring to the file service")
             const targetUrl = process.env.FILES_URL || "http://127.0.0.1:8001";
             proxy.web(request, response, { target: targetUrl });        }
+            //TODO: Add middlewares and call microservices depending on the request.
+
+            // If it doesn't start by /api, then it's a request for a file.
+        } else {
+            console.log("Request for a file/socket received, transferring to the file service");
+            proxy.web(request, response, {target: "http://files:8001"});
+        }
+
     } catch(error) {
         console.log(`error while processing ${request.url}: ${error}`)
         response.statusCode = 400;
         response.end(`Something in your request (${request.url}) is strange...`);
     }
 // For the server to be listening to request, it needs a port, which is set thanks to the listen function.
-}).listen(8000, () => {
-    console.log(`Gateway server demarré (port 8001)`);
+})
+
+server.on('upgrade', function (request, socket, head) {
+    proxy.ws(req, socket, head, {target: "http://files:8001"});
+})
+
+server.listen(8000, () => {
+    console.log(`Gateway server demarré (port 8000)`);
 });
