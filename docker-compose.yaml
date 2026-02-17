@@ -30,7 +30,7 @@ services:
     build: ./services/gateway
     restart: always
     ports:
-      - "8000:8001"
+      - "8000:8000"
     environment:
       - AUTH_URL=http://auth:8002
       - FILES_URL=http://files:8001
