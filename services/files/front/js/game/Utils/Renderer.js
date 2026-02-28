@@ -13,24 +13,14 @@ export class Renderer {
         this.animationFrameId = null;
         this.time = 0;
         this.particles = [];
+        this.latestState = null;
+        this.currentLaserPath = null;
     }
 
-    async init(gameEngine) {
-        this.gameState = gameEngine;
-        if (typeof this.gameState.getBoard !== 'function') {
-            console.error("GameEngine is missing 'getBoard' method!");
-        }
-        if (!this.gameState.handlers) this.gameState.handlers = {};
-        this.gameState.handlers.onPieceDeathEffect = (x, y, owner) => {
-            this.triggerAshEffect(x, y, owner);
-        };
-
+    async init() {
         await new Promise(r => setTimeout(r, 100));
         this.contexts = this.gameBoard.getContexts();
-        if (!this.contexts) {
-            console.error("Impossible de récupérer les contextes du canvas");
-            return;
-        }
+
         await this.loadAsset('map', '/assets/map.jpg');
         const pieces = Object.values(PIECE_TYPE);
         const players = [1, 2];
@@ -105,8 +95,10 @@ export class Renderer {
     }
 
     renderAll() {
+        if(!this.gameState || !this.gameState.grid) return;
         this.drawBoard();
         this.drawPieces();
+        this.drawHighlights();
     }
 
     drawBoard() {
@@ -131,8 +123,11 @@ export class Renderer {
 
     drawPieces() {
         const ctx = this.contexts.pieces;
+        if (!ctx || !this.gameState || !this.gameState.grid) return;
+
         ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-        const grid = this.gameState.getBoard();
+        const grid = this.gameState.grid;
+
         for (let x = 0; x < 10; x++) {
             for (let y = 0; y < 10; y++) {
                 const piece = grid[x][y];
@@ -167,10 +162,11 @@ export class Renderer {
 
 
     drawHighlights() {
+        if(!this.gameState || !this.gameState.grid) return;
         const ctx = this.contexts.vfx;
         const player = this.gameState.turn;
         if (!ctx) return;
-        ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+
         const pending = this.gameState.pendingPlacement;
         if (pending) {
             const x = pending.x * this.cellWidth;
@@ -233,38 +229,12 @@ export class Renderer {
         }
         const selected = this.gameState.selectedPiece;
         if (!selected) return;
-        const boardGrid = this.gameState.getBoard();
+
+        const boardGrid = this.gameState.grid;
         const piece = boardGrid[selected.x][selected.y];
         if (!piece) return;
-        if (piece.type === 'scarab') {
-            const playerObj = this.gameState.players[piece.owner];
-            for(let cx=0; cx<10; cx++){
-                for(let cy=0; cy<10; cy++){
-                    const target = boardGrid[cx][cy];
-                    if(target && target.owner === piece.owner) {
-                        let canSwap = false;
-                        if (target.type === 'sphinx' && playerObj.isActionAllowed('sphinx')) canSwap = true;
-                        if (target.type === 'pharaon' && playerObj.isActionAllowed('pharaon')) canSwap = true;
 
-                        if (canSwap) {
-                            const tx = cx * this.cellWidth + this.cellWidth/2;
-                            const ty = cy * this.cellHeight + this.cellHeight/2;
-                            ctx.save();
-                            ctx.beginPath();
-                            ctx.strokeStyle = "#DDA0DD";
-                            ctx.lineWidth = 3;
-                            ctx.setLineDash([2, 2]);
-                            ctx.arc(tx, ty, this.cellWidth/2.5, 0, Math.PI*2);
-                            ctx.stroke();
-                            ctx.fillStyle = "#DDA0DD";
-                            ctx.font = "14px Arial";
-                            ctx.fillText("⇄", tx, ty);
-                            ctx.restore();
-                        }
-                    }
-                }
-            }
-        }
+
         const x = selected.x * this.cellWidth;
         const y = selected.y * this.cellHeight;
         let color = piece.owner === 1 ? "#FF0000" : "#00FF00";
@@ -275,7 +245,8 @@ export class Renderer {
         ctx.shadowBlur = 10;
         ctx.strokeRect(x, y, this.cellWidth, this.cellHeight);
         ctx.restore();
-        const validMoves = this.gameState.getPossibleMoves(selected.x, selected.y);
+
+        const validMoves = this.gameState.possibleMoves || [];
         ctx.save();
         ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
         validMoves.forEach(move => {
@@ -300,24 +271,7 @@ export class Renderer {
     }
 
     drawLaserPrediction(ctx, pending) {
-        if (typeof this.gameState.getLaserPath !== 'function') return;
-        const currentPath = this.gameState.getLaserPath(this.gameState.turn);
-        if (!currentPath) return;
-        const hitIndex = currentPath.findIndex(p => p.x === pending.x && p.y === pending.y);
-        if (hitIndex > 0) {
-            const prevPoint = currentPath[hitIndex - 1];
-            let incomingDir = null;
-            if (pending.x > prevPoint.x) incomingDir = 90;
-            else if (pending.x < prevPoint.x) incomingDir = 270;
-            else if (pending.y > prevPoint.y) incomingDir = 180;
-            else if (pending.y < prevPoint.y) incomingDir = 0;
-            if (incomingDir !== null) {
-                const reflectedDir = this.predictReflection(pending.rotation, incomingDir);
-                if (reflectedDir !== null) {
-                    this.drawPredictionArrow(ctx, pending.x, pending.y, reflectedDir);
-                }
-            }
-        }
+        return;
     }
 
     predictReflection(pyramidRot, incomingDir) {
@@ -343,7 +297,7 @@ export class Renderer {
     drawPredictionArrow(ctx, gridX, gridY, direction) {
         const cx = gridX * this.cellWidth + this.cellWidth / 2;
         const cy = gridY * this.cellHeight + this.cellHeight / 2;
-        const offset = this.cellWidth * 0.35; // Distance du centre
+        const offset = this.cellWidth * 0.35;
         ctx.save();
         ctx.translate(cx, cy);
         let rotationRad = 0;
@@ -394,6 +348,7 @@ export class Renderer {
     }
 
     startAnimationLoop() {
+        if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
         const loop = () => {
             this.time += 0.1;
             this.drawVFX();
@@ -403,10 +358,11 @@ export class Renderer {
     }
 
     drawVFX() {
+        if(!this.gameState) return;
         const ctx = this.contexts.vfx;
         if (!ctx) return;
         ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-        this.drawHighlights(ctx);
+        this.drawHighlights();
         this.drawMagicLaser(ctx);
         this.updateAndDrawParticles(ctx);
     }
@@ -433,15 +389,17 @@ export class Renderer {
     }
 
     drawMagicLaser(ctx) {
-        if (!this.gameState.isProcessingTurn) return;
-        const player = this.gameState.turn;
-        const path = this.gameState.getLaserPath(player);
+        if (!this.gameState || !this.gameState.isProcessingTurn) return;
+        const player = this.gameState.laserFiredBy || this.gameState.turn;
+
+        const path = this.gameState.laserPath;
         if (!path || path.length < 2) return;
+
         let colorCore = "#FFFFFF";
-        let colorGlow = "#FF0000";
-        if (player === 2) colorGlow = "#00FF00";
+        let colorGlow = (player === 1) ? "#FF0000" : "#00FF00";
+
         let startPiece = null;
-        const grid = this.gameState.getBoard();
+        const grid = this.gameState.grid;
         for(let x=0; x<10; x++) {
             for(let y=0; y<10; y++) {
                 const p = grid[x][y];
@@ -491,53 +449,6 @@ export class Renderer {
         ctx.strokeStyle = colorCore;
         ctx.lineWidth = 3;
         ctx.stroke();
-        ctx.save();
-        ctx.fillStyle = colorGlow;
-        for (let i = 0; i < path.length - 1; i++) {
-            const p1 = path[i];
-            const p2 = path[i+1];
-            const x1 = p1.x * this.cellWidth + this.cellWidth / 2;
-            const y1 = p1.y * this.cellHeight + this.cellHeight / 2;
-            const x2 = p2.x * this.cellWidth + this.cellWidth / 2;
-            const y2 = p2.y * this.cellHeight + this.cellHeight / 2;
-            const dx = x2 - x1;
-            const dy = y2 - y1;
-            const segmentLength = Math.sqrt(dx*dx + dy*dy);
-            const angle = Math.atan2(dy, dx);
-            const particlesPerSegment = Math.max(3, Math.floor(segmentLength / 15));
-            for (let k = 0; k < particlesPerSegment; k++) {
-                const distance = Math.random() * segmentLength;
-                const basePathX = x1 + Math.cos(angle) * distance;
-                const basePathY = y1 + Math.sin(angle) * distance;
-                const offsetBase = (Math.random() - 0.5) * (this.cellWidth * 0.6);
-                const movement = Math.sin(this.time * 3 + distance * 0.1) * 4;
-                const offsetAmount = offsetBase + movement;
-                const particleX = basePathX + Math.cos(angle + Math.PI/2) * offsetAmount;
-                const particleY = basePathY + Math.sin(angle + Math.PI/2) * offsetAmount;
-                const size = Math.random() * 3 + 1;
-                const opacity = Math.random() * 0.6 + 0.2;
-                ctx.beginPath();
-                ctx.globalAlpha = opacity;
-                ctx.arc(particleX, particleY, size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1.0;
-            }
-        }
-        ctx.restore();
-        const lastPoint = path[path.length - 1];
-        const impactX = lastPoint.x * this.cellWidth + this.cellWidth / 2;
-        const impactY = lastPoint.y * this.cellHeight + this.cellHeight / 2;
-        for(let k=0; k<10; k++) {
-            ctx.fillStyle = colorGlow;
-            const px = impactX + (Math.random() - 0.5) * 50;
-            const py = impactY + (Math.random() - 0.5) * 50;
-            const size = Math.random() * 5 + 2;
-            ctx.beginPath();
-            ctx.globalAlpha = 0.5 + Math.sin(this.time * 20 + k) * 0.5;
-            ctx.arc(px, py, size, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-        }
         ctx.restore();
     }
 

@@ -1,14 +1,20 @@
-import { GameEngine } from "../../game/Logic/GameEngine.js";
 import { Renderer } from "../../game/Utils/Renderer.js";
 import { InputHandler } from "../../game/Utils/InputManager.js"
+import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
 export class GameBoard extends HTMLElement {
     constructor(){
         super();
         this.attachShadow({mode: 'open'});
-        this.gameEngine = new GameEngine();
+        const token = localStorage.getItem("token");
+        this.socket = io("http://localhost:8000", {
+            path: "/socket.io",
+            transports: ["websocket"],
+            auth: {token: token}
+        });
         this.renderer = new Renderer(this);
         this.inputHandler = null;
+        this.gameId = "partie_test_1";
     }
 
     async connectedCallback(){
@@ -23,27 +29,39 @@ export class GameBoard extends HTMLElement {
         console.log("Gameboard chargé (GameBoard.js)");
 
         requestAnimationFrame(async () => {
-            await this.renderer.init(this.gameEngine);
-            this.gameEngine.setHandlers({
-                onRenderRequest: () => this.renderer.renderAll(),
-                onPieceDeathEffect: (x, y, owner) => {
-                    if (this.renderer.triggerAshEffect) {
-                        this.renderer.triggerAshEffect(x, y, owner);
-                    }
-                },
-                onGameEnd: (winner) => {
-                    const name = winner === 1 ? "Joueur 1" : "Joueur 2";
-                    setTimeout(() => {
-                        alert(`VICTOIRE ! Bravo ${name} !`);
-                        this.gameEngine.restart();
-                    }, 500);
-                },
-                delay: (ms) => new Promise(r => setTimeout(r, ms))
-            });
-            this.inputHandler = new InputHandler(this, this.renderer, this.gameEngine);
-            this.inputHandler.init();
+            await this.renderer.init();
 
-            console.log("Inputs initialisés et Handlers connectés !");
+            this.setupSocketListeners();
+            this.socket.emit("join-game", this.gameId);
+
+            this.inputHandler = new InputHandler(this, this.renderer, this.socket);
+            this.inputHandler.init();
+        });
+    }
+
+    setupSocketListeners(){
+        this.socket.on("init-state", (state) => {
+            console.log("Etat initial reçu du serveur.");
+            this.renderer.gameState = state;
+            this.renderer.renderAll();
+        })
+
+        this.socket.on("game-update", (data) => {
+            console.log("Mise à jour reçue :", data);
+            this.renderer.gameState = data;
+            this.renderer.renderAll();
+
+            if (data.winner && !data.isProcessingTurn) {
+                setTimeout(() => {
+                    const veutRejouer = confirm(`Le Pharaon est tombé ! Victoire du Joueur ${data.winner}. Voulez-vous prendre votre revanche ?`);
+                    if (veutRejouer) {
+                        this.socket.emit("revenge", this.gameId);
+                    } else {
+                        console.log("Le joueur a quitté.");
+                        this.socket.emit("leave-game", this.gameId);
+                    }
+                }, 200);
+            }
         });
     }
 

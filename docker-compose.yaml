@@ -40,6 +40,16 @@ services:
       - auth
       - files
 
+  game:
+    build: ./services/backend
+    restart: always
+    ports:
+      - "8003:8003"
+    networks:
+      - app-network
+    environment:
+      - JWT_SECRET=super_secret_key
+
 volumes:
   mongo-data:
 
