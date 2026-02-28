@@ -6,6 +6,7 @@ const gameManager = new GameManager();
 const io = new Server(8003, { cors: { origin: "*"}});
 const games = new Map();
 const SECRET_KEY = process.env.JWT_SECRET;
+const waitingQueue = [];
 
 io.use((socket, next) => {
     const token = socket.handshake.auth.token;
@@ -31,11 +32,35 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
     console.log(`Joueur authentifié connecté : ${socket.username} (id:${socket.id})`);
 
+    socket.on("find-game", ()=> {
+        console.log(`${socket.username} is looking for a game`);
+
+        const isAlreadyWaiting = waitingQueue.find(s => s.id === socket.id);
+        if (!isAlreadyWaiting) {
+            waitingQueue.push(socket);
+        }
+
+        if(waitingQueue.length >= 2){
+            const player1 = waitingQueue.shift();
+            const player2 = waitingQueue.shift();
+
+            const matchId = "game_" + Math.random().toString(36).substr(2, 10);
+
+            gameManager.createGame(matchId, player1.id, player2.id);
+            player1.emit("match-found", matchId);
+            player2.emit("match-found", matchId);
+        }
+        else{
+            socket.emit("waiting-for-opponent");
+        }
+    })
+
     socket.on("join-game", (gameId) => {
         if(!gameManager.games.has(gameId)) {
-            gameManager.createGame(gameId, socket.id, socket.id);
-            // Note: Plus tard, tu mettras player1 = socket_du_gars_1, player2 = socket_du_gars_2
+            socket.emit("game-closed", "Cette partie n'existe pas.");
+            return;
         }
+
         socket.join(gameId);
         const game = gameManager.games.get(gameId);
         socket.emit("init-state", game.engine.getState());
@@ -79,5 +104,7 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         console.log(`Joueur déconnecté : ${socket.username}`);
+        const index = waitingQueue.findIndex(s => s.id === socket.id);
+        if (index !== -1) waitingQueue.splice(index, 1);
     });
 })

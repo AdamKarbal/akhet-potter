@@ -14,7 +14,7 @@ export class GameBoard extends HTMLElement {
         });
         this.renderer = new Renderer(this);
         this.inputHandler = null;
-        this.gameId = "partie_test_1";
+        this.gameId = null;
     }
 
     async connectedCallback(){
@@ -32,7 +32,7 @@ export class GameBoard extends HTMLElement {
             await this.renderer.init();
 
             this.setupSocketListeners();
-            this.socket.emit("join-game", this.gameId);
+            this.socket.emit("find-game");
 
             this.inputHandler = new InputHandler(this, this.renderer, this.socket);
             this.inputHandler.init();
@@ -62,6 +62,19 @@ export class GameBoard extends HTMLElement {
                     }
                 }, 200);
             }
+        });
+
+        this.socket.on("waiting-for-opponent", () => {
+            console.log("En attente d'un adversaire...");
+            this.renderer.drawWaitingScreen();
+        });
+
+        this.socket.on("match-found", (newGameId) => {
+            console.log("Adversaire trouvé ! Entrée dans la partie :", newGameId);
+            this.renderer.stopWaitingScreen();
+            this.gameId = newGameId;
+
+            this.socket.emit("join-game", this.gameId);
         });
     }
 

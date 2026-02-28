@@ -478,4 +478,44 @@ export class Renderer {
             });
         }
     }
+
+    drawWaitingScreen() {
+        const contexts = this.gameBoard.getContexts();
+        if (!contexts) return;
+
+        const ctx = contexts.board;
+        const width = ctx.canvas.width;
+        const height = ctx.canvas.height;
+
+        let dotCount = 0;
+
+        this.waitingInterval = setInterval(() => {
+            ctx.fillStyle = "rgba(20, 15, 10, 0.9)";
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = "#d4af37";
+            ctx.font = "bold 30px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.shadowColor = "#d4af37";
+            ctx.shadowBlur = 20;
+
+            const dots = ".".repeat(dotCount % 4);
+            ctx.fillText(`Recherche d'un adversaire${dots}`, width / 2, height / 2);
+
+            ctx.shadowBlur = 0;
+            ctx.font = "italic 20px sans-serif";
+            ctx.fillStyle = "#aaaaaa";
+            ctx.fillText("Veuillez patienter dans le hall...", width / 2, height / 2 + 40);
+
+            dotCount++;
+        }, 500);
+    }
+
+    stopWaitingScreen() {
+        if (this.waitingInterval) {
+            clearInterval(this.waitingInterval);
+            this.waitingInterval = null;
+        }
+    }
 }
