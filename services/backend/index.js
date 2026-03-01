@@ -19,6 +19,8 @@ io.use((socket, next) => {
     try{
         const decoded = jwt.verify(token, SECRET_KEY);
         socket.username = decoded.username;
+        socket.rank = decoded.rank;
+        socket.elo = decoded.elo;
         next();
     }
     catch(err){
@@ -35,20 +37,44 @@ io.on("connection", (socket) => {
     socket.on("find-game", ()=> {
         console.log(`${socket.username} is looking for a game`);
 
-        const isAlreadyWaiting = waitingQueue.find(s => s.id === socket.id);
-        if (!isAlreadyWaiting) {
+        const existingIndex = waitingQueue.findIndex(s => s.username === socket.username);
+        if(existingIndex !== -1) {
+            waitingQueue[existingIndex] = socket;
+        }
+        else{
             waitingQueue.push(socket);
         }
 
         if(waitingQueue.length >= 2){
-            const player1 = waitingQueue.shift();
-            const player2 = waitingQueue.shift();
+            const player1 = waitingQueue[0];
 
-            const matchId = "game_" + Math.random().toString(36).substr(2, 10);
+            const opponentIndex = waitingQueue.findIndex(s => s.username !== player1.username);
 
-            gameManager.createGame(matchId, player1.id, player2.id);
-            player1.emit("match-found", matchId);
-            player2.emit("match-found", matchId);
+            if(opponentIndex !== -1){
+                const player2 = waitingQueue[opponentIndex];
+                waitingQueue.splice(opponentIndex, 1);
+                waitingQueue.shift();
+
+                const matchId = "game_" + Math.random().toString(36).substr(2, 10);
+
+                const matchInfo = {
+                    gameId: matchId,
+                    player1: {
+                        username: player1.username,
+                        elo: player1.elo,
+                        rank: player1.rank
+                    },
+                    player2: {
+                        username: player2.username,
+                        elo: player2.elo,
+                        rank: player2.rank
+                    }
+                }
+
+                gameManager.createGame(matchInfo.gameId, player1.id, player2.id);
+                player1.emit("match-found", matchInfo);
+                player2.emit("match-found", matchInfo);
+            }
         }
         else{
             socket.emit("waiting-for-opponent");
@@ -68,7 +94,11 @@ io.on("connection", (socket) => {
 
     socket.on("player-action", (data) => {
         const result = gameManager.handleAction(data.gameId, socket.id, data);
-        if (result && result.error) {
+        if (!result) {
+            console.log("Erreur : Impossible de traiter l'action pour la partie", data.gameId);
+            return;
+        }
+        if (result.error) {
             console.log("Action refusée :", result.error);
             return;
         }
@@ -106,5 +136,14 @@ io.on("connection", (socket) => {
         console.log(`Joueur déconnecté : ${socket.username}`);
         const index = waitingQueue.findIndex(s => s.id === socket.id);
         if (index !== -1) waitingQueue.splice(index, 1);
+
+        for (const [gameId, game] of gameManager.games.entries()) {
+            if (game.p1 === socket.id || game.p2 === socket.id) {
+                const winnerId = (game.p1 === socket.id) ? game.p2 : game.p1;
+                io.to(gameId).emit("game-closed", "Ton adversaire a quitté la partie. Tu as gagné par forfait !");
+                gameManager.games.delete(gameId);
+                break;
+            }
+        }
     });
-})
+});

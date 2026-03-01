@@ -26,6 +26,22 @@ export class PlayerLayout extends HTMLElement {
         </div>
     `;
     }
+
+    setPlayerInfo(data){
+        const playerInfo = this.querySelector('player-info');
+        const playerRank = this.querySelector('player-rank');
+        if (playerInfo) {
+            customElements.whenDefined('player-info').then(() => {
+                playerInfo.setPlayerInfo(data);
+            });
+        }
+
+        if (playerRank) {
+            customElements.whenDefined('player-rank').then(() => {
+                playerRank.setPlayerInfo(data);
+            });
+        }
+    }
 }
 
 customElements.define('player-layout', PlayerLayout);

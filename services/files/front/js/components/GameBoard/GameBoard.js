@@ -1,17 +1,11 @@
 import { Renderer } from "../../game/Utils/Renderer.js";
 import { InputHandler } from "../../game/Utils/InputManager.js"
-import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
 export class GameBoard extends HTMLElement {
     constructor(){
         super();
         this.attachShadow({mode: 'open'});
-        const token = localStorage.getItem("token");
-        this.socket = io("http://localhost:8000", {
-            path: "/socket.io",
-            transports: ["websocket"],
-            auth: {token: token}
-        });
+        this.socket = null;
         this.renderer = new Renderer(this);
         this.inputHandler = null;
         this.gameId = null;
@@ -30,12 +24,10 @@ export class GameBoard extends HTMLElement {
 
         requestAnimationFrame(async () => {
             await this.renderer.init();
-
-            this.setupSocketListeners();
-            this.socket.emit("find-game");
-
-            this.inputHandler = new InputHandler(this, this.renderer, this.socket);
-            this.inputHandler.init();
+            this.dispatchEvent(new CustomEvent('board-ready', {
+                bubbles: true,
+                composed: true
+            }));
         });
     }
 
@@ -63,19 +55,6 @@ export class GameBoard extends HTMLElement {
                 }, 200);
             }
         });
-
-        this.socket.on("waiting-for-opponent", () => {
-            console.log("En attente d'un adversaire...");
-            this.renderer.drawWaitingScreen();
-        });
-
-        this.socket.on("match-found", (newGameId) => {
-            console.log("Adversaire trouvé ! Entrée dans la partie :", newGameId);
-            this.renderer.stopWaitingScreen();
-            this.gameId = newGameId;
-
-            this.socket.emit("join-game", this.gameId);
-        });
     }
 
     getContexts(){
@@ -86,6 +65,19 @@ export class GameBoard extends HTMLElement {
             vfx: this.shadowRoot.getElementById('layer-vfx').getContext('2d'),
             vfxCanvas: this.shadowRoot.getElementById('layer-vfx')
         };
+    }
+
+    setSocketAndListen(socket, gameId) {
+        this.socket = socket;
+        this.gameId = gameId;
+        this.setupSocketListeners();
+        this.socket.emit("join-game", this.gameId);
+        this.inputHandler = new InputHandler(this, this.renderer, this.socket);
+        this.inputHandler.init();
+    }
+
+    showWaitingScreen() {
+        this.renderer.drawWaitingScreen();
     }
 }
 customElements.define('game-board', GameBoard);
