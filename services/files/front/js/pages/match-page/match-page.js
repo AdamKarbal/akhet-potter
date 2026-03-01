@@ -5,7 +5,7 @@ import '../../components/navbar-component/navbar-component.js'
 import '../../components/GameBoard/GameBoard.js'
 import '../../components/quit-component/quit-component.js'
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
-import {API_URL} from "../../../config";
+import {API_URL} from "../../../config.js";
 
 export class MatchComponent extends HTMLElement{
     constructor() {
