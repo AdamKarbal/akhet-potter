@@ -1,6 +1,5 @@
 import { Piece, PLAYER, PIECE_TYPE } from "../Model/model.js";
 import {Board} from "../Model/Board.js";
-import {Player} from "../Player/Player.js";
 import {HumanPlayer} from "../Player/HumanPlayer.js"
 import { Referee } from "./Referee.js";
 import { LaserPhysics } from "./LaserPhysics.js";
@@ -20,28 +19,21 @@ export class GameEngine {
         this.pendingRotation = null;
         this.isProcessingTurn = false;
         this.sphinxFiresThisTurn = true;
-        this.renderer = null;
-        this.handlers = {
-            onRenderRequest: () => {},
-            onPieceDeathEffect: () => {},
-            onGameEnd: (winner) => {
-                alert(`FIN DE PARTIE : ${winner}`);
-                this.restart();
-            },
-            delay: (ms) => new Promise(r => setTimeout(r, ms))
-        };
         this.board.setupStandardGame();
+        this.winner = null;
     }
 
-    setRenderer(renderer) { this.renderer = renderer; }
-    setHandlers(handlers) { this.handlers = handlers || {}; }
-
     handlePlayerInteraction(x, y, relX = 0.5, relY = 0.5) {
+        if(this.winner){
+            console.log(`Le jeu est fini. ${this.winner} est le gagnant.`);
+            return;
+        }
         if (this.isProcessingTurn) return;
         if (this.pendingPlacement) {
             this.handlePendingPlacement(x, y, relX, relY);
             return;
         }
+
         if (this.pendingRotation) {
             this.handlePendingRotation(x, y, relX, relY);
             return;
@@ -86,7 +78,6 @@ export class GameEngine {
             return;
         }
         this.selectedPiece = null;
-        this.updateView();
     }
 
 
@@ -101,7 +92,6 @@ export class GameEngine {
         const defaultRot = (this.turn === PLAYER.P1) ? 180 : 0;
         this.pendingPlacement = { x, y, rotation: defaultRot };
         this.selectedPiece = null;
-        this.updateView();
         console.log("Mode Placement activé.");
     }
 
@@ -109,7 +99,6 @@ export class GameEngine {
         piece.rotate();
         this.pendingRotation = { x, y };
         console.log("Mode Rotation activé : Coin pour valider, Centre pour tourner.");
-        this.updateView();
     }
 
     performMove(fromX, fromY, toX, toY) {
@@ -136,13 +125,11 @@ export class GameEngine {
         this.selectedPiece = { x, y };
         const piece = this.board.getPiece(x, y);
         console.log("Sélection :", piece ? piece.type : "Vide");
-        this.updateView();
     }
 
     handlePendingPlacement(x, y, relX, relY) {
         if (this.pendingPlacement.x !== x || this.pendingPlacement.y !== y) {
             this.pendingPlacement = null;
-            this.updateView();
             return;
         }
 
@@ -153,7 +140,6 @@ export class GameEngine {
             this.finishAction();
         } else {
             this.pendingPlacement.rotation = (this.pendingPlacement.rotation + 90) % 360;
-            this.updateView();
         }
     }
 
@@ -162,7 +148,6 @@ export class GameEngine {
             console.log("Annulation rotation.");
             this.pendingRotation = null;
             this.selectedPiece = null;
-            this.updateView();
             return;
         }
         if (relX > 0.6 && relY > 0.6) {
@@ -172,7 +157,6 @@ export class GameEngine {
             const p = this.board.getPiece(x, y);
             if (p) {
                 p.rotate();
-                this.updateView();
             }
         }
     }
@@ -182,49 +166,82 @@ export class GameEngine {
         this.selectedPiece = null;
         this.pendingPlacement = null;
         this.pendingRotation = null;
-        this.updateView();
-        this.executeTurnSequence().catch(err => {
-            console.error("Erreur critique tour :", err);
-            this.isProcessingTurn = false;
-        });
+
+        this.isProcessingTurn = true;
+
+        this.lastLaserResult = this.executeTurnSequence();
+
+        if (this.lastLaserResult.winner) {
+            this.winner = this.lastLaserResult.winner;
+        }
+
+        return this.lastLaserResult;
     }
 
-    async executeTurnSequence() {
-        this.isProcessingTurn = true;
-        await (this.handlers.delay ? this.handlers.delay(300) : new Promise(r => setTimeout(r, 300)));
+    executeTurnSequence() {
+        let laserData = null;
+
+        const firingPlayer = this.turn;
+
         if (this.sphinxFiresThisTurn) {
-            this.fireLaserForCurrentTurn();
-            this.updateView();
-            await (this.handlers.delay ? this.handlers.delay(1500) : new Promise(r => setTimeout(r, 1500)));
-        } else {
-            await (this.handlers.delay ? this.handlers.delay(800) : new Promise(r => setTimeout(r, 800)));
+            laserData = this.fireLaserForCurrentTurn();
         }
+
         this.switchTurn();
-        this.isProcessingTurn = false;
-        this.updateView();
+
+        return {
+            board: this.board.grid,
+            laserPath: laserData ? laserData.path : [],
+            hits: laserData ? laserData.hits : [],
+            winner: laserData ? laserData.winner : null,
+            nextTurn: this.turn,
+            firedBy: firingPlayer
+        };
     }
 
     fireLaserForCurrentTurn() {
         const currentPlayer = this.players[this.turn];
-        const { hits } = LaserPhysics.getPath(this.board, currentPlayer);
-        if (!hits || hits.length === 0) return;
+        const { path, hits } = LaserPhysics.getPath(this.board, currentPlayer);
+
         let deadPharaonOwner = null;
-        hits.forEach(hit => {
-            const target = hit.piece;
-            if (this.handlers.onPieceDeathEffect) {
-                this.handlers.onPieceDeathEffect(hit.x, hit.y, target.owner);
-            }
-            this.board.setPiece(hit.x, hit.y, null);
-            if (target.type === PIECE_TYPE.PYRAMID) {
-                const opponentId = (target.owner === PLAYER.P1) ? PLAYER.P2 : PLAYER.P1;
-                this.players[opponentId].reserves++;
-            }
-            if (target.type === PIECE_TYPE.PHARAON) deadPharaonOwner = target.owner;
-        });
-        if (deadPharaonOwner !== null) {
-            const winner = (deadPharaonOwner === PLAYER.P1) ? PLAYER.P2 : PLAYER.P1;
-            if (this.handlers.onGameEnd) this.handlers.onGameEnd(winner);
+
+        if (hits && hits.length > 0) {
+            hits.forEach(hit => {
+                const target = hit.piece;
+                // On met à jour le board (logique pure)
+                this.board.setPiece(hit.x, hit.y, null);
+
+                if (target.type === PIECE_TYPE.PYRAMID) {
+                    const opponentId = (target.owner === PLAYER.P1) ? PLAYER.P2 : PLAYER.P1;
+                    this.players[opponentId].reserves++;
+                }
+                if (target.type === PIECE_TYPE.PHARAON) deadPharaonOwner = target.owner;
+            });
         }
+
+        const winner = deadPharaonOwner !== null ? (deadPharaonOwner === PLAYER.P1 ? PLAYER.P2 : PLAYER.P1) : null;
+
+        return { path, hits, winner };
+    }
+
+    getState() {
+        return {
+            grid: this.board.grid,
+            turn: this.turn,
+            selectedPiece: this.selectedPiece,
+            possibleMoves: this.selectedPiece ? this.getPossibleMoves(this.selectedPiece.x, this.selectedPiece.y) : [],
+            //laserPath: this.getLaserPath(this.turn),
+            laserPath: this.isProcessingTurn && this.lastLaserResult ? this.lastLaserResult.laserPath : [],
+            pendingPlacement: this.pendingPlacement,
+            pendingRotation: this.pendingRotation,
+            laserFiredBy: this.lastLaserResult ? this.lastLaserResult.firedBy : null,
+            players: {
+                1: { reserves: this.players[1].reserves },
+                2: { reserves: this.players[2].reserves }
+            },
+            isProcessingTurn: this.isProcessingTurn,
+            winner: this.winner,
+        };
     }
 
     switchTurn() {
@@ -253,12 +270,8 @@ export class GameEngine {
         this.pendingRotation = null;
         this.isProcessingTurn = false;
         this.sphinxFiresThisTurn = true;
-        this.updateView();
-    }
-
-    updateView() {
-        if (this.handlers.onRenderRequest) this.handlers.onRenderRequest();
-        else if (this.renderer) this.renderer.renderAll();
+        this.winner = null;
+        this.lastLaserResult = null;
     }
 
     getBoard() { return this.board.grid; }

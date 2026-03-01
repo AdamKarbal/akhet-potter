@@ -31,7 +31,7 @@ export class PlayerInfo extends HTMLElement {
                     background: linear-gradient(
                             to bottom,
                             #FFF8DC 0%,
-                            #FFD700 50%,
+                            #FFD700  50%,
                             #8B4513 100%
                     );
                     -webkit-background-clip: text;
@@ -46,6 +46,10 @@ export class PlayerInfo extends HTMLElement {
                 <div class="userName">Guest122459978</div>
             </div>
     `;
+    }
+
+    setPlayerInfo(data){
+        this.querySelector('.userName').innerHTML = data.username;
     }
 }
 

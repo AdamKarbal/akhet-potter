@@ -4,6 +4,7 @@ import '../../components/chat-component/chat-component.js'
 import '../../components/navbar-component/navbar-component.js'
 import '../../components/GameBoard/GameBoard.js'
 import '../../components/quit-component/quit-component.js'
+import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
 export class MatchComponent extends HTMLElement{
     constructor() {
@@ -73,7 +74,6 @@ export class MatchComponent extends HTMLElement{
                     place-self: center;
                 }
                 
-                
             </style>
         <div class="container">
             <navbar-component id="nav"></navbar-component>
@@ -87,6 +87,42 @@ export class MatchComponent extends HTMLElement{
             <player-layout id="pl2"></player-layout>
         </div>
     `;
+        const token = localStorage.getItem("token");
+        this.socket = io("http://localhost:8000", { // Vérifie que c'est bien ton port
+            path: "/socket.io",
+            transports: ["websocket"],
+            auth: { token: token }
+        });
+
+        this.addEventListener("board-ready", () => {
+            console.log(`le joueur ${this.socket.id} lance une recherche`);
+            this.socket.emit("find-game");
+        })//On utilise cet événement pour éviter une RC sur le chargement du board et le dessin de l'attente
+
+        this.socket.on("waiting-for-opponent", () => {
+            console.log("En attente d'un adversaire...");
+            this.querySelector("game-board").showWaitingScreen();
+        });
+
+        this.socket.on("match-found", (matchInfo) => {
+            this.socket.off("waiting-for-opponent");
+           const pl1 = this.querySelector("#pl1");
+           const pl2 = this.querySelector("#pl2");
+
+           pl1.setPlayerInfo(matchInfo.player1);
+           pl2.setPlayerInfo(matchInfo.player2);
+
+            const gameBoard = this.querySelector("game-board");
+            if(gameBoard){
+                gameBoard.setSocketAndListen(this.socket, matchInfo.gameId);
+            }
+        });
+    }
+
+    disconnectedCallback() {
+        if(this.socket){
+            this.socket.disconnect();
+        }
     }
 }
 

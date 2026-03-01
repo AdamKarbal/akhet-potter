@@ -38,6 +38,7 @@ function updateView() {
         if(btnJcJ){
             btnJcJ.addEventListener('click', () => {
                 window.location.hash = 'JCJ';
+
             });
         }
         if(btnJcO){

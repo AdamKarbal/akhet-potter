@@ -4,6 +4,16 @@ export class PlayerRank extends HTMLElement {
         super();
     }
 
+    RANK_MAPPER = {
+        "1ère année" : 'assets/annee1.png',
+        "2ème année" : 'assets/annee2.png',
+        "3ème année" : 'assets/annee3.png',
+        "4ème année" : 'assets/annee4.png',
+        "5ème année" : 'assets/annee5.png',
+        "6ème année" : 'assets/annee6.png',
+        "7ème année" : 'assets/annee7.png'
+    };
+
     connectedCallback(){
         // language=HTML
         this.innerHTML = `
@@ -15,7 +25,7 @@ export class PlayerRank extends HTMLElement {
                     gap: 0.75vh;
                 }
                 
-                .userRank {
+                .userRank, .userElo {
                     display: flex;
                     flex-direction: row;
                     align-items: center;
@@ -51,12 +61,18 @@ export class PlayerRank extends HTMLElement {
                     <img id="userRankImg" src='assets/annee5.png'>
                     3ème année
                 </div>
-                <div class="userRank">
+                <div class="userElo">
                     <img id="userVOImg" src='assets/vifdor.png'>
                     1123 Vifs d'Or 
                 </div>
             </div>
         `;
+    }
+
+    setPlayerInfo(data){
+        this.querySelector('.userRank').innerHTML = `<img id="userRankImg" src=RANK_MAPPER[${data.rank}]>
+                    ${data.rank}`;
+        this.querySelector('.userElo').innerHTML = `<img id="userVOImg" src='assets/vifdor.png'> ${data.elo} Vifs d'Or`;
     }
 }
 

@@ -1,9 +1,17 @@
 // The http module contains methods to handle http queries.
 const http = require('http');
 const httpProxy = require('http-proxy');
+const url = require("node:url");
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
+proxy.on('error', function (err, req, res) {
+    console.log('[PROXY ERROR]', err.message);
+    if (res && res.writeHead) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('Erreur de proxy');
+    }
+});
 
 /* The http module contains a createServer function, which takes one argument, which is the function that
 ** will be called whenever a new request arrives to the server.
@@ -24,6 +32,11 @@ const server = http.createServer(function (request, response) {
                 request.url = request.url.replace('/api', '');
                 proxy.web(request, response, { target: "http://auth:8002" });
             }
+            else if(route === "game"){
+                console.log(`[API] Redirection vers GameService : ${route}`);
+                request.url = request.url.replace('/api/game', '');
+                proxy.web(request, response, { target: "http://game:8003" });
+            }
             else {
                 response.statusCode = 404;
                 response.end("API Endpoint introuvable");
@@ -41,8 +54,16 @@ const server = http.createServer(function (request, response) {
 // For the server to be listening to request, it needs a port, which is set thanks to the listen function.
 })
 
+
 server.on('upgrade', function (request, socket, head) {
-    proxy.ws(request, socket, head, {target: "http://files:8001"});
+    const url = request.url || "";
+    if(url.includes('socket.io') || url.includes('game')){
+        console.log("[WS] Redirection vers GameService");
+        proxy.ws(request, socket, head, {target: "http://game:8003" });
+    }
+    else{
+        proxy.ws(request, socket, head, {target: "http://files:8001"});
+    }
 })
 
 server.listen(8000, () => {
