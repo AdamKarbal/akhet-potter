@@ -125,7 +125,7 @@ export class AuthModalComponent extends HTMLElement {
             const password = passwordInput.value;
             const isLogin = title.innerText === "Se connecter";
             const endpoint = isLogin ? '/api/login' : '/api/signup';
-            const url = 'API_URL' + endpoint;
+            const url = endpoint;
 
             try {
                 const response = await fetch(url, {
