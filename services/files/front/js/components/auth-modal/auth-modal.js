@@ -1,3 +1,5 @@
+import { API_URL } from '../../config.js';
+
 export class AuthModalComponent extends HTMLElement {
     constructor() {
         super();
@@ -123,7 +125,7 @@ export class AuthModalComponent extends HTMLElement {
             const password = passwordInput.value;
             const isLogin = title.innerText === "Se connecter";
             const endpoint = isLogin ? '/api/login' : '/api/signup';
-            const url = 'http://localhost:8000' + endpoint;
+            const url = 'API_URL' + endpoint;
 
             try {
                 const response = await fetch(url, {

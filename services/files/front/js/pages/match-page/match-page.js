@@ -5,6 +5,7 @@ import '../../components/navbar-component/navbar-component.js'
 import '../../components/GameBoard/GameBoard.js'
 import '../../components/quit-component/quit-component.js'
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
+import {API_URL} from "../../../config";
 
 export class MatchComponent extends HTMLElement{
     constructor() {
@@ -88,7 +89,7 @@ export class MatchComponent extends HTMLElement{
         </div>
     `;
         const token = localStorage.getItem("token");
-        this.socket = io("http://localhost:8000", { // Vérifie que c'est bien ton port
+        this.socket = io(API_URL, {
             path: "/socket.io",
             transports: ["websocket"],
             auth: { token: token }
