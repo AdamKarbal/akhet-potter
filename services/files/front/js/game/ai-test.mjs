@@ -169,7 +169,7 @@ async function main() {
     );
 
     validateExternalAction(myAction);
-    assert(duration < 250, "nextMove dépasse 250ms");
+    assert(duration < 200, "nextMove dépasse 200ms");
 
     // simulate opponent properly (mirror perspective)
     opponentAction = mirrorExternalAction(myAction);
