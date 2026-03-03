@@ -95,10 +95,10 @@ export class MatchComponent extends HTMLElement{
             auth: { token: token }
         });
 
-        this.addEventListener("board-ready", () => {
-            console.log(`le joueur ${this.socket.id} lance une recherche`);
+        //this.addEventListener("board-ready", () => {
+            //console.log(`le joueur ${this.socket.id} lance une recherche`);
             this.socket.emit("find-game");
-        })//On utilise cet événement pour éviter une RC sur le chargement du board et le dessin de l'attente
+        //})//On utilise cet événement pour éviter une RC sur le chargement du board et le dessin de l'attente
 
         this.socket.on("waiting-for-opponent", () => {
             console.log("En attente d'un adversaire...");

@@ -22,13 +22,13 @@ export class GameBoard extends HTMLElement {
         this.shadowRoot.appendChild(linkElem);
         console.log("Gameboard chargé (GameBoard.js)");
 
-        requestAnimationFrame(async () => {
+        /*requestAnimationFrame(async () => {
             await this.renderer.init();
             this.dispatchEvent(new CustomEvent('board-ready', {
                 bubbles: true,
                 composed: true
             }));
-        });
+        });*/
     }
 
     setupSocketListeners(){
