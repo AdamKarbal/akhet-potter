@@ -1,6 +1,9 @@
 import './pages/match-page/match-page.js'
 import './pages/vsordi-page/vsordi-page.js'
 import './pages/login-page/login-page.js'
+import './components/social-component/social-component.js'
+import './pages/request-page/request-component.js'
+
 function updateView() {
     const app = document.getElementById('app');
     const hash = window.location.hash;
@@ -15,9 +18,17 @@ function updateView() {
         app.innerHTML = '<vsordi-page></vsordi-page>';
 
     }
+    else if(hash === '#SOC'){
+        console.log("Page sociale activée");
+        app.innerHTML = '<social-component></social-component>';
+    }
     else if (hash === '#LGN') {
         console.log("Page login activé");
         app.innerHTML = '<login-page></login-page>';
+    }
+    else if (hash === '#REQ') {
+        console.log("Page demande d'amis activé");
+        app.innerHTML = '<request-component></request-component>';
     }
     else {
         console.log("Accueil");
