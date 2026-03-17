@@ -4,6 +4,7 @@ import '../../components/chat-component/chat-component.js'
 import '../../components/navbar-component/navbar-component.js'
 import '../../components/GameBoard/GameBoard.js'
 import '../../components/AI-layout/ai-layout.js'
+import {API_URL} from "../../../config.js";
 
 export class JcOComponent extends HTMLElement{
     constructor() {
