@@ -1,5 +1,3 @@
-import { API_URL } from '../../../config.js';
-
 export class AuthModalComponent extends HTMLElement {
     constructor() {
         super();
