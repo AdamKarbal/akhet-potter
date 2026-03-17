@@ -79,7 +79,29 @@ io.on("connection", (socket) => {
         else{
             socket.emit("waiting-for-opponent");
         }
-    })
+    });
+
+    socket.on("launch-game", () => {
+        console.log(`${socket.username} is looking for a game`);
+        const matchId = "game_" + Math.random().toString(36).substr(2, 10);
+        const matchInfo = {
+            gameId: matchId,
+            player1: {
+                username: socket.username,
+                elo: socket.elo,
+                rank: socket.rank
+            },
+            player2: {
+                username: "Bot",
+                elo: 0,
+                rank: "N/A"
+            }
+        }
+
+        gameManager.createGame(matchInfo.gameId, socket.id, null);
+        socket.emit("match-found", matchInfo);
+    });
+
 
     socket.on("join-game", (gameId) => {
         if(!gameManager.games.has(gameId)) {
@@ -91,6 +113,7 @@ io.on("connection", (socket) => {
         const game = gameManager.games.get(gameId);
         socket.emit("init-state", game.engine.getState());
     });
+
 
     socket.on("player-action", (data) => {
         const result = gameManager.handleAction(data.gameId, socket.id, data);

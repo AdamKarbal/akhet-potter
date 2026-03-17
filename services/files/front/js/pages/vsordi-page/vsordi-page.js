@@ -5,6 +5,7 @@ import '../../components/navbar-component/navbar-component.js'
 import '../../components/GameBoard/GameBoard.js'
 import '../../components/AI-layout/ai-layout.js'
 import {API_URL} from "../../../config.js";
+import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
 export class JcOComponent extends HTMLElement{
     constructor() {
@@ -88,6 +89,43 @@ export class JcOComponent extends HTMLElement{
             <player-layout id="pl2"></player-layout>
         </div>
     `;
+
+        const token = localStorage.getItem("token");
+        this.socket = io(API_URL, {
+            path: "/socket.io",
+            transports: ["websocket"],
+            auth: {token: token}
+        });
+
+        this.addEventListener("board-ready", () => {
+            console.log(`le joueur ${this.socket.id} lance une recherche`);
+            this.socket.emit("launch-game");
+        })//On utilise cet événement pour éviter une RC sur le chargement du board et le dessin de l'attente
+
+        this.socket.on("waiting-for-opponent", () => {
+            console.log("En attente d'un adversaire...");
+            this.querySelector("game-board").showWaitingScreen();
+        });
+
+        this.socket.on("match-found", (matchInfo) => {
+            this.socket.off("waiting-for-opponent");
+            const pl1 = this.querySelector("#pl1");
+            const pl2 = this.querySelector("#pl2");
+
+            pl1.setPlayerInfo(matchInfo.player1);
+            pl2.setPlayerInfo(matchInfo.player2);
+
+            const gameBoard = this.querySelector("game-board");
+            if (gameBoard) {
+                gameBoard.setSocketAndListen(this.socket, matchInfo.gameId);
+            }
+        });
+    }
+
+    disconnectedCallback() {
+        if(this.socket){
+            this.socket.disconnect();
+        }
     }
 }
 
