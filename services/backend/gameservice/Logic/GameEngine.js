@@ -96,8 +96,8 @@ export class GameEngine {
     }
 
     startRotationMode(x, y, piece) {
+        this.pendingRotation = { x, y, originalRotation: piece.rotation };
         piece.rotate();
-        this.pendingRotation = { x, y };
         console.log("Mode Rotation activé : Coin pour valider, Centre pour tourner.");
     }
 
@@ -146,6 +146,8 @@ export class GameEngine {
     handlePendingRotation(x, y, relX, relY) {
         if (x !== this.pendingRotation.x || y !== this.pendingRotation.y) {
             console.log("Annulation rotation.");
+            const p = this.board.getPiece(this.pendingRotation.x, this.pendingRotation.y);
+            p.rotation = this.pendingRotation.originalRotation
             this.pendingRotation = null;
             this.selectedPiece = null;
             return;
