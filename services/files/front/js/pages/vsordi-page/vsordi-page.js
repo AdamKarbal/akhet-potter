@@ -112,8 +112,13 @@ export class JcOComponent extends HTMLElement{
             const pl1 = this.querySelector("#pl1");
             const pl2 = this.querySelector("#pl2");
 
-            pl1.setPlayerInfo(matchInfo.player1);
-            pl2.setPlayerInfo(matchInfo.player2);
+            // En vs IA, pl1 est un ai-layout statique; seul pl2 (player-layout) est dynamique.
+            if (pl2 && typeof pl2.setPlayerInfo === "function") {
+                pl2.setPlayerInfo(matchInfo.player1);
+            }
+            if (pl1 && typeof pl1.setPlayerInfo === "function") {
+                pl1.setPlayerInfo(matchInfo.player2);
+            }
 
             const gameBoard = this.querySelector("game-board");
             if (gameBoard) {
