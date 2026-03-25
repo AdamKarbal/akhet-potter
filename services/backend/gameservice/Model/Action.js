@@ -1,34 +1,40 @@
-import {applyRetryableWrites} from "mongodb/src/utils.ts";
+  export const ACTION_TYPES = {
+    ROTATE: 'ROTATE',
+    MOVE: 'MOVE',
+    PLACE: 'PLACE',
+    EXCHANGE: 'EXCHANGE'
+  }
 
-export const ACTION_TYPES = {
-  ROTATE: 'ROTATE',
-  MOVE: 'MOVE',
-  PLACE: 'PLACE',
-  EXCHANGE: 'EXCHANGE'
-}
-
-export const ROTATION_TYPES = {
-  CLOCKWISE: 'CLOCKWISE',
-  ANTICLOCKWISE: 'ANTICLOCKWISE',
-}
+  export const ROTATION_TYPES = {
+    CLOCKWISE: 'CLOCKWISE',
+    ANTICLOCKWISE: 'ANTICLOCKWISE',
+  }
 
 export class Cell {
   constructor(x, y) {
     this.x = x;
     this.y = y;
   }
+
+  toSimpleObject() {
+    return {x: this.x, y: this.y};
+  }
 }
 
 export class Action {
-  constructor(actionType, cell, result) {
+  constructor(action, cell, result) {
     if (new.target === Action) throw new Error('Action is abstract and cannot be instantiated directly');
-    this.actionType = actionType;
+    this.action = action;
     this.cell = cell;
     this.result = result;
   }
 
   isConsistent() {
     throw new Error('isConsistent method must be implemented by subclasses');
+  }
+
+  toSimpleObject() {
+    return {action: this.action, cell: this.cell.toSimpleObject(), result: this.result};
   }
 }
 
@@ -38,7 +44,7 @@ export class Rotate extends Action {
   }
 
   isConsistent() {
-    return this.actionType && this.actionType === ACTION_TYPES.ROTATE
+    return this.action && this.action === ACTION_TYPES.ROTATE
       && this.cell && this.cell instanceof Cell
       && this.result && (this.result === ROTATION_TYPES.CLOCKWISE || this.result === ROTATION_TYPES.ANTICLOCKWISE);
   }
@@ -50,7 +56,7 @@ export class Move extends Action {
   }
 
   isConsistent() {
-    return this.actionType && this.actionType === ACTION_TYPES.MOVE
+    return this.action && this.action === ACTION_TYPES.MOVE
       && this.cell && this.cell instanceof Cell
       && this.result && this.result instanceof Cell;
   }
@@ -62,7 +68,7 @@ export class Place extends Action {
   }
 
   isConsistent() {
-    return this.actionType && this.actionType === ACTION_TYPES.PLACE
+    return this.action && this.action === ACTION_TYPES.PLACE
       && !this.cell
       && this.result
         && this.result.destination && this.result.destination instanceof Cell
@@ -76,7 +82,7 @@ export class Exchange extends Action {
   }
 
   isConsistent() {
-    return this.actionType && this.actionType === ACTION_TYPES.EXCHANGE
+    return this.action && this.action === ACTION_TYPES.EXCHANGE
       && this.cell && this.cell instanceof Cell
       && this.result && this.result instanceof Cell;
   }

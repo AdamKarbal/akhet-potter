@@ -1,8 +1,8 @@
 import {Server} from "socket.io";
 import jwt from "jsonwebtoken";
-import { GameManager } from "./gameservice/Logic/GameManager.js";
+import { AIGameManager } from "./gameservice/Logic/AIGameManager.js";
 
-const gameManager = new GameManager();
+const gameManager = new AIGameManager();
 const io = new Server(8003, { cors: { origin: "*"}});
 const games = new Map();
 const SECRET_KEY = process.env.JWT_SECRET;
@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("launch-game", () => {
+    socket.on("launch-game", async () => {
         console.log(`${socket.username} is looking for a game`);
         const matchId = "game_" + Math.random().toString(36).substr(2, 10);
         const matchInfo = {
@@ -98,8 +98,19 @@ io.on("connection", (socket) => {
             }
         }
 
-        gameManager.createGame(matchInfo.gameId, socket.id, null);
-        socket.emit("match-found", matchInfo);
+        try {
+            await gameManager.createGame(matchInfo.gameId, socket.id, null);
+            socket.join(matchInfo.gameId);
+            socket.emit("match-found", matchInfo);
+
+            const game = gameManager.games.get(matchInfo.gameId);
+            if (game) {
+                socket.emit("init-state", game.engine.getState());
+            }
+        } catch (error) {
+            console.error("Erreur création partie IA:", error);
+            socket.emit("game-closed", "Impossible de lancer une partie contre l'IA pour le moment.");
+        }
     });
 
 
@@ -115,8 +126,11 @@ io.on("connection", (socket) => {
     });
 
 
-    socket.on("player-action", (data) => {
-        const result = gameManager.handleAction(data.gameId, socket.id, data);
+    socket.on("player-action", async (data) => {
+        const gameBefore = gameManager.games.get(data.gameId);
+        const previousTurn = gameBefore?.engine?.turn;
+
+        const result = await gameManager.handleAction(data.gameId, socket.id, data);
         if (!result) {
             console.log("Erreur : Impossible de traiter l'action pour la partie", data.gameId);
             return;
@@ -128,19 +142,37 @@ io.on("connection", (socket) => {
         io.to(data.gameId).emit("game-update", result);
 
         if (result.isProcessingTurn) {
-            setTimeout(() => {
+            setTimeout(async () => {
                 const game = gameManager.games.get(data.gameId);
-                if (game) {
-                    game.engine.isProcessingTurn = false;
-                    game.engine.lastLaserResult = null;
-                    io.to(data.gameId).emit("game-update", game.engine.getState());
+                if (!game) return;
+
+                game.engine.isProcessingTurn = false;
+                game.engine.lastLaserResult = null;
+                io.to(data.gameId).emit("game-update", game.engine.getState());
+
+                const shouldPlayAI = game.ai && previousTurn === 1 && game.engine.turn === 2 && !game.engine.winner;
+                if (!shouldPlayAI) return;
+
+                const aiResult = await gameManager.playAiTurn(data.gameId);
+                if (!aiResult || aiResult.error) return;
+
+                io.to(data.gameId).emit("game-update", aiResult);
+
+                if (aiResult.isProcessingTurn) {
+                    setTimeout(() => {
+                        const updatedGame = gameManager.games.get(data.gameId);
+                        if (!updatedGame) return;
+                        updatedGame.engine.isProcessingTurn = false;
+                        updatedGame.engine.lastLaserResult = null;
+                        io.to(data.gameId).emit("game-update", updatedGame.engine.getState());
+                    }, 1200);
                 }
             }, 1200);
         }
     });
 
-    socket.on("revenge", (gameId) => {
-        const result = gameManager.revenge(gameId);
+    socket.on("revenge", async (gameId) => {
+        const result = await gameManager.revenge(gameId);
 
         if(result == null){
             socket.emit("game-closed");
