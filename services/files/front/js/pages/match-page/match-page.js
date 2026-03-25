@@ -117,6 +117,11 @@ export class MatchComponent extends HTMLElement{
             if(gameBoard){
                 gameBoard.setSocketAndListen(this.socket, matchInfo.gameId);
             }
+
+            const inGameChat = this.querySelector("chat-component");
+            if(inGameChat) {
+                inGameChat.setGameId(matchInfo.gameId);
+            }
         });
     }
 

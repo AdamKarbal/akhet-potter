@@ -57,7 +57,11 @@ const server = http.createServer(function (request, response) {
 
 server.on('upgrade', function (request, socket, head) {
     const url = request.url || "";
-    if(url.includes('socket.io') || url.includes('game')){
+    if(url.includes('social.io')) {
+        console.log("[WS] Redirection vers SocialService");
+        proxy.ws(request, socket, head, {target: "http://social:8004" });
+    }
+    else if(url.includes('socket.io') || url.includes('game')){
         console.log("[WS] Redirection vers GameService");
         proxy.ws(request, socket, head, {target: "http://game:8003" });
     }
