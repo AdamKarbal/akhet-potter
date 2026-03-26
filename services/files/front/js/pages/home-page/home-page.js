@@ -285,7 +285,6 @@ export class HomePage extends HTMLElement{
             </div> 
         </div>
         `
-        this.retrievePlayerInfo();
         this.querySelector(".user-section").addEventListener("click", (e) => {
             window.location.hash = 'LGN';
         });
@@ -301,6 +300,8 @@ export class HomePage extends HTMLElement{
         this.querySelector("#btn-jouer-local").addEventListener("click", () => {
             window.location.hash = 'JCO'; //TODO:A changer par la vraie page locl
         });
+
+        this.retrievePlayerInfo();
     }
 
     async retrievePlayerInfo(){
@@ -368,6 +369,10 @@ export class HomePage extends HTMLElement{
             const isConnected = document.createElement('span');
             isConnected.classList.add('disconnected');
             this.querySelector(".user-section").appendChild(isConnected);
+            this.querySelector("#btn-jouer-jcj").innerHTML = "Se connecter"
+            this.querySelector("#btn-jouer-jcj").addEventListener("click" , () => {
+                window.location.hash = "LGN";
+            })
             console.log("Erreur lors de récup des infos du joueur : ", error);
         }
     }
