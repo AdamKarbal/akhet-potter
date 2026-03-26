@@ -1,5 +1,6 @@
 const manager = require('./manager');
 const { parseBody, sendResponse } = require('./utils');
+const {verifyToken} = require("./manager");
 
 async function handleLogin(req, res) {
     try {
@@ -57,4 +58,116 @@ async function handleRefresh(req, res) {
     }
 }
 
-module.exports = { handleLogin, handleSignup, handleRefresh };
+async function handleUserResearch(req, res) {
+        console.log("URL reçue :", req.url);
+        const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
+        const query = urlParams.get('username');
+
+        if(!query || query.length < 2) return sendResponse(res, 400, { error: "Recherche trop courte (min. 2 caractères)" });
+
+        const result = await manager.searchUsers(query);
+
+        if (result.error) {
+            return sendResponse(res, result.status, { error: result.error });
+        }
+
+        const users = result.users.map(u => ({
+            username: u.username,
+            rank: u.rank,
+            elo: u.elo
+        }));
+
+        return sendResponse(res, 200, users);
+}
+
+async function handleRequestsResearch(req, res) {
+    const userPayload = verifyToken(req);
+    const result = await manager.getFriendRequests(userPayload.username);
+    console.log("Résultat brut du manager :", result.users);
+
+    return sendResponse(res, 200, result.users);
+}
+
+async function handleDecisionRequest(req, res) {
+    try{
+        const userPayload = verifyToken(req);
+        if(!userPayload) return sendResponse(res, 401, { error: "Session expirée" });
+        const toUser = userPayload.username;
+        const { decision , fromUser } = await parseBody(req);
+        if(!decision || !fromUser || !toUser) return sendResponse(res, 400, { error: "Corps de la requête invalide" });
+
+        let result;
+        if (decision === "accept") {
+            result = await manager.acceptFriendRequest(fromUser, toUser);
+        } else {
+            result = await manager.denyFriendRequest(fromUser, toUser);
+        }
+
+        return sendResponse(res, result.status, { message: result.message });
+    }
+    catch(e) {
+        return sendResponse(res, 500, { error: "Erreur serveur" });
+    }
+}
+
+async function handleSendRequest(req, res) {
+    try{
+        const userPayload = verifyToken(req);
+        console.log("Utilisateur qui envoie sa requête :", userPayload?.username);
+        if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
+        const body = await parseBody(req);
+        const toUser = body.to;
+        console.log("Utilisateur qui reçoit la requête :", toUser);
+        const fromUser  = userPayload.username;
+        if(!fromUser || !toUser) return sendResponse(res, 401, { error: "Pas de noms d'utilisateurs liés à la demande d'amis" });
+        const result = await manager.addFriendRequest(fromUser, toUser);
+
+        return sendResponse(res, 200, result.status, { message: result.message });
+    }
+    catch(e) {
+        return sendResponse(res, 500, { error: "Erreur lors de l'envoi de la demande d'amis." });
+    }
+}
+
+async function handleGetFriendList(req, res) {
+    try{
+        const userPayload = verifyToken(req);
+        if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
+
+        const result = await manager.getFriendList(userPayload.username);
+
+        if(result.error) return sendResponse(res, 400, result.status, { message: result.message });
+
+        const friends = result.response.map(u => ({
+            username: u.username,
+            rank: u.rank,
+            elo: u.elo,
+        }));
+
+        return sendResponse(res, 200, friends);
+    }
+    catch(e) {
+        console.error(e);
+        return sendResponse(res, 500, { message: "Internal error" });
+    }
+}
+
+async function handleRemoveFriend(req, res){
+    try{
+        const userPayload = verifyToken(req);
+        const body = await parseBody(req);
+        if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
+
+        const result = await manager.removeFriend(userPayload.username, body.username);
+
+        if(result.error) sendResponse(res, 400, result.status, {message : result.message});
+
+        return sendResponse(res, 200, result.status, {message : result.message});
+    }
+    catch(e){
+        return sendResponse(res, 500, { message : "Erreur serveur : ", e})
+    }
+}
+
+
+module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList, handleRemoveFriend };

@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "jsonwebtoken": "^9.0.3",
-    "mongodb": "^6.21.0"
+    "mongodb": "^6.21.0",
+    "redis": "^5.11.0"
   }
 }

@@ -30,7 +30,7 @@ export class PlayerRank extends HTMLElement {
                     flex-direction: row;
                     align-items: center;
                     gap: 1vw;
-                    font-family: HarryPotter;
+                    font-family: Harry  Potter;
                     color: #c5a059;
                     font-size: 1.2em;
                     background: linear-gradient(
@@ -69,10 +69,26 @@ export class PlayerRank extends HTMLElement {
         `;
     }
 
-    setPlayerInfo(data){
-        this.querySelector('.userRank').innerHTML = `<img id="userRankImg" src=RANK_MAPPER[${data.rank}]>
-                    ${data.rank}`;
-        this.querySelector('.userElo').innerHTML = `<img id="userVOImg" src='assets/vifdor.png'> ${data.elo} Vifs d'Or`;
+    setPlayerInfo(data) {
+        const rankImg = this.querySelector('#userRankImg');
+        const userRankDiv = this.querySelector('.userRank');
+        const userEloDiv = this.querySelector('.userElo');
+
+        if (userRankDiv && data.rank) {
+            const imagePath = this.RANK_MAPPER[data.rank] || 'assets/annee2.png';
+
+            userRankDiv.innerHTML = `
+            <img id="userRankImg" src="${imagePath}">
+            ${data.rank}
+        `;
+        }
+
+        if (userEloDiv && data.elo !== undefined) {
+            userEloDiv.innerHTML = `
+            <img id="userVOImg" src="assets/vifdor.png"> 
+            ${data.elo} Vifs d'Or
+        `;
+        }
     }
 }
 

@@ -27,7 +27,8 @@ const server = http.createServer(function (request, response) {
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
             const route = filePath[2];
-            if (route === "login" || route === "signup" || route === "refresh") {
+            if (route === "login" || route === "signup" || route === "refresh" || route === "users"
+                || route === "requests" || route === "sendreq" || route === "friends" || route === "managereq") {
                 console.log(`[API] Redirection vers AuthService : ${route}`);
                 request.url = request.url.replace('/api', '');
                 proxy.web(request, response, { target: "http://auth:8002" });

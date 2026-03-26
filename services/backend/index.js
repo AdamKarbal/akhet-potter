@@ -7,6 +7,7 @@ const io = new Server(8003, { cors: { origin: "*"}});
 const games = new Map();
 const SECRET_KEY = process.env.JWT_SECRET;
 const waitingQueue = [];
+const connectedUsers = new Map();
 
 io.use((socket, next) => {
     const token = socket.handshake.auth.token;
@@ -33,6 +34,17 @@ io.use((socket, next) => {
 
 io.on("connection", (socket) => {
     console.log(`Joueur authentifié connecté : ${socket.username} (id:${socket.id})`);
+    connectedUsers.set(socket.username, socket.id);
+
+    socket.on("SEND_FRIEND_REQ", (data) => {
+        const targetSocketId = connectedUsers.get(data.to);
+        if(targetSocketId){
+            io.to(targetSocketId).emit('NEW_FRIEND_REQ', {
+                from: socket.username,
+                message: `Nouvelle demande d'ami de ${socket.username} !`
+            });
+        }
+    });
 
     socket.on("find-game", ()=> {
         console.log(`${socket.username} is looking for a game`);
@@ -134,6 +146,8 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         console.log(`Joueur déconnecté : ${socket.username}`);
+        connectedUsers.delete(socket.username);
+
         const index = waitingQueue.findIndex(s => s.id === socket.id);
         if (index !== -1) waitingQueue.splice(index, 1);
 
