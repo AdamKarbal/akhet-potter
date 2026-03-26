@@ -158,7 +158,7 @@ export class HomePage extends HTMLElement{
                 object-fit: contain;
             }
  
-            .btn-jouer {
+            #btn-jouer-jcj,  #btn-jouer-jco, #btn-jouer-local{
                 background: linear-gradient(135deg, #bfb432 0%, #9c6d16 100%);
                 color: #140f0a;
                 border: 2px solid #ffd700;
@@ -174,14 +174,14 @@ export class HomePage extends HTMLElement{
                 letter-spacing: 1px;
             }
 
-            .btn-jouer:hover {
+            #btn-jouer-jcj:hover ,  #btn-jouer-jco:hover , #btn-jouer-local:hover{
                 transform: scale(1.05);
                 background: linear-gradient(135deg, #ffd700 0%, #c5a059 100%);
                 box-shadow: 0 0 15px #ffd700;
                 color: #000;
             }
 
-            .btn-jouer:active {
+            #btn-jouer-jcj:active,  #btn-jouer-jco:active, #btn-jouer-local:active{
                 transform: scale(0.95);
                 box-shadow: 0 0 5px #ffd700;
             }
@@ -266,19 +266,19 @@ export class HomePage extends HTMLElement{
                         <p style="font-size: 1.2em; margin-bottom:auto;">Jouer contre Dumbeldore (IA)</p>
                         <img src="./../../../assets/JCO.png">
                         <p class="game-mode-desc">Entraînez vos sorts contre un professeur qui ajustera son niveau à votre convenance.</p>
-                        <button class="btn-jouer">Jouer</button>
+                        <button id="btn-jouer-jco">Jouer</button>
                     </div>
                     <div id="jcj">
                         <p style="font-size: 2em; margin-bottom : auto;">Jouer en ligne</p>
                         <img src="./../../../assets/JCJ.png">
                         <p class="game-mode-desc">Affrontez d'autres sorciers du monde dans des duels épiques.</p>
-                        <button class="btn-jouer">Jouer</button>
+                        <button id="btn-jouer-jcj">Jouer</button>
                     </div>
                     <div id="local">
                         <p style="font-size: 1.35em; margin-bottom : auto;">Jouer avec un ami en local</p>                        
                         <img src="./../../../assets/LOCAL.png">
                         <p class="game-mode-desc">Un duel à l'ancienne, sur le même grimoire.</p>
-                        <button class="btn-jouer">Jouer</button>
+                        <button id="btn-jouer-local">Jouer</button>
                     </div>
                 </div>
                 <div class="ranked-i"> Ici les infos de la ranked à remplir </div>
@@ -288,7 +288,19 @@ export class HomePage extends HTMLElement{
         this.retrievePlayerInfo();
         this.querySelector(".user-section").addEventListener("click", (e) => {
             window.location.hash = 'LGN';
-        })
+        });
+
+        this.querySelector("#btn-jouer-jcj").addEventListener("click", () => {
+            window.location.hash = 'JCJ';
+        });
+
+        this.querySelector("#btn-jouer-jco").addEventListener("click", () => {
+            window.location.hash = 'JCO';
+        });
+
+        this.querySelector("#btn-jouer-local").addEventListener("click", () => {
+            window.location.hash = 'JCO'; //TODO:A changer par la vraie page locl
+        });
     }
 
     async retrievePlayerInfo(){
