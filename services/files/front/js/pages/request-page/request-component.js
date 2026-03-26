@@ -1,5 +1,6 @@
 import { PlayerRank } from "../../components/rank/userRank.js";
 import { NavbarComponent } from "../../components/navbar-component/navbar-component.js";
+import {RequestService} from "../../services/RequestService.js";
 
 export class RequestComponent extends HTMLElement {
     constructor() {
@@ -159,8 +160,8 @@ export class RequestComponent extends HTMLElement {
             div.innerHTML = `
                 <span class="username">${user.username}</span>
                 <span class="rank"><player-rank></player-rank></span>
-                <button class="accept-btn">✅</button>
-                <button class="deny-btn">❌</button>
+                <button class="accept-btn">Accepter</button>
+                <button class="deny-btn">Refuser</button>
             `;
             list.appendChild(div);
 
@@ -168,7 +169,7 @@ export class RequestComponent extends HTMLElement {
             if (rankComp) rankComp.setPlayerInfo(user);
 
             div.querySelector('.accept-btn').addEventListener('click', async (e) => {
-                const success = await this.acceptFriendRequest(user.username);
+                const success = await this.RequestService.handleDecision(user.username, "accept");
                 if (success) {
                     e.target.innerText = "Accepté !";
                     e.target.disabled = true;
@@ -177,51 +178,11 @@ export class RequestComponent extends HTMLElement {
                 }
             });
 
-            div.querySelector('.deny-btn').addEventListener('click', (e) => {
-                this.denyFriendRequest(user.username);
-                div.remove();
+            div.querySelector('.deny-btn').addEventListener('click', async () => {
+                const success = await this.RequestService.handleDecision(user.username, "deny");
+                if (success) div.remove();
             });
         });
     }
-
-    async acceptFriendRequest(user) {
-        const token = localStorage.getItem('token');
-        try{
-            const response = await fetch(`/api/managereq`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ fromUser: user, decision: "accept"}),
-            });
-            return response.ok;
-        }
-        catch (error) {
-            console.log("Erreur lors de la gestion de demande:", error);
-            return false;
-        }
-    }
-
-    async denyFriendRequest(user) {
-        const token = localStorage.getItem('token');
-        try{
-            const response = await fetch(`/api/managereq`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ fromUser: user, decision: "deny"}),
-            });
-            if(response.ok) {
-                console.log("Demande refusée.")
-            }
-        }
-        catch (error) {
-            console.log("Erreur lors de la gestion de demande:", error);
-        }
-    }
 }
-
 customElements.define('request-component', RequestComponent);

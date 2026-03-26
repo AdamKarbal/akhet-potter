@@ -30,7 +30,7 @@ export class NavbarComponent extends HTMLElement{
                 width: fit-content;
             }
             
-            #social-btn > img{
+            #social-btn > img, #help > img, #play-btn > img, #request-btn > img{
                 width: 90%;
                 height: auto;
                 padding-left: 4px;
@@ -41,12 +41,6 @@ export class NavbarComponent extends HTMLElement{
             width: fit-content;
             }
             
-            #request-btn > img{
-                width: 90%;
-                height: auto;
-                padding-left: 4px;
-                padding-right: 4px;
-            }
             
             #request-btn{
             width: fit-content;
@@ -68,7 +62,7 @@ export class NavbarComponent extends HTMLElement{
         </style>
         
         <div class="navbar">
-            <div class="navElem"><img src="assets/jouer.png"></div>
+            <div id="play-btn"><img src="assets/jouer.png"></div>
             <div class="navElem"><img src="assets/globalchat.png"></div>
             <div id="social-btn"><img src="assets/social.png"></div>
             <div class="navElem"><img src="assets/reglages.png"></div>
@@ -85,6 +79,11 @@ export class NavbarComponent extends HTMLElement{
         const requBtn = document.getElementById('request-btn');
         requBtn.addEventListener('click', () => {
             window.location.hash = 'REQ';
+        });
+
+        const playBtn = document.getElementById("play-btn")
+        playBtn.addEventListener('click', () => {
+            window.location.hash = '';
         });
     }
 }

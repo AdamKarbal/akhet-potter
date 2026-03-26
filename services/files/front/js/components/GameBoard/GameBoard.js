@@ -33,13 +33,11 @@ export class GameBoard extends HTMLElement {
 
     setupSocketListeners(){
         this.socket.on("init-state", (state) => {
-            console.log("Etat initial reçu du serveur.");
             this.renderer.gameState = state;
             this.renderer.renderAll();
         })
 
         this.socket.on("game-update", (data) => {
-            console.log("Mise à jour reçue :", data);
             this.renderer.gameState = data;
             this.renderer.renderAll();
 
@@ -78,6 +76,11 @@ export class GameBoard extends HTMLElement {
 
     showWaitingScreen() {
         this.renderer.drawWaitingScreen();
+    }
+
+    disconnectedCallback() {
+        this.socket.off("init-state");
+        this.socket.off("game-update");
     }
 }
 customElements.define('game-board', GameBoard);

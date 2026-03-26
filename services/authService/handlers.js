@@ -152,5 +152,22 @@ async function handleGetFriendList(req, res) {
     }
 }
 
+async function handleRemoveFriend(req, res){
+    try{
+        const userPayload = verifyToken(req);
+        const body = await parseBody(req);
+        if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
 
-module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList };
+        const result = await manager.removeFriend(userPayload.username, body.username);
+
+        if(result.error) sendResponse(res, 400, result.status, {message : result.message});
+
+        return sendResponse(res, 200, result.status, {message : result.message});
+    }
+    catch(e){
+        return sendResponse(res, 500, { message : "Erreur serveur : ", e})
+    }
+}
+
+
+module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList, handleRemoveFriend };

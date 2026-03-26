@@ -12,6 +12,7 @@ async function routeRequest(req, res) {
         if (url === '/refresh') return await handlers.handleRefresh(req, res);
         if (url === '/managereq') return await handlers.handleDecisionRequest(req, res);
         if (url === '/sendreq') return await handlers.handleSendRequest(req, res);
+        if(url === '/removefriend') return await handlers.handleRemoveFriend(req, res);
     }
 
     if (req.method === 'GET') {

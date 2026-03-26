@@ -1,5 +1,5 @@
-import { PlayerRank } from "../rank/userRank.js";
-import { NavbarComponent } from "../navbar-component/navbar-component.js";
+import { socket } from "../../socket.js";
+import { RequestService} from "../../services/RequestService.js";
 
 export class SOCIALComponent extends HTMLElement {
     constructor() {
@@ -50,7 +50,6 @@ export class SOCIALComponent extends HTMLElement {
                 gap: 1.5rem;
             }
 
-            /* Titres avec dégradé doré et lueur magique */
             #friendTitle, .searchbar-label {
                 font-family: HarryPotter;
                 font-size: 2em;
@@ -288,7 +287,7 @@ export class SOCIALComponent extends HTMLElement {
 
     async sendFriendRequest(targetUser, button) {
         button.disabled = true;
-        button.innerText = "Sortilège...";
+        button.innerText = "Envoi...";
         try {
             const fromUser = localStorage.getItem('token');
             const response = await fetch(`/api/sendreq`, {
@@ -304,6 +303,7 @@ export class SOCIALComponent extends HTMLElement {
 
             if(response.ok){
                 button.innerText = "Envoyé !";
+                socket.emit("SEND_FRIEND_REQ", { to: targetUser });
             } else {
                 button.disabled = false;
                 button.innerText = "Ajouter";
@@ -341,6 +341,14 @@ export class SOCIALComponent extends HTMLElement {
 
                     const rankComp = div.querySelector('player-rank');
                     if (rankComp) rankComp.setPlayerInfo(friend);
+
+                    div.querySelector('.remove-btn').addEventListener('click', (e) => {
+                        const success = this.RequestService.deleteFriend(friend.username);
+
+                        if(success){
+                            div.remove();
+                        }
+                    });
                 });
             }
         }

@@ -1,4 +1,4 @@
-import { API_URL } from '../../../config.js';
+import { socket } from "../../socket.js"
 
 export class AuthModalComponent extends HTMLElement {
     constructor() {
@@ -139,8 +139,11 @@ export class AuthModalComponent extends HTMLElement {
                     if (isLogin) {
                         localStorage.setItem('token', data.token);
                         localStorage.setItem('username', username);
-                        alert("Connexion réussie !");
-                        this.close();
+
+                        socket.auth.token = data.token;
+                        socket.connect();
+
+                        window.location.hash = '';
                     } else {
                         alert("Inscription réussie ! Connectez-vous.");
                         this.openForLogin();

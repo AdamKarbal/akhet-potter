@@ -35,7 +35,7 @@ async function signup(username, password) {
     const existing = await getUser(username);
     if (existing) return { error: "Existe déjà", status: 409 };
     const users = getCollection('users');
-    await users.insertOne({ username, password, elo: 1000, rank: "1ère année", friends: [] });
+    await users.insertOne({ username, password, elo: 500, rank: "1ère année", friends: [] });
     return { message: "Utilisateur créé", status: 201 };
 }
 
@@ -165,13 +165,33 @@ async function getFriendRequests(toUser) {
 async function getFriendList(ofUser){
     const usersCollection = await getCollection('users');
     const userDoc = await getUser(ofUser);
-    if (!userDoc || !userDoc.friends) return { response: [], status: 200 };
+    if (!userDoc || !userDoc.friends) return { response: [], status: 404 };
 
     const response = await usersCollection.find({
         username: { $in: userDoc.friends }
     }).toArray();
 
     return { response, status: 200 };
+}
+
+async function removeFriend(username, friend){
+    const users = getCollection('users');
+
+    const aller = await users.updateOne(
+        { username : username },
+        { $pull: { friends: friend } }
+    )
+
+    const retour = await users.updateOne(
+        { username : friend },
+        { $pull: { friends: username } }
+    )
+
+    if(aller.modifiedCount === 0 || retour.modifiedCount === 0){
+        return { message : "Aucune modification apportée (déjà retiré ou inexistant (innatendu)", status : 404 }
+    }
+
+    return { message : "Suppression effectuée", status : 200}
 }
 
 
