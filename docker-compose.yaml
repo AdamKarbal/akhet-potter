@@ -15,8 +15,7 @@ services:
     build: ./services/authService
     restart: always
     environment:
-      - MONGO_URL=mongodb://db:27017
-      - JWT_SECRET=super_secret_key
+      - .env
     networks:
       - app-network
     depends_on:
@@ -37,8 +36,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - AUTH_URL=http://auth:8002
-      - FILES_URL=http://files:8001
+      - .env
     networks:
       - app-network
     depends_on:
@@ -53,7 +51,7 @@ services:
     networks:
       - app-network
     environment:
-      - JWT_SECRET=super_secret_key
+      - .env
 
 volumes:
   mongo-data:

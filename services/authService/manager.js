@@ -1,17 +1,18 @@
 const { getUser, getCollection } = require('./database');
 const jwt = require('jsonwebtoken');
 
-const SECRET_KEY = process.env.JWT_SECRET || 'akhetpottermeilleurjeu';
-const REFRESH_SECRET = process.env.REFRESH_SECRET || 'akhetpotterrefresh';
+const SECRET_KEY = process.env.JWT_SECRET;
+const REFRESH_SECRET = process.env.REFRESH_SECRET;
 
 function verifyToken(req) {
+    console.log("ready to verify token")
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) return null;
-
     try {
         return jwt.verify(token, SECRET_KEY);
     } catch (e) {
+        console.log("Something went wrong with the token verification")
         return null;
     }
 }
