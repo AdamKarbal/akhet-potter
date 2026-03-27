@@ -6,6 +6,7 @@ import '../../components/GameBoard/GameBoard.js'
 import '../../components/quit-component/quit-component.js'
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 import {API_URL} from "../../../config.js";
+import { audioService } from "../../services/AudioService.js";
 
 export class MatchComponent extends HTMLElement{
     constructor() {
@@ -88,6 +89,7 @@ export class MatchComponent extends HTMLElement{
             <player-layout id="pl2"></player-layout>
         </div>
     `;
+
         const token = localStorage.getItem("token");
         this.socket = io(API_URL, {
             path: "/socket.io",
@@ -123,12 +125,6 @@ export class MatchComponent extends HTMLElement{
                 inGameChat.setGameId(matchInfo.gameId);
             }
         });
-    }
-
-    disconnectedCallback() {
-        if(this.socket){
-            this.socket.disconnect();
-        }
     }
 }
 

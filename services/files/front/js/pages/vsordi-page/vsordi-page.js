@@ -5,6 +5,7 @@ import '../../components/navbar-component/navbar-component.js'
 import '../../components/GameBoard/GameBoard.js'
 import '../../components/AI-layout/ai-layout.js'
 import {API_URL} from "../../../config.js";
+import {audioService} from "../../services/AudioService.js";
 
 export class JcOComponent extends HTMLElement{
     constructor() {

@@ -6,6 +6,7 @@ import './pages/request-page/request-component.js'
 import './pages/home-page/home-page.js'
 import { RequestService } from './services/RequestService.js'
 import { socket } from "./socket.js";
+import {audioService} from "./services/AudioService.js";
 
 function initGlobalNotifications() {
     socket.on("NEW_FRIEND_REQ", (data) => {
@@ -74,32 +75,44 @@ function updateView() {
 
     if (hash === '#JCJ') {
         console.log("Mode JcJ activé");
+        audioService.stopMainTheme();
+        audioService.playInGameTheme();
         app.innerHTML = '';
         app.innerHTML = '<match-page></match-page>';
 
     }
     else if (hash === '#JCO') {
+        audioService.stopMainTheme();
+        audioService.playInGameTheme();
         console.log("Mode JcO activé");
         app.innerHTML = '';
         app.innerHTML = '<vsordi-page></vsordi-page>';
 
     }
     else if(hash === '#SOC'){
+        audioService.stopInGameTheme();
+        audioService.playMainTheme();
         console.log("Page sociale activée");
         app.innerHTML = '';
         app.innerHTML = '<social-component></social-component>';
     }
     else if (hash === '#LGN') {
+        audioService.stopInGameTheme();
+        audioService.playMainTheme();
         console.log("Page login activé");
         app.innerHTML = '';
         app.innerHTML = '<login-page></login-page>';
     }
     else if (hash === '#REQ') {
+        audioService.stopInGameTheme();
+        audioService.playMainTheme();
         console.log("Page demande d'amis activé");
         app.innerHTML = '';
         app.innerHTML = '<request-component></request-component>';
     }
     else {
+        audioService.stopInGameTheme();
+        audioService.playMainTheme();
         app.innerHTML = '';
         app.innerHTML = `
             <home-page></home-page>

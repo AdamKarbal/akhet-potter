@@ -1,3 +1,4 @@
+import { audioService } from "../../services/AudioService.js";
 
 export class HomePage extends HTMLElement{
 
@@ -301,7 +302,12 @@ export class HomePage extends HTMLElement{
             window.location.hash = 'JCO'; //TODO:A changer par la vraie page locl
         });
 
+        audioService.playMainTheme();
         this.retrievePlayerInfo();
+
+        /*window.addEventListener("click" , () => {
+            audioService.playMainTheme();
+        })*/
     }
 
     async retrievePlayerInfo(){
