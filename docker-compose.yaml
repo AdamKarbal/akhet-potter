@@ -15,6 +15,8 @@ services:
     build: ./services/authService
     restart: always
     environment:
+      - MONGO_URL=mongodb://db:27017
+    env_file:
       - .env
     networks:
       - app-network
@@ -36,7 +38,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - .env
+      - AUTH_URL=http://auth:8002
+      - FILES_URL=http://files:8001
     networks:
       - app-network
     depends_on:
@@ -50,7 +53,7 @@ services:
       - "8003:8003"
     networks:
       - app-network
-    environment:
+    env_file:
       - .env
 
 volumes:
