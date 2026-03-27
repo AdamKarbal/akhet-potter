@@ -4,6 +4,8 @@ services:
   db:
     image: mongo
     restart: always
+    ports:
+      - "27017:27017"
     volumes:
       - mongo-data:/data/db
     networks:
@@ -25,6 +27,9 @@ services:
     restart: always
     networks:
       - app-network
+    volumes:
+      - ./services/files:/app
+      - /app/node_modules
 
   gateway:
     build: ./services/gateway
