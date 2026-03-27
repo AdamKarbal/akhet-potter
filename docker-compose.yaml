@@ -45,6 +45,7 @@ services:
     depends_on:
       - auth
       - files
+      - social
 
   game:
     build: ./services/backend
@@ -55,6 +56,14 @@ services:
       - app-network
     env_file:
       - .env
+
+  social:
+    build: ./services/socialService
+    restart: always
+    environment:
+      - JWT_SECRET=super_secret_key
+    networks:
+      - app-network
 
 volumes:
   mongo-data:
