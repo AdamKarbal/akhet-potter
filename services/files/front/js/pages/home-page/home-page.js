@@ -316,6 +316,8 @@ export class HomePage extends HTMLElement{
                 }
             });
 
+            console.log("DEBUG resp homepage : ", response);
+
             const username = document.createElement('div');
             const rank = document.createElement('div');
             const elo = document.createElement('div');
@@ -363,6 +365,17 @@ export class HomePage extends HTMLElement{
                 isConnected.classList.add('connected');
                 this.querySelector(".user-section").appendChild(isConnected);
                 this.querySelector("#username").innerHTML = user.username;
+            }
+            else{
+                const refresh = await fetch("/api/refresh" , {
+                    method : 'POST'
+                });
+
+                if(refresh.ok){
+                    const data = await refresh.json();
+                    localStorage.setItem('token', data.accessToken);
+                    this.retrievePlayerInfo();
+                }
             }
         }
         catch(error){

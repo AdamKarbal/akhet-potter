@@ -343,7 +343,7 @@ export class SOCIALComponent extends HTMLElement {
                     if (rankComp) rankComp.setPlayerInfo(friend);
 
                     div.querySelector('.remove-btn').addEventListener('click', (e) => {
-                        const success = this.RequestService.deleteFriend(friend.username);
+                        const success = RequestService.deleteFriend(friend.username);
 
                         if(success){
                             div.remove();

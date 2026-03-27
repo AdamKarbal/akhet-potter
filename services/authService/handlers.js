@@ -59,16 +59,20 @@ async function handleRefresh(req, res) {
 }
 
 async function handleUserResearch(req, res) {
+
+    try {
+        const token = verifyToken(req);
+        console.log("DEBUG TOKEN HANDLER :", token);
         console.log("URL reçue :", req.url);
         const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
         const query = urlParams.get('username');
 
-        if(!query || query.length < 2) return sendResponse(res, 400, { error: "Recherche trop courte (min. 2 caractères)" });
+        if (!query || query.length < 2) return sendResponse(res, 400, {error: "Recherche trop courte (min. 2 caractères)"});
 
         const result = await manager.searchUsers(query);
 
         if (result.error) {
-            return sendResponse(res, result.status, { error: result.error });
+            return sendResponse(res, result.status, {error: result.error});
         }
 
         const users = result.users.map(u => ({
@@ -78,10 +82,21 @@ async function handleUserResearch(req, res) {
         }));
 
         return sendResponse(res, 200, users);
+    }
+    catch(e){
+        console.error(e);
+        return sendResponse(res, 401, { error: "Erreur interne : token invalide" });
+    }
 }
 
 async function handleRequestsResearch(req, res) {
     const userPayload = verifyToken(req);
+    console.log("DEBUG Payload reçu :", userPayload);
+
+    if (!userPayload || !userPayload.username) {
+        return sendResponse(res, 401, { error: "Non autorisé : Token invalide ou expiré" });
+    }
+
     const result = await manager.getFriendRequests(userPayload.username);
     console.log("Résultat brut du manager :", result.users);
 
@@ -169,5 +184,22 @@ async function handleRemoveFriend(req, res){
     }
 }
 
+async function handleLogout(req, res) {
+    try{
+        const userPayload = verifyToken(req);
+        if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
 
-module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList, handleRemoveFriend };
+        const result = await manager.logout();
+
+        res.setHeader('Set-Cookie', result.cookie);
+
+        return sendResponse(res, 200, {message : "Déconnexion réussie."});
+    }
+    catch(e) {
+        console.error("Erreur handler logout :", e);
+        return sendResponse(res, 500, { message: "Erreur handler logout : " , e });
+    }
+}
+
+
+module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList, handleRemoveFriend, handleLogout };

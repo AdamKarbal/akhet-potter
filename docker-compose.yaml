@@ -16,7 +16,8 @@ services:
     restart: always
     environment:
       - MONGO_URL=mongodb://db:27017
-      - JWT_SECRET=super_secret_key
+    env_file:
+      - .env
     networks:
       - app-network
     depends_on:
@@ -53,8 +54,8 @@ services:
       - "8003:8003"
     networks:
       - app-network
-    environment:
-      - JWT_SECRET=super_secret_key
+    env_file:
+      - .env
 
   social:
     build: ./services/socialService
