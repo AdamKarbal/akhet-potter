@@ -59,9 +59,12 @@ async function handleRefresh(req, res) {
 }
 
 async function handleUserResearch(req, res) {
-
     try {
         const token = verifyToken(req);
+        if (!token) {
+            return sendResponse(res, 401, { error: "Non autorisé: Token manquant ou invalide" });
+        }
+
         console.log("DEBUG TOKEN HANDLER :", token);
         console.log("URL reçue :", req.url);
         const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
