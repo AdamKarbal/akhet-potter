@@ -1,3 +1,4 @@
+
 export class NavbarComponent extends HTMLElement{
     constructor(){
         super();
@@ -48,10 +49,21 @@ export class NavbarComponent extends HTMLElement{
             
             #help{
                 width: 55px;
-                margin-top: 12rem;
+                margin-top: 8rem;
             }
             
             #help > img{
+                width: 90%;
+                height: auto;
+                padding-left: 4px;
+                padding-right: 4px;
+            }
+            
+            #logout-btn{
+                width: 55px;
+            }
+            
+            #logout-btn > img{
                 width: 90%;
                 height: auto;
                 padding-left: 4px;
@@ -68,6 +80,7 @@ export class NavbarComponent extends HTMLElement{
             <div class="navElem"><img src="assets/reglages.png"></div>
             <div id="request-btn"><img src="assets/request.png"></div>
             <div id="help"><img src="assets/aide.png"></div>
+            <div id="logout-btn"><img src="assets/logout.png"></div>
         </div>
         `;
 
@@ -85,6 +98,30 @@ export class NavbarComponent extends HTMLElement{
         playBtn.addEventListener('click', () => {
             window.location.hash = '';
         });
+
+        const logoutBtn = document.getElementById('logout-btn');
+
+        logoutBtn.addEventListener('click', async () => {
+            const token = localStorage.getItem('token');
+            try{
+                const response = await fetch("/api/logout", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if(response.ok){
+                    window.location.hash = 'LGN';
+                    localStorage.clear();
+                    window.location.reload();
+                }
+            }
+            catch(error){
+                console.log("Erreur lors de la déconnexion: " , error);
+            }
+        })
     }
 }
 

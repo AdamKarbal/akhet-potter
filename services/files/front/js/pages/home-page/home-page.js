@@ -366,6 +366,17 @@ export class HomePage extends HTMLElement{
                 this.querySelector(".user-section").appendChild(isConnected);
                 this.querySelector("#username").innerHTML = user.username;
             }
+            else{
+                const refresh = await fetch("/api/refresh" , {
+                    method : 'POST'
+                });
+
+                if(refresh.ok){
+                    const data = await refresh.json();
+                    localStorage.setItem('token', data.accessToken);
+                    this.retrievePlayerInfo();
+                }
+            }
         }
         catch(error){
             const isConnected = document.createElement('span');

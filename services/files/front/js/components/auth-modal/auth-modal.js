@@ -125,10 +125,9 @@ export class AuthModalComponent extends HTMLElement {
             const password = passwordInput.value;
             const isLogin = title.innerText === "Se connecter";
             const endpoint = isLogin ? '/api/login' : '/api/signup';
-            const url = endpoint;
 
             try {
-                const response = await fetch(url, {
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })

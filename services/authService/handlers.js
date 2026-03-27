@@ -184,5 +184,22 @@ async function handleRemoveFriend(req, res){
     }
 }
 
+async function handleLogout(req, res) {
+    try{
+        const userPayload = verifyToken(req);
+        if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
 
-module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList, handleRemoveFriend };
+        const result = await manager.logout();
+
+        res.setHeader('Set-Cookie', result.cookie);
+
+        return sendResponse(res, 200, {message : "Déconnexion réussie."});
+    }
+    catch(e) {
+        console.error("Erreur handler logout :", e);
+        return sendResponse(res, 500, { message: "Erreur handler logout : " , e });
+    }
+}
+
+
+module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList, handleRemoveFriend, handleLogout };
