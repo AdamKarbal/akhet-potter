@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const SECRET_KEY = process.env.JWT_SECRET || 'akhetpottermeilleurjeu';
+const SECRET_KEY = process.env.JWT_SECRET;
 
 function setupSockets(io) {
     io.use((socket, next) => {

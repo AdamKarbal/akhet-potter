@@ -60,8 +60,8 @@ services:
   social:
     build: ./services/socialService
     restart: always
-    environment:
-      - JWT_SECRET=super_secret_key
+    env_file:
+      - .env
     networks:
       - app-network
 
