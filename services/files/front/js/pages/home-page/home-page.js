@@ -316,6 +316,8 @@ export class HomePage extends HTMLElement{
                 }
             });
 
+            console.log("DEBUG resp homepage : ", response);
+
             const username = document.createElement('div');
             const rank = document.createElement('div');
             const elo = document.createElement('div');

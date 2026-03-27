@@ -22,7 +22,7 @@ async function login(username, password) {
     if (user.password !== password) return { error: "Mot de passe incorrect", status: 401 };
     const payload = {
         username: user.username,
-        elo: user.elo || 1000,
+        elo: user.elo || 500,
         rank: user.rank || "1ère Année",
         friends: user.friends || [],
     };
@@ -195,4 +195,4 @@ async function removeFriend(username, friend){
 }
 
 
-module.exports = { login, signup, refresh, searchUsers, acceptFriendRequest, addFriendRequest, denyFriendRequest, getFriendRequests,verifyToken, getFriendList };
+module.exports = { login, signup, refresh, searchUsers, acceptFriendRequest, addFriendRequest, denyFriendRequest, getFriendRequests,verifyToken, getFriendList, removeFriend };

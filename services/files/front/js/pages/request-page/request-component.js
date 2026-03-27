@@ -169,7 +169,7 @@ export class RequestComponent extends HTMLElement {
             if (rankComp) rankComp.setPlayerInfo(user);
 
             div.querySelector('.accept-btn').addEventListener('click', async (e) => {
-                const success = await this.RequestService.handleDecision(user.username, "accept");
+                const success = await RequestService.handleDecision(user.username, "accept");
                 if (success) {
                     e.target.innerText = "Accepté !";
                     e.target.disabled = true;
@@ -179,7 +179,7 @@ export class RequestComponent extends HTMLElement {
             });
 
             div.querySelector('.deny-btn').addEventListener('click', async () => {
-                const success = await this.RequestService.handleDecision(user.username, "deny");
+                const success = await RequestService.handleDecision(user.username, "deny");
                 if (success) div.remove();
             });
         });
