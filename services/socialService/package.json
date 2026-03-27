@@ -1,0 +1,13 @@
+{
+  "name": "social-service",
+  "version": "1.0.0",
+  "description": "Service gérant le chat",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.7.4"
+  }
+}

@@ -1,3 +1,5 @@
+import '../global-chat-component/global-chat-component.js'
+
 export class NavbarComponent extends HTMLElement{
     constructor(){
         super();
@@ -63,15 +65,26 @@ export class NavbarComponent extends HTMLElement{
         
         <div class="navbar">
             <div id="play-btn"><img src="assets/jouer.png"></div>
-            <div class="navElem"><img src="assets/globalchat.png"></div>
+            <div class="navElem" id="btn-globalchat"><img src="assets/globalchat.png" title="Chat Global"></div>
             <div id="social-btn"><img src="assets/social.png"></div>
             <div class="navElem"><img src="assets/reglages.png"></div>
             <div id="request-btn"><img src="assets/request.png"></div>
             <div id="help"><img src="assets/aide.png"></div>
         </div>
+
+        <global-chat id="my-global-chat"></global-chat>
         `;
 
-        const socialBtn = document.getElementById('social-btn');
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        const btnChat = this.querySelector('#btn-globalchat');
+        const globalChatModal = this.querySelector('#my-global-chat');
+        btnChat.onclick = () => {
+            globalChatModal.toggle();
+        };
+              const socialBtn = document.getElementById('social-btn');
         socialBtn.addEventListener('click', () => {
             window.location.hash = 'SOC';
         });
