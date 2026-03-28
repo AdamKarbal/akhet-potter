@@ -1,13 +1,18 @@
-import { PIECE_TYPE, DIRECTION } from "../Model/model.js";
+import { PIECE_TYPE } from "../Model/model.js";
 import {MOVEMENT_DELTAS, SCARAB_BACKSLASH, SCARAB_SLASH, PYRAMID_REFLECTIONS} from '../Model/ReflectionHelper.js'
 
 export class LaserPhysics {
+
+    static makeCellKey(x, y) {
+        return `${x},${y}`;
+    }
 
     static getPath(board, player) {
         const sphinxData = this.findSphinx(board, player.id);
         if (!sphinxData) return { path: [], hits: [] };
         const path = [];
         const hits = [];
+        const destroyedCells = new Set();
         let { x: cx, y: cy } = sphinxData;
         let dir = sphinxData.piece.rotation;
         for (let step = 0; step < 100; step++) {
@@ -19,14 +24,17 @@ export class LaserPhysics {
                 path.push({ x: cx, y: cy, direction: dir });
                 break;
             }
-            const piece = board.getPiece(cx, cy);
+
+            const cellKey = this.makeCellKey(cx, cy);
+            const piece = destroyedCells.has(cellKey) ? null : board.getPiece(cx, cy);
             if (piece) {
                 path.push({ x: cx, y: cy, direction: dir });
                 const result = this.calculateReflection(piece, dir);
                 if (result === 'BLOCK') break;
                 if (result === 'HIT') {
                     hits.push({ x: cx, y: cy, piece });
-                    break;
+                    destroyedCells.add(cellKey);
+                    continue;
                 }
                 dir = result;
             }

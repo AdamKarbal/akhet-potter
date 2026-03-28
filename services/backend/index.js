@@ -15,6 +15,9 @@ const GAME_MODE = {
     AI: "AI"
 };
 
+const HUMAN_TURN_ANIMATION_DELAY_MS = 1200;
+const AI_TURN_ANIMATION_DELAY_MS = 650;
+
 // gameId -> GAME_MODE.PVP | GAME_MODE.AI
 const gameModes = new Map();
 
@@ -41,23 +44,79 @@ function finishTrackedGame(gameId) {
     gameModes.delete(gameId);
 }
 
+function finalizeProcessingTurn(game) {
+    if (!game?.engine) return null;
+    game.engine.isProcessingTurn = false;
+    game.engine.lastLaserResult = null;
+    return game.engine.getState();
+}
+
+function finalizeAndEmit(gameId, manager) {
+    const game = manager.games.get(gameId);
+    if (!game) return null;
+    const state = finalizeProcessingTurn(game);
+    if (state) {
+        io.to(gameId).emit("game-update", state);
+    }
+    return state;
+}
+
+async function maybePlayAiTurn(gameId) {
+    const {manager, mode} = getManagerForGame(gameId);
+    if (mode !== GAME_MODE.AI || manager !== aiManager) return;
+
+    const game = aiManager.games.get(gameId);
+    if (!game || !game.ai || game.engine.winner || game.engine.turn !== 2) return;
+
+    const aiResult = await aiManager.playAiTurn(gameId);
+    if (!aiResult) {
+        io.to(gameId).emit("game-closed", "Erreur: l'IA n'est pas capable de jouer sur cette partie.");
+        finishTrackedGame(gameId);
+        return;
+    }
+    if (aiResult.error) {
+        io.to(gameId).emit("game-closed", aiResult.error);
+        finishTrackedGame(gameId);
+        return;
+    }
+
+    if (aiResult.isProcessingTurn) {
+        // Important: on émet d'abord l'état de tir IA pour que le front puisse rendre le laser.
+        io.to(gameId).emit("game-update", aiResult);
+        setTimeout(() => {
+            finalizeAndEmit(gameId, aiManager);
+        }, AI_TURN_ANIMATION_DELAY_MS);
+        return;
+    }
+
+    io.to(gameId).emit("game-update", aiResult);
+}
+
 io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
+    const token = socket.handshake.auth?.token;
 
     if (!token) {
-        console.log("No token found. Acces denied");
-        return next(new Error("No token found."));
+        socket.isAuthenticated = false;
+        socket.username = `Guest_${socket.id.slice(0, 6)}`;
+        socket.rank = "N/A";
+        socket.elo = 0;
+        return next();
     }
 
     try {
         const decoded = jwt.verify(token, SECRET_KEY);
+        socket.isAuthenticated = true;
         socket.username = decoded.username;
         socket.rank = decoded.rank;
         socket.elo = decoded.elo;
         next();
     } catch (err) {
-        console.log(err);
-        next(new Error("Invalid token"));
+        console.log("Invalid token, fallback en invité:", err.message);
+        socket.isAuthenticated = false;
+        socket.username = `Guest_${socket.id.slice(0, 6)}`;
+        socket.rank = "N/A";
+        socket.elo = 0;
+        next();
     }
 });
 
@@ -78,6 +137,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("find-game", () => {
+        if (!socket.isAuthenticated) {
+            socket.emit("game-closed", "Connecte-toi pour jouer en 1v1 en ligne.");
+            return;
+        }
+
         console.log(`${socket.username} is looking for a game`);
 
         const existingIndex = waitingQueue.findIndex(s => s.username === socket.username);
@@ -175,9 +239,6 @@ io.on("connection", (socket) => {
             return;
         }
 
-        const gameBefore = manager.games.get(data.gameId);
-        const previousTurn = gameBefore?.engine?.turn;
-
         const result = await manager.handleAction(data.gameId, socket.id, data);
         if (!result) {
             console.log("Erreur : Impossible de traiter l'action pour la partie", data.gameId);
@@ -191,31 +252,16 @@ io.on("connection", (socket) => {
 
         if (result.isProcessingTurn) {
             setTimeout(async () => {
-                const game = manager.games.get(data.gameId);
-                if (!game) return;
-
-                game.engine.isProcessingTurn = false;
-                game.engine.lastLaserResult = null;
-                io.to(data.gameId).emit("game-update", game.engine.getState());
-
-                const shouldPlayAI = mode === GAME_MODE.AI && game.ai && previousTurn === 1 && game.engine.turn === 2 && !game.engine.winner;
-                if (!shouldPlayAI) return;
-
-                const aiResult = await aiManager.playAiTurn(data.gameId);
-                if (!aiResult || aiResult.error) return;
-
-                io.to(data.gameId).emit("game-update", aiResult);
-
-                if (aiResult.isProcessingTurn) {
-                    setTimeout(() => {
-                        const updatedGame = aiManager.games.get(data.gameId);
-                        if (!updatedGame) return;
-                        updatedGame.engine.isProcessingTurn = false;
-                        updatedGame.engine.lastLaserResult = null;
-                        io.to(data.gameId).emit("game-update", updatedGame.engine.getState());
-                    }, 1200);
+                finalizeAndEmit(data.gameId, manager);
+                if (mode === GAME_MODE.AI) {
+                    await maybePlayAiTurn(data.gameId);
                 }
-            }, 1200);
+            }, HUMAN_TURN_ANIMATION_DELAY_MS);
+            return;
+        }
+
+        if (mode === GAME_MODE.AI) {
+            await maybePlayAiTurn(data.gameId);
         }
     });
 
