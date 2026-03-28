@@ -1,17 +1,8 @@
 import {GameManager} from "./GameManager.js";
 import {GameEngine} from "./GameEngine.js";
 import {PLAYER, PIECE_TYPE} from "../Model/model.js";
+import {buildGameEntry} from "./ManagerHelper.js";
 import {nextMove, setup} from "../akhet-potter.js";
-
-function rotationToExternal(rotation) {
-  switch (rotation) {
-    case 0: return 0;
-    case 90: return 9;
-    case 180: return 90;
-    case 270: return 99;
-    default: throw new Error(`Rotation invalide: ${rotation}`);
-  }
-}
 
 function toSetupCoordinates(cell, rotation) {
   const dir = Math.floor(rotation / 90) % 4;
@@ -72,14 +63,7 @@ export class AIGameManager extends GameManager {
     }
 
     const engine = new GameEngine();
-    this.games.set(gameId, {
-      engine,
-      players: {[player1Id]: PLAYER.P1},
-      p1_id: player1Id,
-      p2_id: null,
-      revenges: 0,
-      ai: true
-    });
+    this.games.set(gameId, buildGameEntry({player1Id, player2Id: null, engine, ai: true}));
 
     try {
       await this.runWithAiLock(() => this.initializeAI(gameId));
