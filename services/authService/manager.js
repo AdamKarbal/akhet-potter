@@ -38,13 +38,20 @@
         return { accessToken, refreshToken, message: "Succès", status: 200 };
     }
 
-    async function signup(username, password) {
-
+    async function signup(username, password, securityQuestion, securityAnswer) {
         const existing = await getUser(username);
         if (existing) return { error: "Existe déjà", status: 409 };
 
         const users = getCollection('users');
-        await users.insertOne({ username, password, elo: 500, rank: "1ère année", friends: [] });
+        await users.insertOne({
+            username,
+            password,
+            securityQuestion,
+            securityAnswer,
+            elo: 500,
+            rank: "1ère année",
+            friends: []
+        });
 
         return { message: "Utilisateur créé", status: 201 };
     }
@@ -214,4 +221,26 @@
         }
     }
 
-    module.exports = { login, signup, refresh, searchUsers, acceptFriendRequest, addFriendRequest, denyFriendRequest, getFriendRequests,verifyToken, getFriendList, removeFriend, logout };
+    async function getSecurityQuestion(username) {
+        const user = await getUser(username);
+        if (!user) return { error: "Utilisateur introuvable", status: 404 };
+        if (!user.securityQuestion) return { error: "Cet utilisateur n'a pas de question de sécurité", status: 400 };
+
+        return { question: user.securityQuestion, status: 200 };
+    }
+
+    async function resetPassword(username, securityAnswer, newPassword) {
+        const user = await getUser(username);
+        if (!user) return { error: "Utilisateur introuvable", status: 404 };
+        if (user.securityAnswer.toLowerCase().trim() !== securityAnswer.toLowerCase().trim()) {
+            return { error: "Réponse de sécurité incorrecte", status: 401 };
+        }
+        const users = getCollection('users');
+        await users.updateOne(
+            { username: username },
+            { $set: { password: newPassword } }
+        );
+        return { message: "Mot de passe modifié avec succès", status: 200 };
+    }
+
+    module.exports = { login, signup, refresh, searchUsers, acceptFriendRequest, addFriendRequest, denyFriendRequest, getFriendRequests,verifyToken, getFriendList, removeFriend, logout, getSecurityQuestion, resetPassword };

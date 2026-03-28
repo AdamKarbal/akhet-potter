@@ -70,7 +70,22 @@ export class NavbarComponent extends HTMLElement{
                 padding-left: 4px;
                 padding-right: 4px;
             }
+            .navElem, #play-btn, #social-btn, #request-btn, #help, #logout-btn {
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border-radius: 8px; 
+                padding: 2px; 
+            }
+
+            .navElem:hover, #play-btn:hover, #social-btn:hover, #request-btn:hover, #help:hover, #logout-btn:hover {
+                transform: scale(1.15);
+                background-color: rgba(212, 175, 55, 0.2); 
+                box-shadow: 0 0 12px rgba(212, 175, 55, 0.6); 
+            }
             
+            .navElem:active, #play-btn:active, #social-btn:active, #request-btn:active, #help:active, #logout-btn:active {
+                transform: scale(0.95);
+            }
             
         </style>
         

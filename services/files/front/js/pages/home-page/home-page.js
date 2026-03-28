@@ -58,7 +58,7 @@ export class HomePage extends HTMLElement{
                 grid-column: 1;
             }
             
-            .user-section{
+            .user-section {
                 display: flex;
                 flex-direction: row;
                 justify-content: center;
@@ -75,7 +75,16 @@ export class HomePage extends HTMLElement{
                 font-family: 'Agency FB', sans-serif;
                 font-size: 1.2em;
                 color: #FFD700;
-                background-color: rgba(0,0,0, 0.4);     
+                background-color: rgba(0,0,0, 0.4);   
+                                cursor: pointer;
+                transition: all 0.3s ease;  
+            }
+            
+            .user-section:hover {
+                transform: scale(1.05); 
+                background-color: rgba(212, 175, 55, 0.15); 
+                box-shadow: 0 0 15px #ffd700, inset 0 0 10px rgba(212, 175, 55, 0.5);
+                text-shadow: 0 0 8px #ffd700; 
             }
             
             .connected {
