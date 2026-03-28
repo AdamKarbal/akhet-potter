@@ -43,6 +43,17 @@ function normalizeActionCell(cellLike) {
   return null;
 }
 
+function findDifferentCell(x, y) {
+  return x < 9 ? {x: x + 1, y} : {x: x - 1, y};
+}
+
+function buildAiCannotPlayError(reason) {
+  return {
+    error: `IA incapable de jouer: ${reason}`,
+    code: "AI_CANNOT_PLAY"
+  };
+}
+
 export class AIGameManager extends GameManager {
   constructor() {
     super();
@@ -96,12 +107,76 @@ export class AIGameManager extends GameManager {
       return game.engine.getState();
     }
 
-    const humanExternal = this.actionToExternal(gameId);
-    if (!humanExternal) return game.engine.getState();
+    const turnBefore = game.engine.turn;
 
-    const aiExternal = await this.runWithAiLock(() => nextMove(humanExternal));
-    this.applyExternalActionAsInteractions(game.engine, aiExternal);
+    const didCommitTurn = () => game.engine.turn !== turnBefore || !!game.engine.winner;
+
+    const tryFallbackTurn = (reason) => {
+      try {
+        this.forceAiFallbackTurn(game.engine);
+      } catch (error) {
+        return buildAiCannotPlayError(`${reason} (${error.message})`);
+      }
+
+      if (!didCommitTurn()) {
+        return buildAiCannotPlayError(`${reason} (fallback non valide)`);
+      }
+
+      return null;
+    };
+
+    const humanExternal = this.actionToExternal(gameId);
+    if (!humanExternal) {
+      const fallbackError = tryFallbackTurn("dernier coup humain introuvable");
+      if (fallbackError) return fallbackError;
+      return game.engine.getState();
+    }
+
+    try {
+      const aiExternal = await this.runWithAiLock(() => nextMove(humanExternal));
+      if (!aiExternal) {
+        const fallbackError = tryFallbackTurn("coup IA vide");
+        if (fallbackError) return fallbackError;
+        return game.engine.getState();
+      }
+      this.applyExternalActionAsInteractions(game.engine, aiExternal);
+    } catch (error) {
+      console.error("Erreur IA nextMove:", error);
+      const fallbackError = tryFallbackTurn("erreur du moteur IA");
+      if (fallbackError) return fallbackError;
+      return game.engine.getState();
+    }
+
+    if (!didCommitTurn()) {
+      const fallbackError = tryFallbackTurn("coup IA non validé");
+      if (fallbackError) return fallbackError;
+    }
+
     return game.engine.getState();
+  }
+
+  forceAiFallbackTurn(engine) {
+    if (!engine || engine.winner || engine.turn !== PLAYER.P2 || engine.isProcessingTurn) {
+      return;
+    }
+
+    // Si l'IA a laissé un mode pending ouvert, on l'annule d'abord.
+    if (engine.pendingPlacement) {
+      const cancelCell = findDifferentCell(engine.pendingPlacement.x, engine.pendingPlacement.y);
+      engine.handlePlayerInteraction(cancelCell.x, cancelCell.y, 0.5, 0.5);
+    }
+    if (engine.pendingRotation) {
+      const cancelCell = findDifferentCell(engine.pendingRotation.x, engine.pendingRotation.y);
+      engine.handlePlayerInteraction(cancelCell.x, cancelCell.y, 0.5, 0.5);
+    }
+    engine.selectedPiece = null;
+
+    // Fallback robuste: rotation simple du sphinx pour garantir la fin de tour.
+    const refs = this.extractPlayerReferencePieces(engine, PLAYER.P2);
+    const at = cellToXY(refs.sphinx.cell);
+    engine.handlePlayerInteraction(at.x, at.y, 0.5, 0.5);
+    engine.handlePlayerInteraction(at.x, at.y, 0.5, 0.5);
+    engine.handlePlayerInteraction(at.x, at.y, 0.75, 0.75);
   }
 
   async initializeAI(gameId) {
