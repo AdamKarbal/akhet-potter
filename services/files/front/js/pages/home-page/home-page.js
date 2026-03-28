@@ -289,9 +289,9 @@ export class HomePage extends HTMLElement{
             window.location.hash = 'LGN';
         });
 
-        this.querySelector("#btn-jouer-jcj").addEventListener("click", () => {
+        this.querySelector("#btn-jouer-jcj").onclick = () => {
             window.location.hash = 'JCJ';
-        });
+        };
 
         this.querySelector("#btn-jouer-jco").addEventListener("click", () => {
             window.location.hash = 'JCO';
@@ -304,9 +304,45 @@ export class HomePage extends HTMLElement{
         this.retrievePlayerInfo();
     }
 
+    clearConnectionIndicators() {
+        this.querySelector(".user-section .connected")?.remove();
+        this.querySelector(".user-section .disconnected")?.remove();
+    }
+
+    applyConnectedState(username) {
+        this.clearConnectionIndicators();
+        const isConnected = document.createElement('span');
+        isConnected.classList.add('connected');
+        this.querySelector(".user-section").appendChild(isConnected);
+        this.querySelector("#username").innerHTML = username;
+        this.querySelector("#btn-jouer-jcj").innerHTML = "Jouer";
+        this.querySelector("#btn-jouer-jcj").onclick = () => {
+            window.location.hash = 'JCJ';
+        };
+    }
+
+    applyDisconnectedState() {
+        this.clearConnectionIndicators();
+        const isDisconnected = document.createElement('span');
+        isDisconnected.classList.add('disconnected');
+        this.querySelector(".user-section").appendChild(isDisconnected);
+        this.querySelector("#username").innerHTML = "Se connecter";
+        this.querySelector("#btn-jouer-jcj").innerHTML = "Se connecter";
+        this.querySelector("#btn-jouer-jcj").onclick = () => {
+            window.location.hash = "LGN";
+        };
+    }
+
     async retrievePlayerInfo(){
         const token = localStorage.getItem('token');
-        const rankSection = document.querySelector(".user-rank");
+        const rankSection = this.querySelector(".user-rank");
+
+        if (!token) {
+            rankSection.innerHTML = '';
+            this.applyDisconnectedState();
+            return;
+        }
+
         try{
             const response = await fetch(`/api/users/search?username=${localStorage.getItem('username')}`, {
                 method: 'GET',
@@ -323,7 +359,14 @@ export class HomePage extends HTMLElement{
 
             if(response.ok){
                 const users = await response.json();
-                const user = users[0];
+                const user = users?.[0];
+                if (!user) {
+                    rankSection.innerHTML = '';
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    this.applyDisconnectedState();
+                    return;
+                }
                 const imgPath = this.RANK_MAPPER[user.rank];
                 const progressPercent = ((user.elo % 1000)/1000) * 100;
                 const nextRankImg = this.RANK_MAPPER[this.RANK_ORDER[this.RANK_ORDER.indexOf(user.rank) + 1]];
@@ -359,10 +402,7 @@ export class HomePage extends HTMLElement{
                 prog.classList.add('prog');
                 rankSection.appendChild(prog);
 
-                const isConnected = document.createElement('span');
-                isConnected.classList.add('connected');
-                this.querySelector(".user-section").appendChild(isConnected);
-                this.querySelector("#username").innerHTML = user.username;
+                this.applyConnectedState(user.username);
             }
             else{
                 const refresh = await fetch("/api/refresh" , {
@@ -371,19 +411,22 @@ export class HomePage extends HTMLElement{
 
                 if(refresh.ok){
                     const data = await refresh.json();
-                    localStorage.setItem('token', data.accessToken);
-                    this.retrievePlayerInfo();
+                    if (data?.accessToken) {
+                        localStorage.setItem('token', data.accessToken);
+                        await this.retrievePlayerInfo();
+                        return;
+                    }
                 }
+
+                rankSection.innerHTML = '';
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                this.applyDisconnectedState();
             }
         }
         catch(error){
-            const isConnected = document.createElement('span');
-            isConnected.classList.add('disconnected');
-            this.querySelector(".user-section").appendChild(isConnected);
-            this.querySelector("#btn-jouer-jcj").innerHTML = "Se connecter"
-            this.querySelector("#btn-jouer-jcj").addEventListener("click" , () => {
-                window.location.hash = "LGN";
-            })
+            rankSection.innerHTML = '';
+            this.applyDisconnectedState();
             console.log("Erreur lors de récup des infos du joueur : ", error);
         }
     }
