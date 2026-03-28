@@ -37,6 +37,13 @@ export class GameBoard extends HTMLElement {
             this.renderer.renderAll();
         })
 
+        this.socket.on("game-closed", (message) => {
+            if (message) {
+                console.error("Partie fermée:", message);
+                alert(message);
+            }
+        });
+
         this.socket.on("game-update", (data) => {
             this.renderer.gameState = data;
             this.renderer.renderAll();

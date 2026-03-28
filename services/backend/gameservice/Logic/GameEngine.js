@@ -3,6 +3,21 @@ import {Board} from "../Model/Board.js";
 import {HumanPlayer} from "../Player/HumanPlayer.js"
 import { Referee } from "./Referee.js";
 import { LaserPhysics } from "./LaserPhysics.js";
+import {Cell, Exchange, Move, Place, Rotate, ROTATION_TYPES} from "../Model/Action.js";
+
+function toShitOrientation(orientation) {
+    switch(orientation) {
+        case 0: return 0;
+        case 90: return 9;
+        case 180: return 90;
+        case 270: return 99;
+        default: throw new Error("Orientation invalide : " + orientation);
+    }
+}
+
+function positiveMod(dividend, divisive) {
+    return ((dividend % divisive) + divisive) % divisive;
+}
 
 export class GameEngine {
     constructor() {
@@ -21,6 +36,7 @@ export class GameEngine {
         this.sphinxFiresThisTurn = true;
         this.board.setupStandardGame();
         this.winner = null;
+        this.lastAction = null;
     }
 
     handlePlayerInteraction(x, y, relX = 0.5, relY = 0.5) {
@@ -103,6 +119,7 @@ export class GameEngine {
 
     performMove(fromX, fromY, toX, toY) {
         this.board.movePiece(fromX, fromY, toX, toY);
+        this.lastAction = new Move(new Cell(fromX, fromY), new Cell(toX, toY));
         this.finishAction();
     }
 
@@ -117,7 +134,7 @@ export class GameEngine {
             this.sphinxFiresThisTurn = false;
             console.log("Swap Sphinx : Pas de tir laser ce tour-ci.");
         }
-
+        this.lastAction = new Exchange(new Cell(scarabX, scarabY), new Cell(targetX, targetY));
         this.finishAction();
     }
 
@@ -129,6 +146,7 @@ export class GameEngine {
 
     handlePendingPlacement(x, y, relX, relY) {
         if (this.pendingPlacement.x !== x || this.pendingPlacement.y !== y) {
+            this.lastAction = null;
             this.pendingPlacement = null;
             return;
         }
@@ -136,6 +154,7 @@ export class GameEngine {
         if (relX > 0.6 && relY > 0.6) {
             this.board.setPiece(x, y, new Piece(PIECE_TYPE.PYRAMID, this.turn, this.pendingPlacement.rotation));
             this.players[this.turn].decrementReserve();
+            this.lastAction = new Place({destination: new Cell(x, y), orientation: toShitOrientation(this.pendingPlacement.rotation)});
             this.pendingPlacement = null;
             this.finishAction();
         } else {
@@ -150,15 +169,31 @@ export class GameEngine {
             p.rotation = this.pendingRotation.originalRotation
             this.pendingRotation = null;
             this.selectedPiece = null;
+            this.lastAction = null;
             return;
         }
         if (relX > 0.6 && relY > 0.6) {
+            const p = this.board.getPiece(x, y);
+            this.lastAction = new Rotate(new Cell(x, y), positiveMod(p.rotation - this.pendingRotation.originalRotation) === 90 ? ROTATION_TYPES.CLOCKWISE : ROTATION_TYPES.ANTICLOCKWISE);
+            console.log(`Rotation: ${positiveMod(p.rotation - this.pendingRotation.originalRotation)}, result: ${p.result}`);
             this.pendingRotation = null;
             this.finishAction();
         } else {
             const p = this.board.getPiece(x, y);
             if (p) {
-                p.rotate();
+                switch (positiveMod(p.rotation - this.pendingRotation.originalRotation, 360)) {
+                    case 90:
+                        p.rotate(180);
+                        break;
+                    case 0:
+                        p.rotate();
+                        break;
+                    case 270:
+                        p.rotate();
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -170,6 +205,8 @@ export class GameEngine {
         this.pendingRotation = null;
 
         this.isProcessingTurn = true;
+
+        console.assert(this.lastAction.isConsistent());// TODO: à voir si utile. (plus un log)
 
         this.lastLaserResult = this.executeTurnSequence();
 

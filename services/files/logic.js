@@ -64,6 +64,11 @@ function manageRequest(request, response) {
             } else {
                 // If the file is OK, let's set the MIME type and send it.
                 response.setHeader('Content-type', mimeTypes[extension] || mimeTypes['default'] );
+                // Disable browser caching in dev to avoid stale JS modules.
+                response.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+                response.setHeader('Pragma', 'no-cache');
+                response.setHeader('Expires', '0');
+                response.setHeader('Surrogate-Control', 'no-store');
                 response.end(data);
             }
         });
