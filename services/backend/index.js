@@ -1,29 +1,60 @@
 import {Server} from "socket.io";
 import jwt from "jsonwebtoken";
-import { AIGameManager } from "./gameservice/Logic/AIGameManager.js";
+import {GameManager} from "./gameservice/Logic/GameManager.js";
+import {AIGameManager} from "./gameservice/Logic/AIGameManager.js";
 
-const gameManager = new AIGameManager();
-const io = new Server(8003, { cors: { origin: "*"}});
-const games = new Map();
+const pvpManager = new GameManager();
+const aiManager = new AIGameManager();
+const io = new Server(8003, {cors: {origin: "*"}});
 const SECRET_KEY = process.env.JWT_SECRET;
 const waitingQueue = [];
+
+const GAME_MODE = {
+    PVP: "PVP",
+    AI: "AI"
+};
+
+// gameId -> GAME_MODE.PVP | GAME_MODE.AI
+const gameModes = new Map();
+
+function getManagerByMode(mode) {
+    return mode === GAME_MODE.AI ? aiManager : pvpManager;
+}
+
+function getManagerForGame(gameId) {
+    const mode = gameModes.get(gameId);
+    if (mode) {
+        return {manager: getManagerByMode(mode), mode};
+    }
+
+    // Fallback défensif pour parties existantes sans mode enregistré.
+    if (pvpManager.games.has(gameId)) return {manager: pvpManager, mode: GAME_MODE.PVP};
+    if (aiManager.games.has(gameId)) return {manager: aiManager, mode: GAME_MODE.AI};
+    return {manager: null, mode: null};
+}
+
+function finishTrackedGame(gameId) {
+    const {manager} = getManagerForGame(gameId);
+    if (!manager) return;
+    manager.finishGame(gameId);
+    gameModes.delete(gameId);
+}
 
 io.use((socket, next) => {
     const token = socket.handshake.auth.token;
 
-    if(!token) {
+    if (!token) {
         console.log("No token found. Acces denied");
         return next(new Error("No token found."));
     }
 
-    try{
+    try {
         const decoded = jwt.verify(token, SECRET_KEY);
         socket.username = decoded.username;
         socket.rank = decoded.rank;
         socket.elo = decoded.elo;
         next();
-    }
-    catch(err){
+    } catch (err) {
         console.log(err);
         next(new Error("Invalid token"));
     }
@@ -34,23 +65,22 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
     console.log(`Joueur authentifié connecté : ${socket.username} (id:${socket.id})`);
 
-    socket.on("find-game", ()=> {
+    socket.on("find-game", () => {
         console.log(`${socket.username} is looking for a game`);
 
         const existingIndex = waitingQueue.findIndex(s => s.username === socket.username);
-        if(existingIndex !== -1) {
+        if (existingIndex !== -1) {
             waitingQueue[existingIndex] = socket;
-        }
-        else{
+        } else {
             waitingQueue.push(socket);
         }
 
-        if(waitingQueue.length >= 2){
+        if (waitingQueue.length >= 2) {
             const player1 = waitingQueue[0];
 
             const opponentIndex = waitingQueue.findIndex(s => s.username !== player1.username);
 
-            if(opponentIndex !== -1){
+            if (opponentIndex !== -1) {
                 const player2 = waitingQueue[opponentIndex];
                 waitingQueue.splice(opponentIndex, 1);
                 waitingQueue.shift();
@@ -69,14 +99,14 @@ io.on("connection", (socket) => {
                         elo: player2.elo,
                         rank: player2.rank
                     }
-                }
+                };
 
-                gameManager.createGame(matchInfo.gameId, player1.id, player2.id);
+                pvpManager.createGame(matchInfo.gameId, player1.id, player2.id);
+                gameModes.set(matchInfo.gameId, GAME_MODE.PVP);
                 player1.emit("match-found", matchInfo);
                 player2.emit("match-found", matchInfo);
             }
-        }
-        else{
+        } else {
             socket.emit("waiting-for-opponent");
         }
     });
@@ -96,14 +126,15 @@ io.on("connection", (socket) => {
                 elo: 0,
                 rank: "N/A"
             }
-        }
+        };
 
         try {
-            await gameManager.createGame(matchInfo.gameId, socket.id, null);
+            await aiManager.createGame(matchInfo.gameId, socket.id, null);
+            gameModes.set(matchInfo.gameId, GAME_MODE.AI);
             socket.join(matchInfo.gameId);
             socket.emit("match-found", matchInfo);
 
-            const game = gameManager.games.get(matchInfo.gameId);
+            const game = aiManager.games.get(matchInfo.gameId);
             if (game) {
                 socket.emit("init-state", game.engine.getState());
             }
@@ -113,24 +144,29 @@ io.on("connection", (socket) => {
         }
     });
 
-
     socket.on("join-game", (gameId) => {
-        if(!gameManager.games.has(gameId)) {
+        const {manager} = getManagerForGame(gameId);
+        if (!manager) {
             socket.emit("game-closed", "Cette partie n'existe pas.");
             return;
         }
 
         socket.join(gameId);
-        const game = gameManager.games.get(gameId);
+        const game = manager.games.get(gameId);
         socket.emit("init-state", game.engine.getState());
     });
 
-
     socket.on("player-action", async (data) => {
-        const gameBefore = gameManager.games.get(data.gameId);
+        const {manager, mode} = getManagerForGame(data.gameId);
+        if (!manager) {
+            socket.emit("game-closed", "Cette partie n'existe pas.");
+            return;
+        }
+
+        const gameBefore = manager.games.get(data.gameId);
         const previousTurn = gameBefore?.engine?.turn;
 
-        const result = await gameManager.handleAction(data.gameId, socket.id, data);
+        const result = await manager.handleAction(data.gameId, socket.id, data);
         if (!result) {
             console.log("Erreur : Impossible de traiter l'action pour la partie", data.gameId);
             return;
@@ -143,24 +179,24 @@ io.on("connection", (socket) => {
 
         if (result.isProcessingTurn) {
             setTimeout(async () => {
-                const game = gameManager.games.get(data.gameId);
+                const game = manager.games.get(data.gameId);
                 if (!game) return;
 
                 game.engine.isProcessingTurn = false;
                 game.engine.lastLaserResult = null;
                 io.to(data.gameId).emit("game-update", game.engine.getState());
 
-                const shouldPlayAI = game.ai && previousTurn === 1 && game.engine.turn === 2 && !game.engine.winner;
+                const shouldPlayAI = mode === GAME_MODE.AI && game.ai && previousTurn === 1 && game.engine.turn === 2 && !game.engine.winner;
                 if (!shouldPlayAI) return;
 
-                const aiResult = await gameManager.playAiTurn(data.gameId);
+                const aiResult = await aiManager.playAiTurn(data.gameId);
                 if (!aiResult || aiResult.error) return;
 
                 io.to(data.gameId).emit("game-update", aiResult);
 
                 if (aiResult.isProcessingTurn) {
                     setTimeout(() => {
-                        const updatedGame = gameManager.games.get(data.gameId);
+                        const updatedGame = aiManager.games.get(data.gameId);
                         if (!updatedGame) return;
                         updatedGame.engine.isProcessingTurn = false;
                         updatedGame.engine.lastLaserResult = null;
@@ -172,32 +208,45 @@ io.on("connection", (socket) => {
     });
 
     socket.on("revenge", async (gameId) => {
-        const result = await gameManager.revenge(gameId);
-
-        if(result == null){
+        const {manager} = getManagerForGame(gameId);
+        if (!manager) {
             socket.emit("game-closed");
+            return;
         }
-        else if (result) {
+
+        const result = await manager.revenge(gameId);
+
+        if (result == null) {
+            socket.emit("game-closed");
+        } else {
             io.to(gameId).emit("game-update", result);
         }
     });
 
     socket.on("leave-game", (gameId) => {
-        gameManager.finishGame(gameId);
+        finishTrackedGame(gameId);
         console.log("Revanche non demandée. Partie nettoyée de la mémoire.");
-    })
+    });
 
     socket.on("disconnect", () => {
         console.log(`Joueur déconnecté : ${socket.username}`);
         const index = waitingQueue.findIndex(s => s.id === socket.id);
         if (index !== -1) waitingQueue.splice(index, 1);
 
-        for (const [gameId, game] of gameManager.games.entries()) {
-            if (game.p1 === socket.id || game.p2 === socket.id) {
-                const winnerId = (game.p1 === socket.id) ? game.p2 : game.p1;
-                io.to(gameId).emit("game-closed", "Ton adversaire a quitté la partie. Tu as gagné par forfait !");
-                gameManager.games.delete(gameId);
-                break;
+        const managersByMode = [
+            [GAME_MODE.PVP, pvpManager],
+            [GAME_MODE.AI, aiManager]
+        ];
+
+        for (const [mode, manager] of managersByMode) {
+            for (const [gameId, game] of manager.games.entries()) {
+                if (game.p1_id === socket.id || game.p2_id === socket.id) {
+                    io.to(gameId).emit("game-closed", "Ton adversaire a quitté la partie. Tu as gagné par forfait !");
+                    manager.games.delete(gameId);
+                    gameModes.delete(gameId);
+                    console.log(`Partie ${gameId} fermée suite à une déconnexion (${mode}).`);
+                    return;
+                }
             }
         }
     });
