@@ -40,6 +40,8 @@ function getManagerForGame(gameId) {
 function finishTrackedGame(gameId) {
     const {manager} = getManagerForGame(gameId);
     if (!manager) return;
+    const game = manager.games.get(gameId);
+    if (game) game.engine.stopTurnTimer();
     manager.finishGame(gameId);
     gameModes.delete(gameId);
 }
@@ -57,6 +59,9 @@ function finalizeAndEmit(gameId, manager) {
     const state = finalizeProcessingTurn(game);
     if (state) {
         io.to(gameId).emit("game-update", state);
+        if (!game.engine.winner) {
+            game.engine.startTurnTimer();
+        }
     }
     return state;
 }
@@ -179,8 +184,15 @@ io.on("connection", (socket) => {
 
                 pvpManager.createGame(matchInfo.gameId, player1.id, player2.id);
                 gameModes.set(matchInfo.gameId, GAME_MODE.PVP);
+                const game = pvpManager.games.get(matchInfo.gameId);
+                game.engine.onTimeoutCallback = (winnerNum) => { // 20secondes écoulés ont previent les joueurs de la fin
+                    const loserNum = winnerNum === 1 ? 2 : 1;
+                    io.to(matchInfo.gameId).emit("game-closed", `Temps écoulé ! Le joueur ${loserNum} a perdu par forfait.`);
+                    finishTrackedGame(matchInfo.gameId);
+                };
                 player1.emit("match-found", matchInfo);
                 player2.emit("match-found", matchInfo);
+                game.engine.startTurnTimer()
             }
         } else {
             socket.emit("waiting-for-opponent");

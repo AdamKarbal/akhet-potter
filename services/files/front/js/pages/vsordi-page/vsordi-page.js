@@ -124,6 +124,57 @@ export class JcOComponent extends HTMLElement{
             if (gameBoard) {
                 gameBoard.setSocketAndListen(this.socket, matchInfo.gameId);
             }
+// --- GESTION DES TIMERS ---
+            const handleTimers = (state) => {
+                const timerIA = this.querySelector('#pl1 player-timer');     // Haut (Joueur 2)
+                const timerHumain = this.querySelector('#pl2 player-timer'); // Bas (Joueur 1)
+
+                if (state.winner || state.isProcessingTurn) {
+                    if (timerIA) timerIA.stopTimer();
+                    if (timerHumain) timerHumain.stopTimer();
+                    return;
+                }
+
+                if (state.turn === 1) {
+                    // C'est le tour de l'Humain (Joueur 1)
+                    if (timerIA) timerIA.stopTimer();
+                    if (timerHumain) timerHumain.startTimer();
+                } else if (state.turn === 2) {
+                    // C'est le tour de l'IA (Joueur 2)
+                    if (timerHumain) timerHumain.stopTimer();
+                    if (timerIA) timerIA.startTimer();
+                }
+            };
+
+            // --- GESTION DE L'INVENTAIRE ---
+            const handleReserves = (state) => {
+                const invIA = this.querySelector('#pl1 player-inventory');     // Haut
+                const invHumain = this.querySelector('#pl2 player-inventory'); // Bas
+
+                // Le Joueur 1 est l'Humain (en bas)
+                if (state.players && state.players[1] && invHumain) {
+                    invHumain.setReserves(state.players[1].reserves);
+                }
+                // Le Joueur 2 est l'IA (en haut)
+                if (state.players && state.players[2] && invIA) {
+                    invIA.setReserves(state.players[2].reserves);
+                }
+            };
+
+            this.socket.on("init-state", (state) => {
+                handleTimers(state);
+                handleReserves(state);
+            });
+            this.socket.on("game-update", (state) => {
+                handleTimers(state);
+                handleReserves(state);
+            });
+            this.socket.on("game-closed", () => {
+                const timerIA = this.querySelector('#pl1 player-timer');
+                const timerHumain = this.querySelector('#pl2 player-timer');
+                if (timerIA) timerIA.stopTimer();
+                if (timerHumain) timerHumain.stopTimer();
+            });
         });
     }
 
