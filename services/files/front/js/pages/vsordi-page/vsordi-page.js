@@ -36,20 +36,20 @@ export class JcOComponent extends HTMLElement{
 
                 #pl2{
                     grid-column: 2;
-                    grid-row: 3;
-                    margin-right: 5vw;
-                    justify-items: center;
-                    margin-left: 5vw;
-                    margin-bottom: 3.5vh;
-                }
-                
-                #pl1{
-                    grid-column: 2;
                     grid-row: 1;
                     margin-right: 5vw;
                     justify-items: center;
                     margin-left: 5vw;
                     align-self: center;
+                }
+                
+                #pl1{ 
+                    grid-column: 2;
+                    grid-row: 3; 
+                    margin-right: 5vw;
+                    justify-items: center;
+                    margin-left: 5vw;
+                    margin-bottom: 3.5vh;
                 }
                 
                 #right-aside{
@@ -75,8 +75,6 @@ export class JcOComponent extends HTMLElement{
                     padding: 0;
                     place-self: center;
                 }
-                
-                
             </style>
         <div class="container">
             <navbar-component id="nav"></navbar-component>
@@ -111,8 +109,6 @@ export class JcOComponent extends HTMLElement{
             this.socket.off("waiting-for-opponent");
             const pl1 = this.querySelector("#pl1");
             const pl2 = this.querySelector("#pl2");
-
-            // En vs IA, pl1 est un ai-layout statique; seul pl2 (player-layout) est dynamique.
             if (pl2 && typeof pl2.setPlayerInfo === "function") {
                 pl2.setPlayerInfo(matchInfo.player1);
             }
@@ -124,10 +120,9 @@ export class JcOComponent extends HTMLElement{
             if (gameBoard) {
                 gameBoard.setSocketAndListen(this.socket, matchInfo.gameId);
             }
-// --- GESTION DES TIMERS ---
             const handleTimers = (state) => {
-                const timerIA = this.querySelector('#pl1 player-timer');     // Haut (Joueur 2)
-                const timerHumain = this.querySelector('#pl2 player-timer'); // Bas (Joueur 1)
+                const timerIA = this.querySelector('#pl1 player-timer');
+                const timerHumain = this.querySelector('#pl2 player-timer');
 
                 if (state.winner || state.isProcessingTurn) {
                     if (timerIA) timerIA.stopTimer();
@@ -136,26 +131,19 @@ export class JcOComponent extends HTMLElement{
                 }
 
                 if (state.turn === 1) {
-                    // C'est le tour de l'Humain (Joueur 1)
                     if (timerIA) timerIA.stopTimer();
                     if (timerHumain) timerHumain.startTimer();
                 } else if (state.turn === 2) {
-                    // C'est le tour de l'IA (Joueur 2)
                     if (timerHumain) timerHumain.stopTimer();
                     if (timerIA) timerIA.startTimer();
                 }
             };
-
-            // --- GESTION DE L'INVENTAIRE ---
             const handleReserves = (state) => {
-                const invIA = this.querySelector('#pl1 player-inventory');     // Haut
-                const invHumain = this.querySelector('#pl2 player-inventory'); // Bas
-
-                // Le Joueur 1 est l'Humain (en bas)
+                const invIA = this.querySelector('#pl1 player-inventory');
+                const invHumain = this.querySelector('#pl2 player-inventory');
                 if (state.players && state.players[1] && invHumain) {
                     invHumain.setReserves(state.players[1].reserves);
                 }
-                // Le Joueur 2 est l'IA (en haut)
                 if (state.players && state.players[2] && invIA) {
                     invIA.setReserves(state.players[2].reserves);
                 }
