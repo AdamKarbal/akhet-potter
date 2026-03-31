@@ -253,8 +253,7 @@ export class GameEngine {
                 this.board.setPiece(hit.x, hit.y, null);
 
                 if (target.type === PIECE_TYPE.PYRAMID) {
-                    const opponentId = (target.owner === PLAYER.P1) ? PLAYER.P2 : PLAYER.P1;
-                    this.players[opponentId].reserves++;
+                    this.players[target.owner].reserves++;
                 }
                 if (target.type === PIECE_TYPE.PHARAON) deadPharaonOwner = target.owner;
             });
