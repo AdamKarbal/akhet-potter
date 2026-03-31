@@ -5,63 +5,41 @@ export class Timer extends HTMLElement {
         this.timeLeft = 20;
     }
 
-    connectedCallback() {
-        // language=HTML
+    async connectedCallback() {
+        const htmlUrl = new URL('./timer.html', import.meta.url);
+        const cssUrl = new URL('./timer.css', import.meta.url);
+        const response = await fetch(htmlUrl);
+        const html = await response.text();
+
         this.innerHTML = `
-            <style>
-                @font-face {
-                    font-family: 'HarryPotter';
-                    src: url('assets/fonts/HARRYP__.TTF') format('truetype');
-                }
-
-                #timer {
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    gap: 1rem;
-                }
-
-                .img img {
-                    width: 40px;
-                    height: auto;
-                    display: block;
-                }
-
-                .value {
-                    font-family: HarryPotter;
-                    font-size: 2em;
-                    background: linear-gradient(to bottom, #FFF8DC 0%, #FFD700 50%, #8B4513 100%);
-                    -webkit-background-clip: text;
-                    background-clip: text;
-                    color: transparent;
-                    filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
-                    transition: filter 0.3s ease;
-                }
-
-                .urgent { filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.9)); }
-                .inactive { opacity: 0.3; filter: grayscale(100%); }
-            </style>
-
-            <div id="timer" class="inactive">
-                <div class="img"><img src="assets/timer.png"/></div>
-                <div class="value">00:20</div>
-            </div>
+            <link rel="stylesheet" href="${cssUrl.href}">
+            ${html}
         `;
     }
 
     startTimer() {
         if (this.interval) return;
         this.timeLeft = 20;
-        this.querySelector('#timer').classList.remove('inactive');
-        this.updateVisuals();
-        this.interval = setInterval(() => {
-            this.timeLeft--;
-            if (this.timeLeft <= 0) {
-                this.timeLeft = 0;
-                this.stopTimer();
+        const tryStart = () => {
+            const timerContainer = this.querySelector('#timer');
+            if (timerContainer) {
+                timerContainer.classList.remove('inactive');
+                this.updateVisuals();
+
+                this.interval = setInterval(() => {
+                    this.timeLeft--;
+                    if (this.timeLeft <= 0) {
+                        this.timeLeft = 0;
+                        this.stopTimer();
+                    }
+                    this.updateVisuals();
+                }, 1000);
+            } else {
+                setTimeout(tryStart, 50);
             }
-            this.updateVisuals();
-        }, 1000);
+        };
+
+        tryStart();
     }
 
     stopTimer() {
@@ -69,6 +47,7 @@ export class Timer extends HTMLElement {
         this.interval = null;
         const timerContainer = this.querySelector('#timer');
         const textValue = this.querySelector('.value');
+
         if (timerContainer && textValue) {
             timerContainer.classList.add('inactive');
             textValue.classList.remove('urgent');

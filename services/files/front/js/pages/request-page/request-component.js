@@ -13,7 +13,7 @@ export class RequestComponent extends HTMLElement {
         <style>
             @font-face {
                 font-family: 'HarryPotter';
-                src: url('assets/fonts/HARRYP__.TTF') format('truetype');
+                src: url('/assets/fonts/HARRYP__.TTF') format('truetype');
             }
             
             #reqTitle{
@@ -29,7 +29,7 @@ export class RequestComponent extends HTMLElement {
             }
             
             body {
-                background-image: url("assets/background1v1.png");
+                background-image: url("/assets/background1v1.png");
                 background-size: 100% 100%;
                 background-repeat: no-repeat;
                 min-height: 100vh;

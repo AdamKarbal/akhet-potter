@@ -7,130 +7,15 @@ export class AuthModalComponent extends HTMLElement {
         this.currentMode = 'login';
     }
 
-    connectedCallback() {
+    async connectedCallback() {
+        const htmlUrl = new URL('./auth-modal.html', import.meta.url);
+        const cssUrl = new URL('./auth-modal.css', import.meta.url);
+        const response = await fetch(htmlUrl);
+        const html = await response.text();
+
         this.innerHTML = `
-            <style>
-                .modal {
-                    display: none;
-                    position: fixed;
-                    z-index: 100;
-                    left: 0;
-                    top: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0,0,0,0.8);
-                    backdrop-filter: blur(5px);
-                    justify-content: center;
-                    align-items: center;
-                }
-
-                .modal-content {
-                    background: #2a1a0a;
-                    border: 3px solid #ffd700;
-                    padding: 40px;
-                    width: 350px;
-                    border-radius: 10px;
-                    position: relative;
-                    box-shadow: 0 0 50px #000;
-                    animation: spell-appear 0.5s ease-out;
-                    text-align: center;
-                    font-family: 'Georgia', serif;
-                    color: white;
-                }
-
-                @keyframes spell-appear {
-                    from { transform: scale(0.5); opacity: 0; }
-                    to { transform: scale(1); opacity: 1; }
-                }
-
-                .close-btn {
-                    position: absolute;
-                    right: 15px;
-                    top: 10px;
-                    color: #ffd700;
-                    cursor: pointer;
-                    font-size: 24px;
-                }
-
-                form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 15px;
-                    margin-top: 20px;
-                }
-
-                input {
-                    padding: 10px;
-                    background: #3a2a1a;
-                    border: 1px solid #ffd700;
-                    color: white;
-                    border-radius: 4px;
-                }
-
-                .btn-hp {
-                    padding: 10px;
-                    cursor: pointer;
-                    background: linear-gradient(to bottom, #4a3721, #2a1a0a);
-                    color: #ffd700;
-                    border: 2px solid #ffd700;
-                    border-radius: 5px;
-                    text-transform: uppercase;
-                    transition: all 0.3s ease;
-                }
-
-                .btn-hp:hover { box-shadow: 0 0 15px #ffd700; }
-
-                .error-message {
-                    color: #ff4444;
-                    font-size: 0.9rem;
-                    min-height: 20px;
-                    margin-bottom: 10px;
-                }
-
-                h2 { color: #ffd700; margin: 0; }
-                
-                #forgot-pwd-link {
-                    color: #c5a059;
-                    font-size: 0.8rem;
-                    text-decoration: underline;
-                    cursor: pointer;
-                    margin-top: -5px;
-                }
-                
-                #forgot-pwd-link:hover { color: #ffd700; }
-
-                .hide { display: none !important; }
-                
-                #security-question-display {
-                    color: #ffd700;
-                    font-style: italic;
-                    margin-bottom: 10px;
-                }
-            </style>
-
-            <div id="auth-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close-btn">&times;</span>
-                    <h2 id="modal-title">Connexion</h2>
-                    <div id="error-msg" class="error-message"></div>
-                    
-                    <form id="auth-form">
-                        <input type="text" id="username" placeholder="Nom de sorcier" required>
-                        <input type="password" id="password" placeholder="Mot de passe" required>
-                        
-                        <input type="text" id="reg-question" class="reg-only hide" placeholder="Question secrète (ex: Mon 1er balai ?)">
-                        <input type="text" id="reg-answer" class="reg-only hide" placeholder="Réponse secrète">
-                        
-                        <p id="security-question-display" class="reset-only hide"></p>
-                        <input type="text" id="forgot-answer" class="reset-only hide" placeholder="Votre réponse">
-                        <input type="password" id="forgot-new-password" class="reset-only hide" placeholder="Nouveau mot de passe">
-
-                        <button type="submit" id="main-btn" class="btn-hp" style="width: 100%">Lancer le sort</button>
-                    </form>
-                    
-                    <p id="forgot-pwd-link" class="login-only">Mot de passe oublié ?</p>
-                </div>
-            </div>
+            <link rel="stylesheet" href="${cssUrl.href}">
+            ${html}
         `;
 
         this.setupLogic();
@@ -142,20 +27,22 @@ export class AuthModalComponent extends HTMLElement {
         const form = this.querySelector('#auth-form');
         const forgotLink = this.querySelector('#forgot-pwd-link');
 
-        closeBtn.onclick = () => this.close();
-        window.onclick = (event) => { if (event.target == modal) this.close(); };
+        if (closeBtn) closeBtn.onclick = () => this.close();
+        window.onclick = (event) => { if (event.target === modal) this.close(); };
 
-        forgotLink.onclick = () => this.openForForgot();
+        if (forgotLink) forgotLink.onclick = () => this.openForForgot();
 
-        form.onsubmit = async (e) => {
-            e.preventDefault();
-            this.showError("Sort en cours de lancement...");
+        if (form) {
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                this.showError("Sort en cours de lancement...");
 
-            if (this.currentMode === 'login') await this.handleLogin();
-            else if (this.currentMode === 'register') await this.handleRegister();
-            else if (this.currentMode === 'forgot') await this.handleGetQuestion();
-            else if (this.currentMode === 'reset') await this.handleResetPassword();
-        };
+                if (this.currentMode === 'login') await this.handleLogin();
+                else if (this.currentMode === 'register') await this.handleRegister();
+                else if (this.currentMode === 'forgot') await this.handleGetQuestion();
+                else if (this.currentMode === 'reset') await this.handleResetPassword();
+            };
+        }
     }
 
     async handleLogin() {
@@ -174,10 +61,10 @@ export class AuthModalComponent extends HTMLElement {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('username', username);
                 if (socket) {
-                    socket.auth.token = data.token;
+                    socket.auth = { token: data.token };
                     socket.connect();
                 }
-                window.location.hash = ''; // Redirection vers l'accueil
+                window.location.hash = '';
                 this.close();
             } else {
                 this.showError(data.error);
@@ -254,7 +141,7 @@ export class AuthModalComponent extends HTMLElement {
 
             if (response.ok) {
                 alert("Mot de passe modifié avec succès !");
-                this.openForLogin(); // Retour au menu login
+                this.openForLogin();
             } else {
                 this.showError(data.error);
             }
@@ -263,9 +150,10 @@ export class AuthModalComponent extends HTMLElement {
         }
     }
 
-
     resetFormUI() {
-        this.querySelector('#auth-form').reset();
+        const form = this.querySelector('#auth-form');
+        if (form) form.reset();
+
         this.showError("");
         this.querySelector('#username').classList.remove('hide');
         this.querySelector('#username').required = true;
@@ -286,7 +174,9 @@ export class AuthModalComponent extends HTMLElement {
         this.querySelector('#modal-title').innerText = "Se connecter";
         this.querySelector('#main-btn').innerText = "Connexion";
         this.querySelector('#forgot-pwd-link').classList.remove('hide');
-        this.querySelector('#auth-modal').style.display = 'flex';
+
+        const modal = this.querySelector('#auth-modal');
+        if (modal) modal.style.display = 'flex';
     }
 
     openForRegister() {
@@ -300,7 +190,8 @@ export class AuthModalComponent extends HTMLElement {
             el.required = true;
         });
 
-        this.querySelector('#auth-modal').style.display = 'flex';
+        const modal = this.querySelector('#auth-modal');
+        if (modal) modal.style.display = 'flex';
     }
 
     openForForgot() {
@@ -313,15 +204,19 @@ export class AuthModalComponent extends HTMLElement {
         passwordInput.classList.add('hide');
         passwordInput.required = false;
 
-        this.querySelector('#auth-modal').style.display = 'flex';
+        const modal = this.querySelector('#auth-modal');
+        if (modal) modal.style.display = 'flex';
     }
 
     showError(msg) {
-        this.querySelector('#error-msg').innerText = msg;
+        const errorMsg = this.querySelector('#error-msg');
+        if (errorMsg) errorMsg.innerText = msg;
     }
 
     close() {
-        this.querySelector('#auth-modal').style.display = 'none';
+        const modal = this.querySelector('#auth-modal');
+        if (modal) modal.style.display = 'none';
     }
 }
+
 customElements.define('auth-modal', AuthModalComponent);

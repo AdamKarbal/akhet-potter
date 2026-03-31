@@ -6,6 +6,7 @@ import './pages/request-page/request-component.js'
 import './pages/home-page/home-page.js'
 import { RequestService } from './services/RequestService.js'
 import { socket } from "./socket.js";
+import './pages/achievement-page/achievement-page.js';
 
 function initGlobalNotifications() {
     socket.on("NEW_FRIEND_REQ", (data) => {
@@ -77,6 +78,9 @@ function updateView() {
         app.innerHTML = '';
         app.innerHTML = '<match-page></match-page>';
 
+    }
+    else if ( hash === '#SUCCES') {
+        app.innerHTML = '<achievement-page></achievement-page>';
     }
     else if (hash === '#JCO') {
         console.log("Mode JcO activé");

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = process.env.JWT_SECRET;
+const { unlockAchievement } = require('./utils');
 
 function setupSockets(io) {
     io.use((socket, next) => {
@@ -17,6 +18,7 @@ function setupSockets(io) {
 
     io.on('connection', (socket) => {
         const username = socket.user.username;
+        const userToken = socket.handshake.auth.token;
         console.log(`[SOCIAL] Le sorcier ${username} est connecté.`);
         socket.join('global_room');
 
@@ -25,6 +27,7 @@ function setupSockets(io) {
                 sender: username,
                 message: msg
             });
+            unlockAchievement(userToken, "chat_global");
         });
 
         socket.on('join_game_chat', (gameId) => {
