@@ -37,6 +37,8 @@ export class GameEngine {
         this.board.setupStandardGame();
         this.winner = null;
         this.lastAction = null;
+        this.turnTimer = null;
+        this.onTimeoutCallback = null
     }
 
     handlePlayerInteraction(x, y, relX = 0.5, relY = 0.5) {
@@ -294,10 +296,12 @@ export class GameEngine {
         this.players[nextId].reduceCooldowns();
         this.turn = nextId;
         this.sphinxFiresThisTurn = true;
+        this.startTurnTimer();
     }
 
 
     restart() {
+        this.stopTurnTimer();
         this.board = new Board();
         this.board.setupStandardGame();
         this.turn = PLAYER.P1;
@@ -319,5 +323,24 @@ export class GameEngine {
         const player = this.players[playerId];
         if (!player) return [];
         return LaserPhysics.getPath(this.board, player).path;
+    }
+
+    startTurnTimer() {
+        this.stopTurnTimer();
+        if (this.winner) return;
+        this.turnTimer = setTimeout(() => { // ici on met un timeout de 20000 soit 20 secondes, si 20 secondes sont passé on force la fin de game (appelle callback au niveau de managerhelper)
+            console.log(`[TIMEOUT] Le joueur ${this.turn} a mis trop de temps.`);
+            this.winner = this.turn === PLAYER.P1 ? PLAYER.P2 : PLAYER.P1;
+            if (this.onTimeoutCallback) {
+                this.onTimeoutCallback(this.winner);
+            }
+        }, 21500); // 20secondes + 1.5 pour laisser une marge au front
+    }
+
+    stopTurnTimer() {
+        if (this.turnTimer) {
+            clearTimeout(this.turnTimer);
+            this.turnTimer = null;
+        }
     }
 }

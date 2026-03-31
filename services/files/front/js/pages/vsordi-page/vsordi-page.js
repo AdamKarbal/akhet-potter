@@ -36,20 +36,20 @@ export class JcOComponent extends HTMLElement{
 
                 #pl2{
                     grid-column: 2;
-                    grid-row: 3;
-                    margin-right: 5vw;
-                    justify-items: center;
-                    margin-left: 5vw;
-                    margin-bottom: 3.5vh;
-                }
-                
-                #pl1{
-                    grid-column: 2;
                     grid-row: 1;
                     margin-right: 5vw;
                     justify-items: center;
                     margin-left: 5vw;
                     align-self: center;
+                }
+                
+                #pl1{ 
+                    grid-column: 2;
+                    grid-row: 3; 
+                    margin-right: 5vw;
+                    justify-items: center;
+                    margin-left: 5vw;
+                    margin-bottom: 3.5vh;
                 }
                 
                 #right-aside{
@@ -75,8 +75,6 @@ export class JcOComponent extends HTMLElement{
                     padding: 0;
                     place-self: center;
                 }
-                
-                
             </style>
         <div class="container">
             <navbar-component id="nav"></navbar-component>
@@ -111,8 +109,6 @@ export class JcOComponent extends HTMLElement{
             this.socket.off("waiting-for-opponent");
             const pl1 = this.querySelector("#pl1");
             const pl2 = this.querySelector("#pl2");
-
-            // En vs IA, pl1 est un ai-layout statique; seul pl2 (player-layout) est dynamique.
             if (pl2 && typeof pl2.setPlayerInfo === "function") {
                 pl2.setPlayerInfo(matchInfo.player1);
             }
@@ -124,6 +120,49 @@ export class JcOComponent extends HTMLElement{
             if (gameBoard) {
                 gameBoard.setSocketAndListen(this.socket, matchInfo.gameId);
             }
+            const handleTimers = (state) => {
+                const timerIA = this.querySelector('#pl1 player-timer');
+                const timerHumain = this.querySelector('#pl2 player-timer');
+
+                if (state.winner || state.isProcessingTurn) {
+                    if (timerIA) timerIA.stopTimer();
+                    if (timerHumain) timerHumain.stopTimer();
+                    return;
+                }
+
+                if (state.turn === 1) {
+                    if (timerIA) timerIA.stopTimer();
+                    if (timerHumain) timerHumain.startTimer();
+                } else if (state.turn === 2) {
+                    if (timerHumain) timerHumain.stopTimer();
+                    if (timerIA) timerIA.startTimer();
+                }
+            };
+            const handleReserves = (state) => {
+                const invIA = this.querySelector('#pl1 player-inventory');
+                const invHumain = this.querySelector('#pl2 player-inventory');
+                if (state.players && state.players[1] && invHumain) {
+                    invHumain.setReserves(state.players[1].reserves);
+                }
+                if (state.players && state.players[2] && invIA) {
+                    invIA.setReserves(state.players[2].reserves);
+                }
+            };
+
+            this.socket.on("init-state", (state) => {
+                handleTimers(state);
+                handleReserves(state);
+            });
+            this.socket.on("game-update", (state) => {
+                handleTimers(state);
+                handleReserves(state);
+            });
+            this.socket.on("game-closed", () => {
+                const timerIA = this.querySelector('#pl1 player-timer');
+                const timerHumain = this.querySelector('#pl2 player-timer');
+                if (timerIA) timerIA.stopTimer();
+                if (timerHumain) timerHumain.stopTimer();
+            });
         });
     }
 

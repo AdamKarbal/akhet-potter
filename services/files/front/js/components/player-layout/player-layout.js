@@ -1,6 +1,7 @@
 import {Timer} from "../timer/timer.js";
 import {PlayerInfo} from "../userInfo/userInfo.js";
 import {PlayerRank} from "../rank/userRank.js";
+import {PlayerInventory} from "../player-inventory/player-inventory.js";
 
 export class PlayerLayout extends HTMLElement {
     constructor() {
@@ -18,11 +19,18 @@ export class PlayerLayout extends HTMLElement {
                     align-items: center;
                     height: 75%;
                 }
+                .separator {
+                    width: 2px;
+                    height: 40px;
+                    background: linear-gradient(to bottom, transparent, #c5a059, transparent);
+                }
             </style>
         <div class="layout">
             <div class="timer"><player-timer></player-timer></div>
             <div class="userinfo"><player-info></player-info></div>
             <div class="rank"><player-rank></player-rank></div>
+            <div class="separator"></div>
+            <div class="inventory"><player-inventory></player-inventory></div> </div>
         </div>
     `;
     }
