@@ -105,6 +105,7 @@ export class MatchComponent extends HTMLElement{
             const pl2 = this.querySelector("#pl2");
             pl1.setPlayerInfo(matchInfo.player1);
             pl2.setPlayerInfo(matchInfo.player2);
+            this.isGameActive = true;
 
             const gameBoard = this.querySelector("game-board");
 
@@ -114,10 +115,9 @@ export class MatchComponent extends HTMLElement{
                 }, { once: true });
 
                 this.socket.on('game-over', (data) => {
-                        const revengePopup = document.createElement('revenge-component');
-                        this.appendChild(revengePopup);
-                        revengePopup.setResult(data.winner);
-
+                    const revengePopup = document.createElement('revenge-component');
+                    this.appendChild(revengePopup);
+                    revengePopup.setResult(data.winner);
 
                     const timeoutId = setTimeout(() => {
                             if (this.contains(revengePopup)) {
@@ -150,9 +150,6 @@ export class MatchComponent extends HTMLElement{
                     }
                 });
             }
-
-
-            this.isGameActive = true;
         }
 
         this.socket.on("elo-updated", (eloResult) => {
@@ -171,60 +168,60 @@ export class MatchComponent extends HTMLElement{
         quitComp.addEventListener('request-quit', () => {
             this.warningToastLeave(window.location.href);
         });
-      
-                 if (inGameChat) inGameChat.setGameId(matchInfo.gameId);
 
-            const inGameChat = this.querySelector("chat-component");
-            if(inGameChat) {
-                inGameChat.setGameId(matchInfo.gameId);
-            }
-            const handleTimers = (state) => {
-                const timer1 = this.querySelector('#pl1 player-timer');
-                const timer2 = this.querySelector('#pl2 player-timer');
-                if (state.winner || state.isProcessingTurn) {
-                    if (timer1) timer1.stopTimer();
-                    if (timer2) timer2.stopTimer();
-                    return;
-                }
-                if (state.winner) {
-                    if (timer1) timer1.stopTimer();
-                    if (timer2) timer2.stopTimer();
-                    return;
-                }
-                if (state.turn === 1) {
-                    if (timer1) timer1.startTimer();
-                    if (timer2) timer2.stopTimer();
-                } else if (state.turn === 2) {
-                    if (timer1) timer1.stopTimer();
-                    if (timer2) timer2.startTimer();
-                }
-            };
-            const handleReserves = (state) => {
-                const inv1 = this.querySelector('#pl1 player-inventory');
-                const inv2 = this.querySelector('#pl2 player-inventory');
+        const inGameChat = this.querySelector("chat-component");
+        if (inGameChat) inGameChat.setGameId(matchInfo.gameId);
 
-                if (state.players && state.players[1] && inv1) {
-                    inv1.setReserves(state.players[1].reserves);
-                }
-                if (state.players && state.players[2] && inv2) {
-                    inv2.setReserves(state.players[2].reserves);
-                }
-            };
-            this.socket.on("init-state", (state) => {
-                handleTimers(state);
-                handleReserves(state);
-            });
-
-            this.socket.on("game-update", (state) => {
-                handleTimers(state);
-                handleReserves(state);
-            });
-            this.socket.on("game-closed", () => {
-                const timer1 = this.querySelector('#pl1 player-timer');
-                const timer2 = this.querySelector('#pl2 player-timer');
+        const handleTimers = (state) => {
+            const timer1 = this.querySelector('#pl1 player-timer');
+            const timer2 = this.querySelector('#pl2 player-timer');
+            if (state.winner || state.isProcessingTurn) {
                 if (timer1) timer1.stopTimer();
                 if (timer2) timer2.stopTimer();
-            });
+                return;
+            }
+            if (state.winner) {
+                if (timer1) timer1.stopTimer();
+                if (timer2) timer2.stopTimer();
+                return;
+            }
+            if (state.turn === 1) {
+                if (timer1) timer1.startTimer();
+                if (timer2) timer2.stopTimer();
+            } else if (state.turn === 2) {
+                if (timer1) timer1.stopTimer();
+                if (timer2) timer2.startTimer();
+            }
+        };
+
+        const handleReserves = (state) => {
+            const inv1 = this.querySelector('#pl1 player-inventory');
+            const inv2 = this.querySelector('#pl2 player-inventory');
+
+            if (state.players && state.players[1] && inv1) {
+                inv1.setReserves(state.players[1].reserves);
+            }
+            if (state.players && state.players[2] && inv2) {
+                inv2.setReserves(state.players[2].reserves);
+            }
+        };
+
+        this.socket.on("init-state", (state) => {
+            handleTimers(state);
+            handleReserves(state);
+        });
+
+        this.socket.on("game-update", (state) => {
+            handleTimers(state);
+            handleReserves(state);
+        });
+
+        this.socket.on("game-closed", () => {
+            const timer1 = this.querySelector('#pl1 player-timer');
+            const timer2 = this.querySelector('#pl2 player-timer');
+            if (timer1) timer1.stopTimer();
+            if (timer2) timer2.stopTimer();
+        });
     }
 
     showEloEvolutionToast(data) {

@@ -1,4 +1,6 @@
 import {buildGameEntry, validateActionForPlayer, applyActionAndGetState, restartIfRevengeAllowed} from "./ManagerHelper.js";
+import {PLAYER} from "../Model/model.js";
+import {GameEngine} from "./GameEngine.js";
 
 export class GameManager {
     constructor(io){
@@ -28,7 +30,8 @@ export class GameManager {
             engine: new GameEngine(),
             players: {
                 [player1.id]: PLAYER.P1,
-                [player2.id]: PLAYER.P2
+                [player2.id]: PLAYER.P2,
+
             },
             p1_id: player1.id,
             p2_id: player2.id,
@@ -39,10 +42,6 @@ export class GameManager {
             revenge_req_counter: 0
         });
         console.log(`Partie ${isFriendly ? "amicale" : ""} ${gameId} créée entre ${player1.data.username} et ${player2.data.username}`);
-    }
-    createGame(gameId, player1Id, player2Id){
-        this.games.set(gameId, buildGameEntry({player1Id, player2Id}));
-        console.log(`Partie ${gameId} créée entre ${player1Id} et ${player2Id}`);
     }
 
     revenge(gameId){
@@ -65,12 +64,7 @@ export class GameManager {
             return null;
         }
         else if (game.revenges >= 2){
-        const result = restartIfRevengeAllowed(game);
-        if(result){
-            return result;
-        } else {
             console.log("La revanche ne peut plus être demandée. Plus de 2 revanches effectuées.");
-            return null;
         }
     }
 
@@ -97,10 +91,12 @@ export class GameManager {
             actionData.relX,
             actionData.relY,
         );
-        const validationError = validateActionForPlayer(game, playerId);
+
+        //TODO: Règler ça
+        /*const validationError = validateActionForPlayer(game, playerId);
         if(validationError) return { error: validationError };
 
-        return applyActionAndGetState(game, actionData);
+        return applyActionAndGetState(game, actionData);*/
     }
 
     finishGame(gameId){

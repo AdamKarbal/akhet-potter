@@ -54,9 +54,9 @@ function buildAiCannotPlayError(reason) {
   };
 }
 
-export class AIGameManager extends GameManager {
+export class AIGameManager {
   constructor() {
-    super();
+    this.games = new Map();
     this.aiLock = Promise.resolve();
   }
 
@@ -67,12 +67,7 @@ export class AIGameManager extends GameManager {
     return run;
   }
 
-  async createGame(gameId, player1Id, player2Id = null) {
-    if (player2Id) {
-      super.createGame(gameId, player1Id, player2Id);
-      return;
-    }
-
+  async createGame(gameId, player1Id) {
     const engine = new GameEngine();
     this.games.set(gameId, buildGameEntry({player1Id, player2Id: null, engine, ai: true}));
 
@@ -94,10 +89,6 @@ export class AIGameManager extends GameManager {
       await this.runWithAiLock(() => this.initializeAI(gameId));
     }
     return result;
-  }
-
-  async handleAction(gameId, playerId, actionData) {
-    return super.handleAction(gameId, playerId, actionData);
   }
 
   async playAiTurn(gameId) {

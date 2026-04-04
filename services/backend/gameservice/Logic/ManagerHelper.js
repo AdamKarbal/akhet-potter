@@ -17,9 +17,6 @@ export function buildGameEntry({player1Id, player2Id = null, engine = new GameEn
         p2_id: player2Id,
         revenges: 0
     };
-    game.engine.onTimeoutCallback = (winnerNum) => { // le timeoutcallback de la méthode startturntimer
-        game.timeoutWinner = winnerNum;
-    };
 
     if (ai) {
         game.ai = true;
