@@ -144,7 +144,7 @@ async function handleSendRequest(req, res) {
         if(!fromUser || !toUser) return sendResponse(res, 401, { error: "Pas de noms d'utilisateurs liés à la demande d'amis" });
         const result = await manager.addFriendRequest(fromUser, toUser);
 
-        return sendResponse(res, 200, result.status, { message: result.message });
+        return sendResponse(res, result.status, { message: result.message });
     }
     catch(e) {
         return sendResponse(res, 500, { error: "Erreur lors de l'envoi de la demande d'amis." });
@@ -158,7 +158,7 @@ async function handleGetFriendList(req, res) {
 
         const result = await manager.getFriendList(userPayload.username);
 
-        if(result.error) return sendResponse(res, 400, result.status, { message: result.message });
+        if(result.error) return sendResponse(res, result.status, { message: result.message });
 
         const friends = result.response.map(u => ({
             username: u.username,
@@ -181,10 +181,7 @@ async function handleRemoveFriend(req, res){
         if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
 
         const result = await manager.removeFriend(userPayload.username, body.username);
-
-        if(result.error) sendResponse(res, 400, result.status, {message : result.message});
-
-        return sendResponse(res, 200, result.status, {message : result.message});
+        return sendResponse(res, result.status, {message : result.message});
     }
     catch(e){
         return sendResponse(res, 500, { message : "Erreur serveur : ", e})
@@ -227,7 +224,7 @@ async function handleEloUpdate(req, res) {
         console.log(`[DEBUG] : Gagnant : ${body.winner}, Perdant : ${body.looser}`);
         const result = await manager.updateElo(body.winner, body.looser);
 
-        if(result.error) return sendResponse(res, 400, result.status, {message : result.message});
+        if(result.error) return sendResponse(res, result.status, {message : result.message});
 
         return sendResponse(res, 200, result);
     }

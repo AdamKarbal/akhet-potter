@@ -105,6 +105,9 @@ export class RequestComponent extends HTMLElement {
         `;
         console.log("Composant RequestComponent injecté dans le DOM");
         this.fetchMyRequests();
+        window.addEventListener('friendrequests-changed', () => {
+            this.fetchMyRequests();
+        });
     }
 
     async fetchMyRequests() {
