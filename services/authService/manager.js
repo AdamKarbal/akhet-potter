@@ -10,10 +10,12 @@
         const token = authHeader && authHeader.split(' ')[1];
         if (!token) return null;
         try {
+            const decoded = jwt.decode(token);
+            console.log("[verifyToken] decoded token: ", decoded);
             return jwt.verify(token, SECRET_KEY);
         } catch (e) {
             const decoded = jwt.decode(token);
-            console.log(`Something went wrong with ${decoded? decoded.username : 'unknown user'}'s token verification`)
+            console.log(`Something went wrong with ${decoded? decoded.username : 'unknown user'}'s token verification, `, e.toString())
             return null;
         }
     }
@@ -107,6 +109,10 @@
         const requests = getCollection('friends');
         const users = getCollection('users');
 
+        if (fromUser === toUser) {
+            return { error: "Tu ne peux pas t'envoyer une demande à toi-même.", status: 400 };
+        }
+
         const existing = await requests.findOne({
             $or: [
                 { from: fromUser, to: toUser, status: "pending" },
@@ -132,10 +138,10 @@
     async function acceptFriendRequest(fromUser, toUser){
         const requests = getCollection('friends');
         const users = getCollection('users');
-        const existing = await requests.findOne({ from: fromUser, to: toUser });
+        const existing = await requests.findOne({ from: fromUser, to: toUser, status: "pending" });
         if(existing){
             await requests.updateOne(
-                { from: fromUser, to: toUser },
+                { _id: existing._id },
                 { $set: { status: "accepted" } }
             );
 
@@ -150,17 +156,21 @@
 
     async function denyFriendRequest(fromUser, toUser){
         const requests = getCollection('friends');
-        const existing = await requests.findOne({ from: fromUser, to: toUser });
+        // chercher uniquement une demande en attente
+        const existing = await requests.findOne({ from: fromUser, to: toUser, status: "pending" });
+        console.log("[denyFriendRequest] existing: ", existing);
         if(existing){
+            // Mettre à jour spécifiquement le document pending trouvé (par _id)
             await requests.updateOne(
-                { from: fromUser, to: toUser },
-                { $set: { status: "denied" } }
+              { _id: existing._id },
+              { $set: { status: "denied" } }
             );
-            return {message: "Demande refusée par le destinataire", status: 201};
+            return {message: "Demande refusée par le destinataire", status: 200};
         }
 
         return {message: "Demande introuvable", status: 400};
     }
+
 
     async function getFriendRequests(toUser) {
         const requestsColl = getCollection('friends');

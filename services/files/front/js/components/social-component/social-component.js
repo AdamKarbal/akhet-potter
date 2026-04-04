@@ -1,5 +1,6 @@
 import { socket } from "../../socket.js";
 import { RequestService} from "../../services/RequestService.js";
+import {AuthService} from "../../services/AuthService.js";
 
 export class SOCIALComponent extends HTMLElement {
     constructor() {
@@ -251,7 +252,7 @@ export class SOCIALComponent extends HTMLElement {
     }
 
     async executeSearch(query) {
-        const token = localStorage.getItem('token');
+        const token = await AuthService.getValidToken();
         try {
             const response = await fetch(`/api/users/search?username=${encodeURIComponent(query)}`, {
                 method : 'GET',
@@ -308,7 +309,7 @@ export class SOCIALComponent extends HTMLElement {
         button.disabled = true;
         button.innerText = "Envoi...";
         try {
-            const fromUser = localStorage.getItem('token');
+            const fromUser = await AuthService.getValidToken();
             const response = await fetch(`/api/sendreq`, {
                 method: 'POST',
                 body: JSON.stringify({ to: targetUser }),
@@ -317,6 +318,8 @@ export class SOCIALComponent extends HTMLElement {
                     'Content-Type': 'application/json'
                 }
             });
+
+            console.log("[sendFriendRequest] response: ", response)
 
             if(response.ok){
                 button.innerText = "Envoyé !";
@@ -332,7 +335,7 @@ export class SOCIALComponent extends HTMLElement {
 
     async getFriendList(){
         try{
-            const token = localStorage.getItem('token');
+            const token = await AuthService.getValidToken();
             const response = await fetch('/api/friends', {
                 method: 'GET',
                 headers: {
@@ -366,11 +369,30 @@ export class SOCIALComponent extends HTMLElement {
                     const rankComp = div.querySelector('player-rank');
                     if (rankComp) rankComp.setPlayerInfo(friend);
 
-                    div.querySelector('.remove-btn').addEventListener('click', (e) => {
-                        const success = RequestService.deleteFriend(friend.username);
+                    div.querySelector('.remove-btn').addEventListener('click', async (e) => {
+                        // attendre la requête vers le backend
+                        const success = await RequestService.deleteFriend(friend.username);
 
-                        if(success){
+                        if (success) {
+                            // Mettre à jour la liste interne d'amis
+                            this.friendList = this.friendList.filter(f => f.username !== friend.username);
+
+                            // Retirer l'élément DOM correspondant
                             div.remove();
+
+                            // Si l'utilisateur a une recherche active, relancer la recherche
+                            const inputEl = this.querySelector('#input');
+                            const currentQuery = inputEl ? inputEl.value.trim() : '';
+                            if (currentQuery.length >= 2) {
+                                // relancer la recherche pour rafraîchir les boutons "+ Ajouter"
+                                this.executeSearch(currentQuery);
+                            }
+
+                            // optionnel : notifier d'autres composants si besoin
+                            window.dispatchEvent(new Event('friendlist-changed'));
+                        } else {
+                            // échec : tu peux afficher un message / animation ou réactiver le bouton
+                            console.error("Erreur lors de la suppression d'ami");
                         }
                     });
                 });

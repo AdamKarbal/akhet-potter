@@ -8,16 +8,17 @@ import { socket } from "./socket.js";
 import {audioService} from "./services/AudioService.js";
 import {WaitlistComponent} from "./components/waitlist-component/waitlist-component.js";
 import {GameLoaderComponent} from "./components/gameloader-component/gameloader-component.js";
+import {RequestService} from "./services/RequestService.js";
 
 function initGlobalNotifications() {
     socket.on("NEW_FRIEND_REQ", (data) => {
-        toast(data);
+        toast(data, "NEW_FRIEND_REQ");
         console.log(`Invitation d'ami reçue de ${data.from}`);
     });
 
 
     socket.on("NEW_FRIENDLY_MATCH", (data) => {
-        toast(data);
+        toast(data, "NEW_FRIENDLY_MATCH");
         console.log(`Invitation de match amical reçue de ${data.from}`);
     });
 
@@ -127,7 +128,7 @@ socket.on("invitation-expired", (data) => {
     warningToast(data);
 });
 
-function toast(data){
+function toast(data, event){
     const toast = document.createElement('div');
     toast.className = 'toast';
 
@@ -153,15 +154,48 @@ function toast(data){
     document.body.appendChild(toast);
     toast.querySelector("#toast-accept").onclick = async (e) => {
         e.target.disabled = true;
-        toast.innerHTML = "Demande acceptée ! Connexion à la partie...";
-        socket.emit("join-friendly", {from: data.from});
+        switch (event){
+            case 'NEW_FRIEND_REQ':
+                const success = await RequestService.handleDecision(data.from, "accept");
+                if (success){
+                    toast.innerHTML = "Demande acceptée !";
+                    window.dispatchEvent(new Event('friendrequests-changed'));
+                } else {
+                    toast.innerHTML = "Erreur: impossible d'accepter la demande"
+                }
+                break;
+            case 'NEW_FRIENDLY_MATCH':
+                socket.emit("join-friendly", {from: data.from});
+                toast.innerHTML = "Demande acceptée ! Connexion à la partie...";
+                break;
+        }
         setTimeout(() => toast.remove(), 4000);
     }
 
-    toast.querySelector("#toast-deny").onclick = async () => {
-        toast.innerHTML = "Demande refusée.";
+    toast.querySelector("#toast-deny").onclick = async (e) => {
+        e.target.disabled = true;
+        switch (event) {
+            case 'NEW_FRIEND_REQ':
+                // Appel vers l'API pour refuser la demande (backend /api/managereq)
+                const success = await RequestService.handleDecision(data.from, "deny");
+                if (success) {
+                    toast.innerHTML = "Demande refusée.";
+                    // informer les composants que les demandes ont changé
+                    window.dispatchEvent(new Event('friendrequests-changed'));
+                } else {
+                    toast.innerHTML = "Erreur : impossible de refuser la demande";
+                }
+                break;
+            case 'NEW_FRIENDLY_MATCH':
+                // Pour une invitation de match, on refuse localement (ou ajouter un emit socket si nécessaire)
+                toast.innerHTML = "Invitation refusée.";
+                break;
+            default:
+                toast.innerHTML = "Refus enregistré.";
+        }
         setTimeout(() => toast.remove(), 2000);
     }
+
 
     setTimeout(() => {
         toast.style.opacity = '0';

@@ -1,7 +1,27 @@
+import {AuthService} from "./AuthService.js";
+
 export const RequestService = {
+    async handleDecision(username, decision){
+        const token = await AuthService.getValidToken();
+        try{
+            const response = await fetch("/api/managereq", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body : JSON.stringify({ fromUser : username, decision: decision})
+            });
+            return response.ok;
+        }
+        catch(error){
+            console.error("Erreur lors de le gestion de demande : ", error);
+            return false;
+        }
+    },
 
     async deleteFriend(username){
-        const token = localStorage.getItem('token');
+        const token = await AuthService.getValidToken();
 
         try {
             const response = await fetch("/api/removefriend", {
