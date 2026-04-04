@@ -48,6 +48,13 @@ export class AiInfo extends HTMLElement {
     `;
     }
 
+    setPlayerInfo(data){
+        const nameContainer = this.querySelector('.userName');
+        if (!nameContainer) return;
+        const name = data?.username || 'Dumbeldore (AI)';
+        nameContainer.textContent = name;
+    }
+
 }
 
 customElements.define('ai-info', AiInfo);

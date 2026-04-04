@@ -6,6 +6,7 @@ import '../../components/GameBoard/GameBoard.js'
 import '../../components/AI-layout/ai-layout.js'
 import {API_URL} from "../../../config.js";
 import {audioService} from "../../services/AudioService.js";
+import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
 export class JcOComponent extends HTMLElement{
     constructor() {
@@ -36,20 +37,20 @@ export class JcOComponent extends HTMLElement{
 
                 #pl2{
                     grid-column: 2;
-                    grid-row: 3;
-                    margin-right: 5vw;
-                    justify-items: center;
-                    margin-left: 5vw;
-                    margin-bottom: 3.5vh;
-                }
-                
-                #pl1{
-                    grid-column: 2;
                     grid-row: 1;
                     margin-right: 5vw;
                     justify-items: center;
                     margin-left: 5vw;
                     align-self: center;
+                }
+                
+                #pl1{ 
+                    grid-column: 2;
+                    grid-row: 3; 
+                    margin-right: 5vw;
+                    justify-items: center;
+                    margin-left: 5vw;
+                    margin-bottom: 3.5vh;
                 }
                 
                 #right-aside{
@@ -75,8 +76,6 @@ export class JcOComponent extends HTMLElement{
                     padding: 0;
                     place-self: center;
                 }
-                
-                
             </style>
         <div class="container">
             <navbar-component id="nav"></navbar-component>
@@ -89,6 +88,89 @@ export class JcOComponent extends HTMLElement{
             <player-layout id="pl2"></player-layout>
         </div>
     `;
+
+        const token = localStorage.getItem("token");
+        this.socket = io(API_URL, {
+            path: "/socket.io",
+            transports: ["websocket"],
+            auth: {token: token}
+        });
+
+        this.addEventListener("board-ready", () => {
+            console.log(`le joueur ${this.socket.id} lance une recherche`);
+            this.socket.emit("launch-game");
+        })//On utilise cet événement pour éviter une RC sur le chargement du board et le dessin de l'attente
+
+        this.socket.on("waiting-for-opponent", () => {
+            console.log("En attente d'un adversaire...");
+            this.querySelector("game-board").showWaitingScreen();
+        });
+
+        this.socket.on("match-found", (matchInfo) => {
+            this.socket.off("waiting-for-opponent");
+            const pl1 = this.querySelector("#pl1");
+            const pl2 = this.querySelector("#pl2");
+            if (pl2 && typeof pl2.setPlayerInfo === "function") {
+                pl2.setPlayerInfo(matchInfo.player1);
+            }
+            if (pl1 && typeof pl1.setPlayerInfo === "function") {
+                pl1.setPlayerInfo(matchInfo.player2);
+            }
+
+            const gameBoard = this.querySelector("game-board");
+            if (gameBoard) {
+                gameBoard.setSocketAndListen(this.socket, matchInfo.gameId);
+            }
+            const handleTimers = (state) => {
+                const timerIA = this.querySelector('#pl1 player-timer');
+                const timerHumain = this.querySelector('#pl2 player-timer');
+
+                if (state.winner || state.isProcessingTurn) {
+                    if (timerIA) timerIA.stopTimer();
+                    if (timerHumain) timerHumain.stopTimer();
+                    return;
+                }
+
+                if (state.turn === 1) {
+                    if (timerIA) timerIA.stopTimer();
+                    if (timerHumain) timerHumain.startTimer();
+                } else if (state.turn === 2) {
+                    if (timerHumain) timerHumain.stopTimer();
+                    if (timerIA) timerIA.startTimer();
+                }
+            };
+            const handleReserves = (state) => {
+                const invIA = this.querySelector('#pl1 player-inventory');
+                const invHumain = this.querySelector('#pl2 player-inventory');
+                if (state.players && state.players[1] && invHumain) {
+                    invHumain.setReserves(state.players[1].reserves);
+                }
+                if (state.players && state.players[2] && invIA) {
+                    invIA.setReserves(state.players[2].reserves);
+                }
+            };
+
+            this.socket.on("init-state", (state) => {
+                handleTimers(state);
+                handleReserves(state);
+            });
+            this.socket.on("game-update", (state) => {
+                handleTimers(state);
+                handleReserves(state);
+            });
+            this.socket.on("game-closed", () => {
+                const timerIA = this.querySelector('#pl1 player-timer');
+                const timerHumain = this.querySelector('#pl2 player-timer');
+                if (timerIA) timerIA.stopTimer();
+                if (timerHumain) timerHumain.stopTimer();
+            });
+        });
+    }
+
+    disconnectedCallback() {
+        if(this.socket){
+            this.socket.disconnect();
+        }
     }
 }
 

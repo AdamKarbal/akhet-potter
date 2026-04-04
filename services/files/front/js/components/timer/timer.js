@@ -1,6 +1,8 @@
 export class Timer extends HTMLElement {
     constructor() {
         super();
+        this.interval = null;
+        this.timeLeft = 20;
     }
 
     connectedCallback() {
@@ -20,39 +22,70 @@ export class Timer extends HTMLElement {
                 }
 
                 .img img {
-                    width: 40px; /* Force une taille fixe (ajuste selon tes besoins) */
-                    height: auto; /* Garde les proportions */
-                    display: block; /* Supprime l'espace fantôme sous l'image */
+                    width: 40px;
+                    height: auto;
+                    display: block;
                 }
 
                 .value {
                     font-family: HarryPotter;
-                    color: #c5a059;
                     font-size: 2em;
-                    font-family: HarryPotter;
-                    color: #c5a059;
-                    font-size: 2em;
-                    background: linear-gradient(
-                            to bottom,
-                            #FFF8DC 0%,
-                            #FFD700 50%,
-                            #8B4513 100%
-                    );
+                    background: linear-gradient(to bottom, #FFF8DC 0%, #FFD700 50%, #8B4513 100%);
                     -webkit-background-clip: text;
                     background-clip: text;
                     color: transparent;
                     filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
+                    transition: filter 0.3s ease;
                 }
 
+                .urgent { filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.9)); }
+                .inactive { opacity: 0.3; filter: grayscale(100%); }
             </style>
-            <div id="timer">
-                <div class="img">
-                    <img src="assets/timer.png"/>
-                </div>
+
+            <div id="timer" class="inactive">
+                <div class="img"><img src="assets/timer.png"/></div>
                 <div class="value">00:20</div>
             </div>
-
         `;
+    }
+
+    startTimer() {
+        if (this.interval) return;
+        this.timeLeft = 20;
+        this.querySelector('#timer').classList.remove('inactive');
+        this.updateVisuals();
+        this.interval = setInterval(() => {
+            this.timeLeft--;
+            if (this.timeLeft <= 0) {
+                this.timeLeft = 0;
+                this.stopTimer();
+            }
+            this.updateVisuals();
+        }, 1000);
+    }
+
+    stopTimer() {
+        if (this.interval) clearInterval(this.interval);
+        this.interval = null;
+        const timerContainer = this.querySelector('#timer');
+        const textValue = this.querySelector('.value');
+        if (timerContainer && textValue) {
+            timerContainer.classList.add('inactive');
+            textValue.classList.remove('urgent');
+            textValue.innerText = "00:--";
+        }
+    }
+
+    updateVisuals() {
+        const textValue = this.querySelector('.value');
+        if (!textValue) return;
+        const seconds = this.timeLeft < 10 ? `0${this.timeLeft}` : this.timeLeft;
+        textValue.innerText = `00:${seconds}`;
+        if (this.timeLeft <= 5) {
+            textValue.classList.add('urgent');
+        } else {
+            textValue.classList.remove('urgent');
+        }
     }
 }
 

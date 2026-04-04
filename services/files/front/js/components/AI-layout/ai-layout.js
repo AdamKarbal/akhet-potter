@@ -26,6 +26,13 @@ export class AiLayout extends HTMLElement {
         </div>
     `;
     }
+
+    setPlayerInfo(data){
+        const aiInfo = this.querySelector('ai-info');
+        if (aiInfo && typeof aiInfo.setPlayerInfo === 'function') {
+            aiInfo.setPlayerInfo(data);
+        }
+    }
 }
 
 customElements.define('ai-layout', AiLayout);

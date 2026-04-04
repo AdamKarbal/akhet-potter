@@ -15,12 +15,14 @@ async function routeRequest(req, res) {
         if(url === '/removefriend') return await handlers.handleRemoveFriend(req, res);
         if(url=== '/logout') return await handlers.handleLogout(req, res);
         if(url === '/update-elo') return await handlers.handleEloUpdate(req, res)
+        if (url === '/reset-password') return await handlers.handleResetPassword(req, res);
     }
 
     if (req.method === 'GET') {
         if (url === '/users/search') return await handlers.handleUserResearch(req, res);
         if (url === '/requests') return await handlers.handleRequestsResearch(req, res);
         if (url === '/friends') return await handlers.handleGetFriendList(req, res);
+        if (url === '/security-question') return await handlers.handleGetSecurityQuestion(req, res);
     }
 
     sendResponse(res, 404, { error: "Route inconnue" });

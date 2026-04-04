@@ -25,10 +25,13 @@ async function handleLogin(req, res) {
 
 async function handleSignup(req, res) {
     try {
-        const { username, password } = await parseBody(req);
-        if (!username || !password) return sendResponse(res, 400, { error: "Champs manquants" });
+        const { username, password, securityQuestion, securityAnswer } = await parseBody(req);
 
-        const result = await manager.signup(username, password);
+        if (!username || !password || !securityQuestion || !securityAnswer) {
+            return sendResponse(res, 400, { error: "Champs manquants" });
+        }
+
+        const result = await manager.signup(username, password, securityQuestion, securityAnswer);
         const { status, ...data } = result;
         sendResponse(res, status, data);
     } catch (e) {
@@ -238,3 +241,33 @@ module.exports = { handleLogin, handleSignup, handleRefresh,
     handleUserResearch, handleRequestsResearch, handleDecisionRequest,
     handleSendRequest, handleGetFriendList, handleRemoveFriend,
     handleLogout, handleEloUpdate };
+async function handleGetSecurityQuestion(req, res) {
+    try {
+        const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
+        const username = urlParams.get('username');
+
+        if (!username) return sendResponse(res, 400, { error: "Nom d'utilisateur requis" });
+
+        const result = await manager.getSecurityQuestion(username);
+        return sendResponse(res, result.status, result);
+    } catch (e) {
+        return sendResponse(res, 500, { error: "Erreur interne" });
+    }
+}
+
+async function handleResetPassword(req, res) {
+    try {
+        const { username, securityAnswer, newPassword } = await parseBody(req);
+        if (!username || !securityAnswer || !newPassword) {
+            return sendResponse(res, 400, { error: "Champs manquants" });
+        }
+
+        const result = await manager.resetPassword(username, securityAnswer, newPassword);
+        return sendResponse(res, result.status, result);
+    } catch (e) {
+        return sendResponse(res, 500, { error: "Erreur interne" });
+    }
+}
+
+
+module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList, handleRemoveFriend, handleLogout, handleGetSecurityQuestion, handleResetPassword };
