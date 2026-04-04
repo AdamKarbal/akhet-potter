@@ -27,11 +27,15 @@ export class SOCIALComponent extends HTMLElement {
             .soc-container {
                 display: grid;
                 grid-template-columns: 10% 45% 45%;
+                grid-template-rows: 17% 83%;
                 width: 100vw;
                 height: 100vh;
             }
             
-            #nav { grid-column: 1; }
+            #nav { 
+                grid-column: 1;
+                grid-row: 1/3;
+            }
             
             #friendsSection {
                 grid-column: 2;
@@ -40,6 +44,7 @@ export class SOCIALComponent extends HTMLElement {
                 padding: 2rem;
                 gap: 1.5rem;
                 align-items: center;
+                grid-row: 2;
             }
             
             #searchSection {
@@ -48,20 +53,20 @@ export class SOCIALComponent extends HTMLElement {
                 flex-direction: column;
                 padding: 2rem;
                 gap: 1.5rem;
+                grid-row: 2;
             }
 
             #friendTitle, .searchbar-label {
                 font-family: HarryPotter;
-                font-size: 2em;
+                font-size: 2.9em;
                 background: linear-gradient(to bottom, #FFF8DC 0%, #FFD700 50%, #8B4513 100%);
                 -webkit-background-clip: text;
                 background-clip: text;
                 color: transparent;
                 filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
                 margin-bottom: 0.5rem;
-            }
+            }      
 
-            /* Champ de recherche stylisé */
             .searchbar-container {
                 display: flex;
                 flex-direction: column;
@@ -88,29 +93,19 @@ export class SOCIALComponent extends HTMLElement {
                 background-color: rgba(30, 25, 15, 0.8);
             }
             
+            #logo{
+                height: 20vh;
+                justify-self: center;
+                grid-column: 1/4;
+                grid-row: 1;
+                margin-top: 1vh;
+            }
+            
             .searchbar-container > input::placeholder {
                 color: rgba(197, 160, 89, 0.4);
                 font-style: italic;
             }
-
-            .search-item {
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-                background: rgba(20, 15, 10, 0.5);
-                border: 1px solid rgba(197, 160, 89, 0.3);
-                padding-left: 10px;
-                padding-right: 10px;
-                padding-top: 5px;
-                padding-bottom: 5px;
-                border-radius: 8px;
-                margin-bottom: 8px;
-                box-shadow: 0 0 10px rgba(0,0,0,0.5);
-                width: fit-content;
-                gap: 1.5rem;
-            }
-
+            
             .username {
                 font-family: "Agency FB";
                 font-size: 1.4em;
@@ -160,21 +155,33 @@ export class SOCIALComponent extends HTMLElement {
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
-                background: rgba(20, 15, 10, 0.5);
-                border: 1px solid rgba(197, 160, 89, 0.3);
-                padding-left: 10px;
-                padding-right: 10px;
-                padding-top: 5px;
-                padding-bottom: 5px;
+                background: rgba(20, 15, 10, 0.7);
+                border: 2px outset rgba(197, 160, 89, 0.7);
+                padding : 2vh 1vw;
                 border-radius: 8px;
                 margin-bottom: 8px;
                 box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                gap: 1.5rem;           
+            }
+            
+            .search-item {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                background: rgba(20, 15, 10, 0.5);
+                border: 0 solid rgba(197, 160, 89, 0.3);
+                padding : 2vh 1vw;
+                border-radius: 12px;
+                margin-bottom: 8px;
+                width: fit-content;
                 gap: 1.5rem;
             }
             
-            .remove-btn{
+            .remove-btn, #friendlyBtn{
+                font-size: 1em;
                 background: rgba(40, 30, 20, 0.6);
-                border: 1px solid #c5a059;
+                border: 1px outset #c5a059;
                 color: #c5a059;
                 font-family: 'Agency FB', sans-serif;
                 cursor: pointer;
@@ -183,14 +190,14 @@ export class SOCIALComponent extends HTMLElement {
                 transition: all 0.2s;
             }
             
-            .remove-btn:hover {
+            .remove-btn:hover, #friendlyBtn:hover {
                 background: #c5a059;
                 color: #140f0a;
                 box-shadow: 0 0 12px #d4af37;
                 transform: scale(1.05);
             }
             
-            .remove-btn:disabled {
+            .remove-btn:disabled, #friendlyBtn:disabled{
                 border-color: #666;
                 color: #666;
                 cursor: default;
@@ -202,7 +209,7 @@ export class SOCIALComponent extends HTMLElement {
         
         <div class="soc-container">
             <navbar-component id="nav"></navbar-component>
-            
+            <img id="logo" src="../../../assets/social.png">
             <div id="friendsSection">
                 <span id="friendTitle">Amis</span>
                 <div id="friendList"></div>
@@ -222,6 +229,11 @@ export class SOCIALComponent extends HTMLElement {
         input.addEventListener('input', () => this.handleInput(input.value));
 
         this.getFriendList();
+
+        /*this.socket.on("waiting-for-friend", (friendUsername) => {
+            console.log(`En attente de ${friendUsername}...`);
+            window.location.hash = 'JCJ';
+        });*/
     }
 
     handleInput(value) {
@@ -239,8 +251,15 @@ export class SOCIALComponent extends HTMLElement {
     }
 
     async executeSearch(query) {
+        const token = localStorage.getItem('token');
         try {
-            const response = await fetch(`/api/users/search?username=${encodeURIComponent(query)}`);
+            const response = await fetch(`/api/users/search?username=${encodeURIComponent(query)}`, {
+                method : 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
             if (response.ok) {
                 const users = await response.json();
                 this.displayResults(users);
@@ -299,8 +318,6 @@ export class SOCIALComponent extends HTMLElement {
                 }
             });
 
-            const result = response.json();
-
             if(response.ok){
                 button.innerText = "Envoyé !";
                 socket.emit("SEND_FRIEND_REQ", { to: targetUser });
@@ -335,9 +352,16 @@ export class SOCIALComponent extends HTMLElement {
                     div.innerHTML = `
                         <span class="username">${friend.username}</span>
                         <span class="rank"><player-rank></player-rank></span>
+                        <button id="friendlyBtn">Défier</button>
                         <button class="remove-btn">Retirer</button>
                     `;
                     friendList.appendChild(div);
+                    const friendlyBtn = div.querySelector("#friendlyBtn");
+                    friendlyBtn.addEventListener("click", () => {
+                        console.log(`Envoi d'une invitation en match à ${friend.username}`);
+                        socket.emit("invite-friendly", {to : friend.username});
+                        localStorage.setItem('matchMode', 'friendly');
+                    })
 
                     const rankComp = div.querySelector('player-rank');
                     if (rankComp) rankComp.setPlayerInfo(friend);
@@ -356,6 +380,7 @@ export class SOCIALComponent extends HTMLElement {
             console.error("Erreur de recherche de la liste d'amis :", error);
         }
     }
+
 }
 
 customElements.define('social-component', SOCIALComponent);

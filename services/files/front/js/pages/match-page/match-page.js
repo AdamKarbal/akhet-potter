@@ -4,13 +4,22 @@ import '../../components/chat-component/chat-component.js'
 import '../../components/navbar-component/navbar-component.js'
 import '../../components/GameBoard/GameBoard.js'
 import '../../components/quit-component/quit-component.js'
-import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
-import {API_URL} from "../../../config.js";
-import { audioService } from "../../services/AudioService.js";
+import '../../components/revenge-component/revenge-component.js'
+import {socket} from '../../socket.js'
 
 export class MatchComponent extends HTMLElement{
     constructor() {
         super();
+        this.isGameActive = false;
+        this.internalNav = false;
+        this.socket = socket;
+        this.hashHandler = (event) => {
+            if (this.internalNav) {
+                this.internalNav = false;
+                return;
+            }
+            if (this.isGameActive) this.warningToastLeave(event.oldURL);
+        };
     }
 
     connectedCallback() {
@@ -89,43 +98,244 @@ export class MatchComponent extends HTMLElement{
             <player-layout id="pl2"></player-layout>
         </div>
     `;
+        const matchInfo = JSON.parse(sessionStorage.getItem('matchInfo'));
 
-        const token = localStorage.getItem("token");
-        this.socket = io(API_URL, {
-            path: "/socket.io",
-            transports: ["websocket"],
-            auth: { token: token }
-        });
-
-        this.addEventListener("board-ready", () => {
-            console.log(`le joueur ${this.socket.id} lance une recherche`);
-            this.socket.emit("find-game");
-        })//On utilise cet événement pour éviter une RC sur le chargement du board et le dessin de l'attente
-
-        this.socket.on("waiting-for-opponent", () => {
-            console.log("En attente d'un adversaire...");
-            this.querySelector("game-board").showWaitingScreen();
-        });
-
-        this.socket.on("match-found", (matchInfo) => {
-            this.socket.off("waiting-for-opponent");
-           const pl1 = this.querySelector("#pl1");
-           const pl2 = this.querySelector("#pl2");
-
-           pl1.setPlayerInfo(matchInfo.player1);
-           pl2.setPlayerInfo(matchInfo.player2);
+        if (matchInfo) {
+            const pl1 = this.querySelector("#pl1");
+            const pl2 = this.querySelector("#pl2");
+            pl1.setPlayerInfo(matchInfo.player1);
+            pl2.setPlayerInfo(matchInfo.player2);
 
             const gameBoard = this.querySelector("game-board");
-            if(gameBoard){
-                gameBoard.setSocketAndListen(this.socket, matchInfo.gameId);
+
+            if (gameBoard) {
+                gameBoard.addEventListener('board-ready', () => {
+                    gameBoard.setSocketAndListen(this.socket, matchInfo.gameId);
+                }, { once: true });
+
+                this.socket.on('game-over', (data) => {
+                        const revengePopup = document.createElement('revenge-component');
+                        this.appendChild(revengePopup);
+                        revengePopup.setResult(data.winner);
+
+
+                    const timeoutId = setTimeout(() => {
+                            if (this.contains(revengePopup)) {
+                                revengePopup.remove();
+                                window.location.hash = '';
+                                this.socket.emit('leave-game', matchInfo.gameId);
+                            }
+                        }, 10000);
+
+                        revengePopup.addEventListener('revenge', () => {
+                            clearTimeout(timeoutId);
+                            this.socket.emit('revenge', matchInfo.gameId);
+                        });
+
+                        this.socket.once('back-to-homepage', () => {
+                            clearTimeout(timeoutId);
+                        });
+
+                        revengePopup.addEventListener('leave', () => {
+                            this.socket.emit('leave-game', matchInfo.gameId);
+                            revengePopup.remove();
+                            window.location.hash = '';
+                        });
+                });
+
+                this.socket.on('revenge-granted', () => {
+                    const revengePopup = document.querySelector('revenge-component');
+                    if(document.contains(revengePopup)) {
+                        revengePopup.remove();
+                    }
+                });
             }
 
             const inGameChat = this.querySelector("chat-component");
-            if(inGameChat) {
-                inGameChat.setGameId(matchInfo.gameId);
-            }
+            if (inGameChat) inGameChat.setGameId(matchInfo.gameId);
+
+            this.isGameActive = true;
+        }
+
+        this.socket.on("elo-updated", (eloResult) => {
+            this.isGameActive = false;
+            this.showEloEvolutionToast(eloResult);
+        });
+
+        this.socket.on("invitation-timeout", () => {
+            window.location.hash = 'SOC';
+        });
+
+        window.addEventListener("hashchange", this.hashHandler);
+
+        const quitComp = this.querySelector('quit-component');
+
+        quitComp.addEventListener('request-quit', () => {
+            this.warningToastLeave(window.location.href);
         });
     }
+
+    showEloEvolutionToast(data) {
+        const toast = document.createElement('div');
+        const isWinner = this.socket.data.username === data.winnerInfos.username;
+
+        toast.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.5);
+        background: linear-gradient(135deg, #1a0f05 0%, #2a1a0a 100%);
+        border: 3px double ${isWinner ? '#01cc41' : '#ff0000'};
+        color: #fff8dc;
+        padding: 40px;
+        border-radius: 15px;
+        z-index: 10005;
+        text-align: center;
+        font-family: 'Agency FB', sans-serif;
+        box-shadow: 0 0 50px rgba(0,0,0,0.9), 0 0 30px ${isWinner ? 'rgba(35,181,0,0.4)' : 'rgba(181,0,0,0.4)'};
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    `;
+
+        const diffText = isWinner ? `+${data.winnerInfos.wGain}` : `-${data.looserInfos.lGain}`;
+        const diffColor = '#d4af37';
+
+        toast.innerHTML = `
+        <div style="font-size: 1.5em; letter-spacing: 2px; margin-bottom: 10px; color: #d4af37;">
+            ${isWinner ? 'VICTOIRE MAGIQUE' : 'DEFAITE HONORABLE'}
+        </div>
+        <div style="font-size: 4em; font-weight: bold; margin: 10px 0;">
+            ${isWinner? data.winnerInfos.newWinnerElo : data.looserInfos.newLooserElo} <span style="font-size: 0.5em; color: ${diffColor};">${diffText}</span>
+        </div>
+        <div style="font-size: 1.2em; color: #d4af37; font-style: italic;">
+            Rang : ${isWinner? data.winnerInfos.newRank : data.looserInfos.newRank}
+        </div>
+        <button id="close-elo" style="
+            margin-top: 25px;
+            background: none;
+            border: 1px solid #c5a059;
+            color: #c5a059;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-family: 'Agency FB';
+            transition: all 0.3s;
+        ">CONTINUER</button>
+    `;
+        document.body.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, -50%) scale(1)';
+        });
+
+        toast.querySelector('#close-elo').onclick = () => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translate(-50%, -50%) scale(0.8)';
+            setTimeout(() => {
+                toast.remove();
+                this.isGameActive = false;
+                window.location.hash = '';
+            }, 500);
+        };
+    }
+
+    warningToastLeave(oldUrl) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-warning-centered';
+
+        toast.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.7);
+        background: #1a0f05;
+        border: 3px double #c5a059;
+        color: #fff8dc;
+        padding: 30px;
+        border-radius: 12px;
+        z-index: 10002;
+        font-family: 'Agency FB', sans-serif;
+        box-shadow: 0 0 50px rgba(0,0,0,0.9), 0 0 20px rgba(197, 160, 89, 0.3);
+        text-align: center;
+        min-width: 300px;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    `;
+
+        toast.innerHTML = `
+        <div style="font-size: 2em; color: #d4af37; margin-bottom: 10px;">⚡</div>
+        <div style="font-size: 1.4em; margin-bottom: 20px; letter-spacing: 1px;">
+            Si tu quittes la partie maintenant, cela sera comptabilisé comme déclaration de forfait. Es-tu sûr de vouloir quitter?
+        </div>
+        <button id="leave-btn" style="
+            background: #fb0202;
+            color: #ffffff;
+            border: none;
+            padding: 8px 25px;
+            font-family: 'Agency FB', sans-serif;
+            font-weight: bold;
+            font-size: 1.1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        ">QUITTER</button>     
+        
+        <button id="stay-btn" style="
+            background: #38fb02;
+            color: #ffffff;
+            border: none;
+            padding: 8px 25px;
+            font-family: 'Agency FB', sans-serif;
+            font-weight: bold;
+            font-size: 1.1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        ">Rester</button>
+    `;
+        document.body.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, -50%) scale(1)';
+        });
+
+        const leaveBtn = toast.querySelector("#leave-btn");
+        const stayBtn = toast.querySelector("#stay-btn");
+
+        leaveBtn.onmouseover = () => leaveBtn.style.transform = 'scale(1.1)';
+        leaveBtn.onmouseout = () => leaveBtn.style.transform = 'scale(1)';
+        stayBtn.onmouseover = () => stayBtn.style.transform = 'scale(1.1)';
+        stayBtn.onmouseout = () => stayBtn.style.transform = 'scale(1)';
+
+        leaveBtn.onclick = () => {
+            this.isGameActive = false;
+            this.socket.emit("leave-game");
+            toast.remove();
+            window.location.hash = '';
+        };
+
+        stayBtn.onclick = () => {
+            const oldHash = oldUrl.split('#')[1] || 'JCJ';
+            if (window.location.hash !== `#${oldHash}`) {
+                this.internalNav = true;
+                window.location.hash = oldHash;
+            }
+            toast.remove();
+        };
+
+        setTimeout(() => {
+            if (toast.parentNode) stayBtn.onclick();
+        }, 8000);
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener("hashchange", this.hashHandler);
+        if (this.isGameActive) {
+            this.socket.emit("leave-game");
+        }
+    }
+
 }
 
 customElements.define('match-page', MatchComponent);

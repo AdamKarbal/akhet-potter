@@ -61,12 +61,13 @@ async function handleRefresh(req, res) {
 async function handleUserResearch(req, res) {
     try {
         const token = verifyToken(req);
+
         if (!token) {
             return sendResponse(res, 401, { error: "Non autorisé: Token manquant ou invalide" });
         }
 
         console.log("DEBUG TOKEN HANDLER :", token);
-        console.log("URL reçue :", req.url);
+
         const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
         const query = urlParams.get('username');
 
@@ -204,5 +205,36 @@ async function handleLogout(req, res) {
     }
 }
 
+async function handleEloUpdate(req, res) {
+    try {
+        const secret = req.headers['x-secret-key'];
+        if(secret === "J3SU1SUNM4UV4ISTR1CH3UR"){
+            return sendResponse(res, 403, {error: "T'as vraiment essayé en plus? Cours toujours mon gourmand."});
+        }
 
-module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList, handleRemoveFriend, handleLogout };
+        if(secret !== process.env.ELO_KEY){
+            return sendResponse(res, 403, {error: "Accès refusé : t'as pas la clé secrète petit tricheur. " +
+                    "Tiens, réessaye avec ça : " +
+                    "'x-secret-key' = J3SU1SUNM4UV4ISTR1CH3UR"});
+        }
+
+        const body = await parseBody(req);
+        if (!body.winner || !body.looser) return sendResponse(res, 400, {error: "Requête invalide, pas de gagnant ou de perdant fourni."});
+
+        console.log(`[DEBUG] : Gagnant : ${body.winner}, Perdant : ${body.looser}`);
+        const result = await manager.updateElo(body.winner, body.looser);
+
+        if(result.error) return sendResponse(res, 400, result.status, {message : result.message});
+
+        return sendResponse(res, 200, result);
+    }
+    catch (e){
+        console.error("Erreur handler elo update :", e);
+        return sendResponse(res, 500, { message: "Erreur handler elo update : " , e });
+    }
+}
+
+module.exports = { handleLogin, handleSignup, handleRefresh,
+    handleUserResearch, handleRequestsResearch, handleDecisionRequest,
+    handleSendRequest, handleGetFriendList, handleRemoveFriend,
+    handleLogout, handleEloUpdate };

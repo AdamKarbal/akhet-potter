@@ -14,6 +14,7 @@ async function routeRequest(req, res) {
         if (url === '/sendreq') return await handlers.handleSendRequest(req, res);
         if(url === '/removefriend') return await handlers.handleRemoveFriend(req, res);
         if(url=== '/logout') return await handlers.handleLogout(req, res);
+        if(url === '/update-elo') return await handlers.handleEloUpdate(req, res)
     }
 
     if (req.method === 'GET') {

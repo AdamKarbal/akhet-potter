@@ -1,18 +1,19 @@
     const { getUser, getCollection } = require('./database');
     const jwt = require('jsonwebtoken');
+    const {sendResponse} = require("./utils");
 
     const SECRET_KEY = process.env.JWT_SECRET;
     const REFRESH_SECRET = process.env.REFRESH_SECRET;
 
     function verifyToken(req) {
-        console.log("ready to verify token")
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
         if (!token) return null;
         try {
             return jwt.verify(token, SECRET_KEY);
         } catch (e) {
-            console.log("Something went wrong with the token verification")
+            const decoded = jwt.decode(token);
+            console.log(`Something went wrong with ${decoded? decoded.username : 'unknown user'}'s token verification`)
             return null;
         }
     }
@@ -108,7 +109,7 @@
 
         if(existing) return {error : 'Déjà envoyé', status: 400 };
 
-        const user = users.findOne({username: fromUser});
+        const user = await users.findOne({username: fromUser});
         if(user.friends && user.friends.includes(toUser)) return {error : 'Vous êtes déja amis.', status: 400 };
 
         await requests.insertOne({
@@ -214,4 +215,49 @@
         }
     }
 
-    module.exports = { login, signup, refresh, searchUsers, acceptFriendRequest, addFriendRequest, denyFriendRequest, getFriendRequests,verifyToken, getFriendList, removeFriend, logout };
+    function getRankFromElo(elo) {
+        const rank = Math.floor(elo / 1000) + 1;
+        const finalRank = Math.min(7, rank);
+        const suffix = finalRank === 1 ? 'ère' : 'ème';
+        return `${finalRank}${suffix} année`;
+    }
+
+    async function updateElo(winner, looser){
+        const users = getCollection('users');
+        const [w, l] = await Promise.all([
+            users.findOne({ username: winner }),
+            users.findOne({ username: looser })
+        ]);
+
+        const expectedW = 1 / (1 + Math.pow(10, (l.elo - w.elo) / 400));
+        const expectedL = 1 / (1 + Math.pow(10, (w.elo - l.elo) / 400));
+
+        const wGain = Math.round(100 * (1 - expectedW));
+        const lGain = Math.round(100 * (0 - expectedL));
+
+        const newEloW = w.elo + wGain;
+        const newEloL = Math.max(100,l.elo + lGain);
+        const newRankW = getRankFromElo(newEloW);
+        const newRankL = getRankFromElo(newEloL);
+
+        //eloDraw possible?
+        //const eloDraw = w.elo + 100 * (0.5 - expectedResult);
+
+        await Promise.all([
+            users.updateOne({ username: winner }, {
+                $set: { elo: newEloW, rank: newRankW }
+            }),
+            users.updateOne({ username: looser }, {
+                $set: { elo: newEloL, rank: newRankL }
+            })
+        ]);
+
+        return { winnerInfos: {username: winner, newRank : newRankW, newWinnerElo : newEloW, wGain : wGain},
+            looserInfos: {username: looser, newRank : newRankL, newLooserElo : newEloL, lGain : lGain},
+            message : "Modification des elos et ranks effectuée", status : 200}
+    }
+
+    module.exports = { login, signup, refresh, searchUsers,
+        acceptFriendRequest, addFriendRequest, denyFriendRequest,
+        getFriendRequests,verifyToken, getFriendList,
+        removeFriend, logout, updateElo };

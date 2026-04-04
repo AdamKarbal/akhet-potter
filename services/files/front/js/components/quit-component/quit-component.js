@@ -29,11 +29,20 @@ export class QuitComponent extends HTMLElement {
         </style>
         
        <div class="quit-container">
-        <button>
+        <button id="btn">
             <img src="assets/quitgame.png">
         </button>
         </div> 
     `
+        const btn = this.querySelector('#btn');
+        btn.addEventListener('click', () => {
+            const quitEvent = new CustomEvent('request-quit', {
+                bubbles: true,
+                composed: true,
+            });
+
+            this.dispatchEvent(quitEvent);
+        });
     }
 }
 

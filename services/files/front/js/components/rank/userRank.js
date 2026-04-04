@@ -29,10 +29,10 @@ export class PlayerRank extends HTMLElement {
                     display: flex;
                     flex-direction: row;
                     align-items: center;
-                    gap: 1vw;
-                    font-family: Harry  Potter;
+                    gap: 0.7vw;
+                    font-family: "Agency FB";
                     color: #c5a059;
-                    font-size: 1.2em;
+                    font-size: 1.45em;
                     background: linear-gradient(
                             to bottom,
                             #FFF8DC 0%,
