@@ -1,6 +1,36 @@
-.rankContainer{
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
+.rankContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75vh;
+}
+
+.userRank, .userElo {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1vw;
+    font-family: 'HarryPotter', sans-serif;
+    font-size: 1.2em;
+    background: linear-gradient(
+            to bottom,
+            #FFF8DC 0%,
+            #FFD700 50%,
+            #8B4513 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
+}
+
+#userRankImg {
+    width: 60px;
+    height: auto;
+}
+
+#userVOImg {
+    margin-left: 1.5vw;
+    width: 40px;
+    height: auto;
 }

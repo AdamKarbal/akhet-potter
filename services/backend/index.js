@@ -2,6 +2,7 @@ import {Server} from "socket.io";
 import jwt from "jsonwebtoken";
 import {GameManager} from "./gameservice/Logic/GameManager.js";
 import {AIGameManager} from "./gameservice/Logic/AIGameManager.js";
+import { unlockAchievement } from "./utils.js";
 
 const pvpManager = new GameManager();
 const aiManager = new AIGameManager();
@@ -185,14 +186,20 @@ io.on("connection", (socket) => {
                 pvpManager.createGame(matchInfo.gameId, player1.id, player2.id);
                 gameModes.set(matchInfo.gameId, GAME_MODE.PVP);
                 const game = pvpManager.games.get(matchInfo.gameId);
+                game.p1_token = player1.handshake.auth?.token;
+                game.p2_token = player2.handshake.auth?.token;
                 game.engine.onTimeoutCallback = (winnerNum) => { // 20secondes écoulés ont previent les joueurs de la fin
                     const loserNum = winnerNum === 1 ? 2 : 1;
+                    const winnerToken = winnerNum === 1 ? game.p1_token : game.p2_token;
+                    unlockAchievement(winnerToken, "win_online");
                     io.to(matchInfo.gameId).emit("game-closed", `Temps écoulé ! Le joueur ${loserNum} a perdu par forfait.`);
                     finishTrackedGame(matchInfo.gameId);
                 };
                 player1.emit("match-found", matchInfo);
                 player2.emit("match-found", matchInfo);
                 game.engine.startTurnTimer()
+                unlockAchievement(game.p1_token, "play_online");
+                unlockAchievement(game.p2_token, "play_online");
             }
         } else {
             socket.emit("waiting-for-opponent");
@@ -225,6 +232,7 @@ io.on("connection", (socket) => {
             const game = aiManager.games.get(matchInfo.gameId);
             if (game) {
                 socket.emit("init-state", game.engine.getState());
+                unlockAchievement(socket.handshake.auth?.token, "play_ai");
             }
         } catch (error) {
             console.error("Erreur création partie IA:", error);
@@ -259,6 +267,16 @@ io.on("connection", (socket) => {
         if (result.error) {
             console.log("Action refusée :", result.error);
             return;
+        }
+        // Achievement gagner contre l'ia
+        if (result.winner) {
+            const gameInfo = manager.games.get(data.gameId);
+            if (mode === GAME_MODE.AI && result.winner === 1) {
+                unlockAchievement(socket.handshake.auth?.token, "win_ai");
+            } else if (mode === GAME_MODE.PVP) {
+                const winnerToken = result.winner === 1 ? gameInfo.p1_token : gameInfo.p2_token;
+                unlockAchievement(winnerToken, "win_online");
+            }
         }
         io.to(data.gameId).emit("game-update", result);
 
@@ -314,6 +332,11 @@ io.on("connection", (socket) => {
             for (const [gameId, game] of manager.games.entries()) {
                 if (game.p1_id === socket.id || game.p2_id === socket.id) {
                     io.to(gameId).emit("game-closed", "Ton adversaire a quitté la partie. Tu as gagné par forfait !");
+                    // achievement win par forfait
+                    if (mode === GAME_MODE.PVP) {
+                        const winnerToken = game.p1_id === socket.id ? game.p2_token : game.p1_token;
+                        unlockAchievement(winnerToken, "win_online");
+                    }
                     manager.games.delete(gameId);
                     gameModes.delete(gameId);
                     console.log(`Partie ${gameId} fermée suite à une déconnexion (${mode}).`);

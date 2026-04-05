@@ -7,48 +7,42 @@ export class PlayerLayout extends HTMLElement {
     constructor() {
         super();
     }
-    connectedCallback(){
-        // language=HTML
+
+    async connectedCallback() {
+        const htmlUrl = new URL('./player-layout.html', import.meta.url);
+        const cssUrl = new URL('./player-layout.css', import.meta.url);
+        const response = await fetch(htmlUrl);
+        const html = await response.text();
+
         this.innerHTML = `
-            <style>
-                .layout{
-                    display: flex;
-                    flex-direction: row;
-                    gap: 1rem;
-                    justify-content: center;
-                    align-items: center;
-                    height: 75%;
-                }
-                .separator {
-                    width: 2px;
-                    height: 40px;
-                    background: linear-gradient(to bottom, transparent, #c5a059, transparent);
-                }
-            </style>
-        <div class="layout">
-            <div class="timer"><player-timer></player-timer></div>
-            <div class="userinfo"><player-info></player-info></div>
-            <div class="rank"><player-rank></player-rank></div>
-            <div class="separator"></div>
-            <div class="inventory"><player-inventory></player-inventory></div> </div>
-        </div>
-    `;
+            <link rel="stylesheet" href="${cssUrl.href}">
+            ${html}
+        `;
     }
 
-    setPlayerInfo(data){
-        const playerInfo = this.querySelector('player-info');
-        const playerRank = this.querySelector('player-rank');
-        if (playerInfo) {
-            customElements.whenDefined('player-info').then(() => {
-                playerInfo.setPlayerInfo(data);
-            });
-        }
+    setPlayerInfo(data) {
+        const trySetInfo = () => {
+            const playerInfo = this.querySelector('player-info');
+            const playerRank = this.querySelector('player-rank');
 
-        if (playerRank) {
-            customElements.whenDefined('player-rank').then(() => {
-                playerRank.setPlayerInfo(data);
-            });
-        }
+            if (playerInfo && playerRank) {
+                customElements.whenDefined('player-info').then(() => {
+                    if (typeof playerInfo.setPlayerInfo === 'function') {
+                        playerInfo.setPlayerInfo(data);
+                    }
+                });
+
+                customElements.whenDefined('player-rank').then(() => {
+                    if (typeof playerRank.setPlayerInfo === 'function') {
+                        playerRank.setPlayerInfo(data);
+                    }
+                });
+            } else {
+                setTimeout(trySetInfo, 50);
+            }
+        };
+
+        trySetInfo();
     }
 }
 

@@ -16,7 +16,7 @@ export class JcOComponent extends HTMLElement{
         this.innerHTML = `
             <style>
                 body{
-                    background-image: url("assets/background1v1.png");
+                    background-image: url("/assets/background1v1.png");
                     background-size: 100% 100%;
                     background-repeat: no-repeat;
                     min-height: 100vh;
