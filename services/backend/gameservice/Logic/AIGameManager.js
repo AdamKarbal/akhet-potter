@@ -1,7 +1,6 @@
-import {GameManager} from "./GameManager.js";
 import {GameEngine} from "./GameEngine.js";
 import {PLAYER, PIECE_TYPE} from "../Model/model.js";
-import {buildGameEntry} from "./ManagerHelper.js";
+import {buildGameEntry, handleActionOnGame} from "./ManagerHelper.js";
 import {nextMove, setup} from "../akhet-potter.js";
 
 function toSetupCoordinates(cell, rotation) {
@@ -284,5 +283,10 @@ export class AIGameManager {
       }
       engine.handlePlayerInteraction(destination.x, destination.y, 0.75, 0.75);
     }
+  }
+
+  handleAction(gameId, playerId, actionData){
+    const game = this.games.get(gameId);
+    return handleActionOnGame(game, playerId, actionData);
   }
 }

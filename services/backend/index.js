@@ -215,7 +215,8 @@ io.on("connection", (socket) => {
                 pvpManager.createGame(matchInfo.gameId, player1, player2, matchInfo.isFriendly);
                 player1.emit("match-found", matchInfo);
                 player2.emit("match-found", matchInfo);
-                game.engine.startTurnTimer()
+                const created = pvpManager.games.get(matchInfo.gameId);
+                if (created && created.engine) created.engine.startTurnTimer()
             }
         } else {
             socket.emit("waiting-for-opponent");
@@ -318,8 +319,61 @@ io.on("connection", (socket) => {
     });
   
 
-    socket.on("player-action", (data) => {
-        const result = pvpManager.handleAction(data.gameId, socket.id, data);
+    // socket.on("player-action", (data) => {
+    //     const result = pvpManager.handleAction(data.gameId, socket.id, data);
+    //
+    //     if (!result) {
+    //         console.log("Erreur : Impossible de traiter l'action pour la partie", data.gameId);
+    //         return;
+    //     }
+    //
+    //     if (result.error) {
+    //         console.log("Action refusée :", result.error);
+    //         return;
+    //     }
+    //
+    //     io.to(data.gameId).emit("game-update", result);
+    //
+    //     if (result.isProcessingTurn) {
+    //         setTimeout(async () => {
+    //             finalizeAndEmit(data.gameId, manager);
+    //             if (mode === GAME_MODE.AI) {
+    //                 await maybePlayAiTurn(data.gameId);
+    //             }
+    //         }, HUMAN_TURN_ANIMATION_DELAY_MS);
+    //         return;
+    //     }
+    //
+    //     if (result.isProcessingTurn) {
+    //         setTimeout(() => {
+    //             const game = pvpManager.games.get(data.gameId);
+    //             if (game) {
+    //                 game.engine.isProcessingTurn = false;
+    //                 game.engine.lastLaserResult = null;
+    //                 io.to(data.gameId).emit("game-update", game.engine.getState());
+    //             }
+    //         }, 1200);
+    //     }
+    //
+    //     /*if (mode === GAME_MODE.AI) {
+    //         await maybePlayAiTurn(data.gameId);
+    //     }*/
+    //
+    //     if(result.winner){
+    //         io.to(data.gameId).emit("game-over", result);
+    //         const game = pvpManager.games.get(data.gameId);
+    //         // result.winner vaut 1 (PLAYER.P1) ou 2 (PLAYER.P2)
+    //         const winnerUsername = result.winner === 1 ? game.p1_username : game.p2_username;
+    //         const looserUsername = result.winner === 1 ? game.p2_username : game.p1_username;
+    //         if(!data.isFriendly) eloUpdate(data.gameId, winnerUsername, looserUsername);
+    //     }
+    // });
+
+    socket.on("player-action", async (data) => {
+        const {manager, mode} = getManagerForGame(data.gameId);
+        const resolvedManager = manager || pvpManager;
+        const handler = resolvedManager && typeof resolvedManager.handleAction === 'function' ? resolvedManager : pvpManager;
+        const result = handler.handleAction(data.gameId, socket.id, data);
 
         if (!result) {
             console.log("Erreur : Impossible de traiter l'action pour la partie", data.gameId);
@@ -333,38 +387,29 @@ io.on("connection", (socket) => {
 
         io.to(data.gameId).emit("game-update", result);
 
-        /*if (result.isProcessingTurn) {
+        if (result.isProcessingTurn) {
             setTimeout(async () => {
-                finalizeAndEmit(data.gameId, manager);
+                finalizeAndEmit(data.gameId, resolvedManager);
                 if (mode === GAME_MODE.AI) {
                     await maybePlayAiTurn(data.gameId);
                 }
             }, HUMAN_TURN_ANIMATION_DELAY_MS);
             return;
-        }*/
-
-        if (result.isProcessingTurn) {
-            setTimeout(() => {
-                const game = pvpManager.games.get(data.gameId);
-                if (game) {
-                    game.engine.isProcessingTurn = false;
-                    game.engine.lastLaserResult = null;
-                    io.to(data.gameId).emit("game-update", game.engine.getState());
-                }
-            }, 1200);
         }
-      
+
         /*if (mode === GAME_MODE.AI) {
             await maybePlayAiTurn(data.gameId);
         }*/
 
-        if(result.winner){
+        if (result.winner) {
             io.to(data.gameId).emit("game-over", result);
-            const game = pvpManager.games.get(data.gameId);
+            const game = (resolvedManager || pvpManager).games.get(data.gameId);
             // result.winner vaut 1 (PLAYER.P1) ou 2 (PLAYER.P2)
-            const winnerUsername = result.winner === 1 ? game.p1_username : game.p2_username;
-            const looserUsername = result.winner === 1 ? game.p2_username : game.p1_username;
-            if(!data.isFriendly) eloUpdate(data.gameId, winnerUsername, looserUsername);
+            if (game) {
+                const winnerUsername = result.winner === 1 ? game.p1_username : game.p2_username;
+                const looserUsername = result.winner === 1 ? game.p2_username : game.p1_username;
+                if (!data.isFriendly && mode === GAME_MODE.PVP) await eloUpdate(data.gameId, winnerUsername, looserUsername);
+            }
         }
     });
 
@@ -395,7 +440,7 @@ io.on("connection", (socket) => {
         console.log(`Revanche non demandée. Partie d'id : [${gameId}] nettoyée de la mémoire.`);
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
         console.log(`Joueur déconnecté : ${socket.data.username}`);
         connectedUsers.delete(socket.data.username);
 
@@ -413,7 +458,7 @@ io.on("connection", (socket) => {
                     const winnerUsername = (game.p1_id === socket.id) ? game.p2_username : game.p1_username;
                     const looserUsername = (game.p1_id === socket.id) ? game.p1_username : game.p2_username;
                     io.to(gameId).emit("game-closed", "Ton adversaire a quitté la partie. Tu as gagné par forfait !");
-                    if(!game.isFriendly) eloUpdate(gameId, winnerUsername, looserUsername);
+                    if (!game.isFriendly && mode === GAME_MODE.PVP) await eloUpdate(gameId, winnerUsername, looserUsername);
                     manager.games.delete(gameId);
                     break;
                 }

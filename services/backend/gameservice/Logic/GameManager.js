@@ -1,4 +1,4 @@
-import {buildGameEntry, validateActionForPlayer, applyActionAndGetState, restartIfRevengeAllowed} from "./ManagerHelper.js";
+import {handleActionOnGame} from "./ManagerHelper.js";
 import {PLAYER} from "../Model/model.js";
 import {GameEngine} from "./GameEngine.js";
 
@@ -70,33 +70,7 @@ export class GameManager {
 
     handleAction(gameId, playerId, actionData){
         const game = this.games.get(gameId);
-        if(!game) return null;
-
-        if (game.engine.winner) {
-            return { error: "Partie terminée, victoire du joueur " + game.engine.winner };
-        }
-
-        let playerTurn = game.players[playerId];
-
-        if (game.p1_id === game.p2_id && game.p1_id === playerId) {
-            playerTurn = game.engine.turn;
-        }
-
-        if(!playerTurn) return { error: "Vous n'êtes pas joueur de cette partie."};
-        if(playerTurn !== game.engine.turn) return {error: "Pas votre tour."};
-
-        game.engine.handlePlayerInteraction(
-            actionData.x,
-            actionData.y,
-            actionData.relX,
-            actionData.relY,
-        );
-
-        //TODO: Règler ça
-        /*const validationError = validateActionForPlayer(game, playerId);
-        if(validationError) return { error: validationError };
-
-        return applyActionAndGetState(game, actionData);*/
+        return handleActionOnGame(game, playerId, actionData);
     }
 
     finishGame(gameId){

@@ -62,3 +62,12 @@ export function restartIfRevengeAllowed(game) {
 
     return null;
 }
+
+export function handleActionOnGame(game, playerId, actionData){
+    if(!game) return null;
+
+    const validationError = validateActionForPlayer(game, playerId);
+    if(validationError) return { error: validationError };
+
+    return applyActionAndGetState(game, actionData);
+}
