@@ -131,12 +131,15 @@ export class JcOComponent extends HTMLElement{
                     return;
                 }
 
+                // Use remainingTurnMs from server when available to align client timer with backend
+                const remMs = (typeof state.remainingTurnMs === 'number' && state.remainingTurnMs > 0) ? state.remainingTurnMs : undefined;
+
                 if (state.turn === 1) {
                     if (timerIA) timerIA.stopTimer();
-                    if (timerHumain) timerHumain.startTimer();
+                    if (timerHumain) timerHumain.startTimer(remMs);
                 } else if (state.turn === 2) {
                     if (timerHumain) timerHumain.stopTimer();
-                    if (timerIA) timerIA.startTimer();
+                    if (timerIA) timerIA.startTimer(remMs);
                 }
             };
             const handleReserves = (state) => {

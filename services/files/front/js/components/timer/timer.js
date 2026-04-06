@@ -49,9 +49,23 @@ export class Timer extends HTMLElement {
         `;
     }
 
-    startTimer() {
-        if (this.interval) return;
-        this.timeLeft = 20;
+    /**
+     * startTimer(durationMs?)
+     * - durationMs (optional): remaining milliseconds for the timer. If omitted, defaults to 20000ms.
+     */
+    startTimer(durationMs) {
+        // If a timer is already running, restart it with the new duration (if provided)
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+
+        // Default duration: 20s (20000ms) for backward compatibility
+        let ms = typeof durationMs === 'number' && !isNaN(durationMs) ? durationMs : 20000;
+        // If caller passes seconds by mistake (small number), normalize to ms
+        if (ms > 0 && ms < 1000) ms = ms * 1000;
+
+        this.timeLeft = Math.max(0, Math.ceil(ms / 1000));
         this.querySelector('#timer').classList.remove('inactive');
         this.updateVisuals();
         this.interval = setInterval(() => {

@@ -185,12 +185,16 @@ export class MatchComponent extends HTMLElement{
                 if (timer2) timer2.stopTimer();
                 return;
             }
+
+            // Align client timers with server remaining time when provided
+            const remMs = (typeof state.remainingTurnMs === 'number' && state.remainingTurnMs > 0) ? state.remainingTurnMs : undefined;
+
             if (state.turn === 1) {
-                if (timer1) timer1.startTimer();
+                if (timer1) timer1.startTimer(remMs);
                 if (timer2) timer2.stopTimer();
             } else if (state.turn === 2) {
                 if (timer1) timer1.stopTimer();
-                if (timer2) timer2.startTimer();
+                if (timer2) timer2.startTimer(remMs);
             }
         };
 
@@ -207,16 +211,56 @@ export class MatchComponent extends HTMLElement{
         };
 
         this.socket.on("init-state", (state) => {
+            console.debug('[match-page] init-state remainingTurnMs=', state && state.remainingTurnMs);
             handleTimers(state);
             handleReserves(state);
         });
 
         this.socket.on("game-update", (state) => {
+            console.debug('[match-page] game-update remainingTurnMs=', state && state.remainingTurnMs);
             handleTimers(state);
             handleReserves(state);
         });
 
-        this.socket.on("game-closed", () => {
+        // Demander explicitement l'état au serveur au chargement/reconnexion
+        if (matchInfo && matchInfo.gameId) {
+            console.debug('[match-page] requesting join-game for', matchInfo.gameId);
+            // flag indiquant qu'on est en train d'essayer de rejoindre la partie
+            this._joining = true;
+            this.socket.emit('join-game', matchInfo.gameId);
+            // Puis demander l'état de manière synchrone (callback) pour s'assurer
+            // d'obtenir la valeur remainingTurnMs la plus à jour du backend.
+            try {
+                this.socket.emit('fetch-state', matchInfo.gameId, (state) => {
+                    console.debug('[match-page] fetch-state callback remainingTurnMs=', state && state.remainingTurnMs);
+                    if (state) {
+                        handleTimers(state);
+                        handleReserves(state);
+                        // réussite : on a reçu l'état, on n'est plus en phase de join
+                        this._joining = false;
+                    }
+                });
+            } catch (e) {
+                console.error('Erreur fetch-state emission:', e);
+            }
+        }
+
+        this.socket.on("game-closed", (msg) => {
+            // Si on recevait game-closed pendant la tentative de join, cela signifie
+            // que la partie n'existe plus ou n'est pas à cet utilisateur : revenir à la page précédente
+            try {
+                if (this._joining) {
+                    console.debug('[match-page] game-closed received during join, redirecting back', msg);
+                    this._joining = false;
+                    // retourner à la page précédente
+                    if (window.history && window.history.length > 1) window.history.back();
+                    else window.location.hash = '';
+                    return;
+                }
+            } catch (e) {
+                console.error('Erreur lors du handling de game-closed:', e);
+            }
+
             const timer1 = this.querySelector('#pl1 player-timer');
             const timer2 = this.querySelector('#pl2 player-timer');
             if (timer1) timer1.stopTimer();

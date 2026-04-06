@@ -2,6 +2,7 @@ import {Server} from "socket.io";
 import jwt from "jsonwebtoken";
 import {AIGameManager} from "./gameservice/Logic/AIGameManager.js";
 import {GameManager} from "./gameservice/Logic/GameManager.js";
+import {PLAYER} from "./gameservice/Model/model.js";
 
 const ELO_KEY = process.env.ELO_KEY;
 const io = new Server(8003, { cors: { origin: "*"}});
@@ -18,9 +19,15 @@ const GAME_MODE = {
 
 const HUMAN_TURN_ANIMATION_DELAY_MS = 1200;
 const AI_TURN_ANIMATION_DELAY_MS = 650;
+// Temps (ms) durant lequel un joueur déconnecté peut se reconnecter avant forfait
+const HUMAN_RECONNECT_TIMEOUT_MS = 30_000;
 
 // gameId -> GAME_MODE.PVP | GAME_MODE.AI
 const gameModes = new Map();
+// clé: `${gameId}_${username}` -> { timeoutId, originalSocketId }
+const reconnectionTimers = new Map();
+// debug toggle pour reconnexions
+const RECON_DEBUG = true;
 
 function getManagerByMode(mode) {
     return mode === GAME_MODE.AI ? aiManager : pvpManager;
@@ -36,6 +43,27 @@ function getManagerForGame(gameId) {
     if (pvpManager.games.has(gameId)) return {manager: pvpManager, mode: GAME_MODE.PVP};
     if (aiManager.games.has(gameId)) return {manager: aiManager, mode: GAME_MODE.AI};
     return {manager: null, mode: null};
+}
+
+// Retourne l'état du moteur en s'assurant que remainingTurnMs reflète
+// la véritable durée restante (qu'un timer soit actif ou stoppé).
+function engineStateWithRemaining(engine) {
+    if (!engine) return null;
+    const state = engine.getState();
+    try {
+        let rem = null;
+        if (engine.turnTimerStartedAt && engine.turnTimerDuration) {
+            const elapsed = Date.now() - engine.turnTimerStartedAt;
+            rem = Math.max(0, engine.turnTimerDuration - elapsed);
+        } else if (typeof engine.remainingTurnMs === 'number') {
+            rem = engine.remainingTurnMs;
+        }
+        state.remainingTurnMs = typeof rem === 'number' ? rem : null;
+    } catch (e) {
+        console.error('Erreur lors du calcul remainingTurnMs:', e);
+        state.remainingTurnMs = state.remainingTurnMs ?? null;
+    }
+    return state;
 }
 
 function finishTrackedGame(gameId) {
@@ -60,6 +88,9 @@ function finalizeAndEmit(gameId, manager) {
     const state = finalizeProcessingTurn(game);
     if (state) {
         io.to(gameId).emit("game-update", state);
+
+        if (state.winner) io.to(gameId).emit("game-over", state);
+
         if (!game.engine.winner) {
             game.engine.startTurnTimer();
         }
@@ -106,13 +137,16 @@ io.use((socket, next) => {
         socket.data.username = decoded.username;
         socket.data.rank = decoded.rank;
         socket.data.elo = decoded.elo;
+        socket.isAuthenticated = true;
         next();
     } catch (err) {
         console.log("Invalid token, fallback en invité:", err.message);
         socket.isAuthenticated = false;
-        socket.username = `Guest_${socket.id.slice(0, 6)}`;
-        socket.rank = "N/A";
-        socket.elo = 0;
+        // Toujours initialiser socket.data pour éviter des undefined plus loin
+        socket.data = socket.data || {};
+        socket.data.username = `Guest_${socket.id.slice(0, 6)}`;
+        socket.data.rank = "N/A";
+        socket.data.elo = 0;
         next();
     }
 });
@@ -122,6 +156,75 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
     console.log(`Joueur authentifié connecté : ${socket.data.username} (id:${socket.id})`);
     connectedUsers.set(socket.data.username, socket.id);
+
+    // Tentative d'attacher immédiatement la socket à une partie existante si on était en phase de reconnexion
+    try {
+        const username = socket.data.username;
+        const managersByMode = [
+            [GAME_MODE.PVP, pvpManager],
+            [GAME_MODE.AI, aiManager]
+        ];
+
+        for (const [mode, manager] of managersByMode) {
+            for (const [gameId, game] of manager.games.entries()) {
+                if (!game) continue;
+                if (game.p1_username === username && game.p1_id !== socket.id) {
+                    const key = `${gameId}_${username}`;
+                    const entry = reconnectionTimers.get(key);
+                    if (entry) {
+                        clearTimeout(entry.timeoutId);
+                        reconnectionTimers.delete(key);
+                    }
+                    // remapper players
+                    const old = game.p1_id;
+                    if (game.players && old && game.players[old] !== undefined) {
+                        game.players[socket.id] = game.players[old];
+                        delete game.players[old];
+                    } else {
+                        game.players = game.players || {};
+                        game.players[socket.id] = PLAYER.P1;
+                    }
+                    game.p1_id = socket.id;
+                    io.to(gameId).emit("player-reconnected", { username });
+                    socket.join(gameId);
+                    socket.emit("init-state", engineStateWithRemaining(game.engine));
+                    // If it's this player's turn, resume remaining timer if any
+                    try {
+                        const playerId = game.players ? game.players[socket.id] : null;
+                        if (playerId && game.engine && game.engine.turn === playerId && typeof game.engine.remainingTurnMs === 'number') {
+                            const rem = game.engine.remainingTurnMs;
+                            if (rem > 0) {
+                                game.engine.startTurnTimer(rem);
+                                if (RECON_DEBUG) console.log(`[reconnect] restarted turn timer for ${username} with ${rem}ms`);
+                            }
+                        }
+                    } catch (e) { console.error('Erreur redémarrage timer sur connection attach:', e); }
+                }
+                if (game.p2_username === username && game.p2_id !== socket.id) {
+                    const key = `${gameId}_${username}`;
+                    const entry = reconnectionTimers.get(key);
+                    if (entry) {
+                        clearTimeout(entry.timeoutId);
+                        reconnectionTimers.delete(key);
+                    }
+                    const old2 = game.p2_id;
+                    if (game.players && old2 && game.players[old2] !== undefined) {
+                        game.players[socket.id] = game.players[old2];
+                        delete game.players[old2];
+                    } else {
+                        game.players = game.players || {};
+                        game.players[socket.id] = PLAYER.P2;
+                    }
+                    game.p2_id = socket.id;
+                    io.to(gameId).emit("player-reconnected", { username });
+                    socket.join(gameId);
+                    socket.emit("init-state", engineStateWithRemaining(game.engine));
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Erreur lors de l'attachement automatique à la partie sur connection:", e);
+    }
 
     socket.on("invite-friendly", (data) => {
         const targetUsername = data.to;
@@ -224,14 +327,14 @@ io.on("connection", (socket) => {
     });
 
     socket.on("launch-game", async () => {
-        console.log(`${socket.username} is looking for a game`);
+        console.log(`${socket.data.username} is looking for a game`);
         const matchId = "game_" + Math.random().toString(36).substr(2, 10);
         const matchInfo = {
             gameId: matchId,
             player1: {
-                username: socket.username,
-                elo: socket.elo,
-                rank: socket.rank
+                username: socket.data.username,
+                elo: socket.data.elo,
+                rank: socket.data.rank
             },
             player2: {
                 username: "Bot",
@@ -248,7 +351,27 @@ io.on("connection", (socket) => {
 
             const game = aiManager.games.get(matchInfo.gameId);
             if (game) {
-                socket.emit("init-state", game.engine.getState());
+                socket.emit("init-state", engineStateWithRemaining(game.engine));
+                // Relancer le timer côté backend si c'est le tour du joueur reconnecté
+                try {
+                    const playerId = game.players ? game.players[socket.id] : null;
+                    const rem = typeof game.engine.remainingTurnMs === 'number' ? game.engine.remainingTurnMs : null;
+                    if (playerId && game.engine && game.engine.turn === playerId && typeof rem === 'number' && rem > 0) {
+                        game.engine.startTurnTimer(rem);
+                        if (RECON_DEBUG) console.log(`[reconnect] restarted turn timer on join-game for ${socket.data.username} with ${rem}ms`);
+                    }
+                } catch (e) { console.error('Erreur redémarrage timer sur join-game:', e); }
+                // Si le joueur rejoint via l'action explicite, relancer le timer restant si c'est son tour
+                try {
+                    const playerId = game.players ? game.players[socket.id] : null;
+                    if (playerId && game.engine && game.engine.turn === playerId && typeof game.engine.remainingTurnMs === 'number') {
+                        const rem = game.engine.remainingTurnMs;
+                        if (rem > 0) {
+                            game.engine.startTurnTimer(rem);
+                            if (RECON_DEBUG) console.log(`[reconnect] restarted turn timer for ${socket.data.username} with ${rem}ms`);
+                        }
+                    }
+                } catch (e) { console.error('Erreur redémarrage timer sur join-game:', e); }
             }
         } catch (error) {
             console.error("Erreur création partie IA:", error);
@@ -265,7 +388,76 @@ io.on("connection", (socket) => {
 
         socket.join(gameId);
         const game = manager.games.get(gameId);
-        socket.emit("init-state", game.engine.getState());
+
+        // Si on rejoint une partie existante et que c'est une reconnexion, annuler le timer
+        if (game) {
+            try {
+                // Vérifier si le joueur correspond à p1 ou p2 et mettre à jour l'id socket
+                if (game.p1_username === socket.data.username && game.p1_id !== socket.id) {
+                    // annuler timer s'il existait
+                    const key = `${gameId}_${socket.data.username}`;
+                    const entry = reconnectionTimers.get(key);
+                    if (entry) {
+                        clearTimeout(entry.timeoutId);
+                        reconnectionTimers.delete(key);
+                    }
+                    // Mettre à jour la map players (clé = socket.id)
+                    const oldId = game.p1_id;
+                    if (game.players && oldId && game.players[oldId] !== undefined) {
+                        game.players[socket.id] = game.players[oldId];
+                        delete game.players[oldId];
+                    }
+                    game.p1_id = socket.id;
+                    // Ne pas relancer automatiquement le timer ici pour éviter de réinitialiser la fenêtre
+                    if (RECON_DEBUG) console.log(`[reconnect] p1 reattached: game=${gameId} oldId=${oldId} newId=${socket.id}`);
+                    io.to(gameId).emit("player-reconnected", { username: socket.data.username });
+                }
+
+                if (game.p2_username === socket.data.username && game.p2_id !== socket.id) {
+                    const key = `${gameId}_${socket.data.username}`;
+                    const entry = reconnectionTimers.get(key);
+                    if (entry) {
+                        clearTimeout(entry.timeoutId);
+                        reconnectionTimers.delete(key);
+                    }
+                    // Mettre à jour la map players (clé = socket.id)
+                    const oldId = game.p2_id;
+                    if (game.players && oldId && game.players[oldId] !== undefined) {
+                        game.players[socket.id] = game.players[oldId];
+                        delete game.players[oldId];
+                    }
+                    game.p2_id = socket.id;
+                    if (RECON_DEBUG) console.log(`[reconnect] p2 reattached: game=${gameId} oldId=${oldId} newId=${socket.id}`);
+                    io.to(gameId).emit("player-reconnected", { username: socket.data.username });
+                }
+
+                socket.emit("init-state", engineStateWithRemaining(game.engine));
+            } catch (e) {
+                console.error("Erreur lors de la gestion de la reconnexion :", e);
+                socket.emit("game-closed", "Impossible de rejoindre la partie.");
+            }
+        }
+    });
+
+    // Permet au client de demander explicitement l'état actuel d'une partie
+    socket.on('fetch-state', (gameId, cb) => {
+        try {
+            const {manager} = getManagerForGame(gameId);
+            if (!manager) {
+                if (typeof cb === 'function') cb(null);
+                return;
+            }
+            const game = manager.games.get(gameId);
+            if (!game || !game.engine) {
+                if (typeof cb === 'function') cb(null);
+                return;
+            }
+            const state = engineStateWithRemaining(game.engine);
+            if (typeof cb === 'function') cb(state);
+        } catch (e) {
+            console.error('Erreur fetch-state:', e);
+            if (typeof cb === 'function') cb(null);
+        }
     });
 
 
@@ -373,15 +565,69 @@ io.on("connection", (socket) => {
         const {manager, mode} = getManagerForGame(data.gameId);
         const resolvedManager = manager || pvpManager;
         const handler = resolvedManager && typeof resolvedManager.handleAction === 'function' ? resolvedManager : pvpManager;
-        const result = handler.handleAction(data.gameId, socket.id, data);
+        // tentative de réparation des mappings après reconnexion : si la map game.players
+        // utilise encore l'ancien socket.id, remplacer la clé par le nouveau socket.id
+        const game = (resolvedManager || pvpManager).games.get(data.gameId);
+        function ensurePlayerMapping(gameObj, sock) {
+            if (!gameObj) return;
+            try {
+                // si players n'existe pas, rien à faire
+                if (!gameObj.players) return;
+                // p1
+                if (gameObj.p1_username === sock.data.username && gameObj.p1_id !== sock.id) {
+                    const old = gameObj.p1_id;
+                    if (old && gameObj.players[old] !== undefined) {
+                        gameObj.players[sock.id] = gameObj.players[old];
+                        delete gameObj.players[old];
+                    } else {
+                        // fallback: assigner directement
+                        gameObj.players[sock.id] = PLAYER.P1;
+                    }
+                    gameObj.p1_id = sock.id;
+                    if (RECON_DEBUG) console.log("[ensurePlayerMapping] p1 remapped", {gameId: data.gameId, old, new: sock.id});
+                }
+                // p2
+                if (gameObj.p2_username === sock.data.username && gameObj.p2_id !== sock.id) {
+                    const old2 = gameObj.p2_id;
+                    if (old2 && gameObj.players[old2] !== undefined) {
+                        gameObj.players[sock.id] = gameObj.players[old2];
+                        delete gameObj.players[old2];
+                    } else {
+                        gameObj.players[sock.id] = PLAYER.P2;
+                    }
+                    gameObj.p2_id = sock.id;
+                    if (RECON_DEBUG) console.log("[ensurePlayerMapping] p2 remapped", {gameId: data.gameId, old: old2, new: sock.id});
+                }
+            } catch (e) {
+                console.error("Erreur ensurePlayerMapping:", e);
+            }
+        }
+
+        ensurePlayerMapping(game, socket);
+
+        const result = await handler.handleAction(data.gameId, socket.id, data);
 
         if (!result) {
-            console.log("Erreur : Impossible de traiter l'action pour la partie", data.gameId);
+            const game = (resolvedManager || pvpManager).games.get(data.gameId);
+            console.log("Erreur : Impossible de traiter l'action pour la partie", data.gameId, {
+                socketId: socket.id,
+                username: socket.data.username,
+                gamePlayers: game ? game.players : null,
+                p1_id: game ? game.p1_id : null,
+                p2_id: game ? game.p2_id : null,
+            });
             return;
         }
 
         if (result.error) {
-            console.log("Action refusée :", result.error);
+            const game = (resolvedManager || pvpManager).games.get(data.gameId);
+            console.log("Action refusée :", result.error, {
+                socketId: socket.id,
+                username: socket.data.username,
+                gamePlayers: game ? game.players : null,
+                p1_id: game ? game.p1_id : null,
+                p2_id: game ? game.p2_id : null,
+            });
             return;
         }
 
@@ -430,7 +676,17 @@ io.on("connection", (socket) => {
         } 
         else{
             io.to(gameId).emit("revenge-granted", result);
-            io.to(gameId).emit("init-state", result);
+            try {
+                const game = manager.games.get(gameId);
+                if (game && game.engine) {
+                    io.to(gameId).emit("init-state", engineStateWithRemaining(game.engine));
+                } else {
+                    io.to(gameId).emit("init-state", result);
+                }
+            } catch (e) {
+                console.error('Erreur emission init-state après revenge:', e);
+                io.to(gameId).emit("init-state", result);
+            }
         }
     });
 
@@ -452,15 +708,49 @@ io.on("connection", (socket) => {
             [GAME_MODE.AI, aiManager]
         ];
 
+        // Au lieu de terminer immédiatement la partie, démarrer une fenêtre de reconnexion
         for (const [mode, manager] of managersByMode) {
             for (const [gameId, game] of manager.games.entries()) {
                 if (game.p1_id === socket.id || game.p2_id === socket.id) {
-                    const winnerUsername = (game.p1_id === socket.id) ? game.p2_username : game.p1_username;
-                    const looserUsername = (game.p1_id === socket.id) ? game.p1_username : game.p2_username;
-                    io.to(gameId).emit("game-closed", "Ton adversaire a quitté la partie. Tu as gagné par forfait !");
-                    if (!game.isFriendly && mode === GAME_MODE.PVP) await eloUpdate(gameId, winnerUsername, looserUsername);
-                    manager.games.delete(gameId);
-                    break;
+                    const disconnectedUsername = socket.data.username;
+
+                    // Attribution immédiate de la victoire à l'adversaire
+                    try {
+                        const winnerIsP2 = (game.p1_username === disconnectedUsername);
+                        const winnerPlayer = winnerIsP2 ? 2 : 1;
+                        const winnerUsername = winnerIsP2 ? game.p2_username : game.p1_username;
+
+                        io.to(gameId).emit("game-over", { message: "Ton adversaire a quitté la partie. Tu as gagné par forfait !", winner: winnerPlayer });
+
+                        if (!game.isFriendly && mode === GAME_MODE.PVP) {
+                            try {
+                                await eloUpdate(gameId, winnerUsername, disconnectedUsername);
+                            } catch (e) {
+                                console.error("Erreur eloUpdate après disconnect:", e);
+                            }
+                        }
+
+                        // arrêter et nettoyer la partie immédiatement
+                        try {
+                            if (game.engine && typeof game.engine.stopTurnTimer === 'function') game.engine.stopTurnTimer();
+                        } catch (e) { /* ignore */ }
+
+                        try {
+                            manager.finishGame(gameId);
+                        } catch (e) {
+                            console.error("Erreur lors du nettoyage de la partie après disconnect:", e);
+                        }
+
+                        // nettoyer toute trace de timer de reconnexion
+                        const key = `${gameId}_${disconnectedUsername}`;
+                        if (reconnectionTimers.has(key)) {
+                            clearTimeout(reconnectionTimers.get(key).timeoutId);
+                            reconnectionTimers.delete(key);
+                        }
+                        gameModes.delete(gameId);
+                    } catch (e) {
+                        console.error('Erreur lors du traitement immédiat du disconnect :', e);
+                    }
                 }
             }
         }
