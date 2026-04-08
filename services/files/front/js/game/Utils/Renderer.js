@@ -19,7 +19,6 @@ export class Renderer {
 
     async init() {
         await new Promise(r => setTimeout(r, 100));
-        this.contexts = this.gameBoard.getContexts();
 
         await this.loadAsset('map', '/assets/map.jpg');
         const pieces = Object.values(PIECE_TYPE);
@@ -37,7 +36,10 @@ export class Renderer {
     }
 
     screenToGrid(clientX, clientY) {
-        const canvas = this.contexts?.vfx?.canvas;
+        const contexts = this.gameBoard.getContexts();
+        if (!contexts) return null;
+        const canvas = contexts?.vfx?.canvas;
+        const ctx = contexts.board;
         if (!canvas) return null;
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
@@ -102,7 +104,9 @@ export class Renderer {
     }
 
     drawBoard() {
-        const ctx = this.contexts.board;
+        const contexts = this.gameBoard.getContexts();
+        if (!contexts) return null;
+        const ctx = contexts.board;
         ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         if (this.assets['map']) {
             ctx.drawImage(this.assets['map'], 0, 0, this.canvasWidth, this.canvasHeight);
@@ -122,7 +126,9 @@ export class Renderer {
     }
 
     drawPieces() {
-        const ctx = this.contexts.pieces;
+        const contexts = this.gameBoard.getContexts();
+        if (!contexts) return null;
+        const ctx = contexts.pieces;
         if (!ctx || !this.gameState || !this.gameState.grid) return;
 
         ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
@@ -163,7 +169,9 @@ export class Renderer {
 
     drawHighlights() {
         if(!this.gameState || !this.gameState.grid) return;
-        const ctx = this.contexts.vfx;
+        const contexts = this.gameBoard.getContexts();
+        if (!contexts) return null;
+        const ctx = contexts.vfx;
         const player = this.gameState.turn;
         if (!ctx) return;
 
@@ -359,7 +367,9 @@ export class Renderer {
 
     drawVFX() {
         if(!this.gameState) return;
-        const ctx = this.contexts.vfx;
+        const contexts = this.gameBoard.getContexts();
+        if (!contexts) return null;
+        const ctx = contexts.vfx;
         if (!ctx) return;
         ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         this.drawHighlights();
@@ -477,27 +487,5 @@ export class Renderer {
                 rotSpeed: (Math.random() - 0.5) * 0.2
             });
         }
-    }
-
-    drawWaitingScreen() {
-        const contexts = this.gameBoard.getContexts();
-        if (!contexts) return;
-        const ctx = contexts.board;
-        const width = ctx.canvas.width;
-        const height = ctx.canvas.height;
-
-        ctx.fillStyle = "rgba(20, 15, 10, 0.9)";
-        ctx.fillRect(0, 0, width, height);
-        ctx.fillStyle = "#d4af37";
-        ctx.font = "bold 30px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.shadowColor = "#d4af37";
-        ctx.shadowBlur = 20;
-        ctx.fillText("Recherche d'un adversaire...", width / 2, height / 2);
-        ctx.shadowBlur = 0;
-        ctx.font = "italic 20px sans-serif";
-        ctx.fillStyle = "#aaaaaa";
-        ctx.fillText("Veuillez patienter dans le hall...", width / 2, height / 2 + 40);
     }
 }

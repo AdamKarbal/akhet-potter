@@ -1,3 +1,5 @@
+import { audioService } from "../../services/AudioService.js";
+import { socket } from "../../socket.js";
 
 export class HomePage extends HTMLElement{
 
@@ -214,7 +216,7 @@ export class HomePage extends HTMLElement{
                 padding: ;
             }
             
-            .rank, .elo, .username, .prog{
+            .rank, .username, .prog{
                 font-family: 'Agency FB',serif;
                 font-size: 1.2em;
                 color: #FFD700;
@@ -225,6 +227,18 @@ export class HomePage extends HTMLElement{
                 gap : 3%;
                 width: 20%;
             }  
+            
+            .elo {
+                font-family: HarryPotter;
+                font-size: 1.5em;
+                color: #FFD700;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap : 3%;
+                width: 20%;
+            }
             
             .prog{
                 width: 35%;
@@ -294,13 +308,17 @@ export class HomePage extends HTMLElement{
             </div> 
         </div>
         `
+
+        socket.emit("quit"); //debug
+
         this.querySelector(".user-section").addEventListener("click", (e) => {
             window.location.hash = 'LGN';
         });
 
-        this.querySelector("#btn-jouer-jcj").onclick = () => {
-            window.location.hash = 'JCJ';
-        };
+        this.querySelector("#btn-jouer-jcj").addEventListener("click", () => {
+            localStorage.setItem('matchMode', 'ranked');
+            socket.emit("find-game");
+        });
 
         this.querySelector("#btn-jouer-jco").addEventListener("click", () => {
             window.location.hash = 'JCO';
@@ -310,7 +328,12 @@ export class HomePage extends HTMLElement{
             window.location.hash = 'JCO'; //TODO:A changer par la vraie page locl
         });
 
+        audioService.playMainTheme();
         this.retrievePlayerInfo();
+
+        /*window.addEventListener("click" , () => {
+            audioService.playMainTheme();
+        })*/
     }
 
     clearConnectionIndicators() {
@@ -383,8 +406,14 @@ export class HomePage extends HTMLElement{
                 rankSection.innerHTML = '';
 
                 username.innerHTML = `
+                    <img style="width:20%" src="assets/goodplayer.png">
                     <span class="username">${user.username}</span>`;
                 username.classList.add('username');
+                username.style.display = 'flex';
+                username.style.flexDirection = 'row';
+                username.style.alignItems = 'center';
+                username.style.justifyContent = 'center';
+                username.style.gap = '15px';
                 rankSection.appendChild(username);
 
                 rank.innerHTML = `
@@ -394,8 +423,8 @@ export class HomePage extends HTMLElement{
                 rankSection.appendChild(rank);
 
                 elo.innerHTML = `
-                    <img style="width:15%" src="assets/vifdor.png">
-                    <span class="elo">${user.elo} Vifs d'Or</span>`;
+                    <img style="width:25%" src="assets/vifdor.png">
+                    <span class="elo">${user.elo}</span>`;
                 elo.classList.add('elo');
                 rankSection.appendChild(elo);
 

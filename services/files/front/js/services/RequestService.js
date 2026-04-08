@@ -1,6 +1,8 @@
+import {AuthService} from "./AuthService.js";
+
 export const RequestService = {
     async handleDecision(username, decision){
-        const token = localStorage.getItem('token');
+        const token = await AuthService.getValidToken();
         try{
             const response = await fetch("/api/managereq", {
                 method: 'POST',
@@ -19,7 +21,7 @@ export const RequestService = {
     },
 
     async deleteFriend(username){
-        const token = localStorage.getItem('token');
+        const token = await AuthService.getValidToken();
 
         try {
             const response = await fetch("/api/removefriend", {

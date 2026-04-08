@@ -64,12 +64,13 @@ async function handleRefresh(req, res) {
 async function handleUserResearch(req, res) {
     try {
         const token = verifyToken(req);
+
         if (!token) {
             return sendResponse(res, 401, { error: "Non autorisé: Token manquant ou invalide" });
         }
 
         console.log("DEBUG TOKEN HANDLER :", token);
-        console.log("URL reçue :", req.url);
+
         const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
         const query = urlParams.get('username');
 
@@ -97,7 +98,7 @@ async function handleUserResearch(req, res) {
 
 async function handleRequestsResearch(req, res) {
     const userPayload = verifyToken(req);
-    console.log("DEBUG Payload reçu :", userPayload);
+    console.log("[handleRequestResearch] DEBUG Payload reçu :", userPayload);
 
     if (!userPayload || !userPayload.username) {
         return sendResponse(res, 401, { error: "Non autorisé : Token invalide ou expiré" });
@@ -112,9 +113,11 @@ async function handleRequestsResearch(req, res) {
 async function handleDecisionRequest(req, res) {
     try{
         const userPayload = verifyToken(req);
+        console.log("[handleDecisionRequest] userPayload: ", userPayload);
         if(!userPayload) return sendResponse(res, 401, { error: "Session expirée" });
         const toUser = userPayload.username;
         const { decision , fromUser } = await parseBody(req);
+        console.log("[handleDecisionRequest] req body: ", { decision, fromUser });
         if(!decision || !fromUser || !toUser) return sendResponse(res, 400, { error: "Corps de la requête invalide" });
 
         let result;
@@ -123,7 +126,7 @@ async function handleDecisionRequest(req, res) {
         } else {
             result = await manager.denyFriendRequest(fromUser, toUser);
         }
-
+        console.log("[handleDecisionRequest] Résultat de la décision :", result);
         return sendResponse(res, result.status, { message: result.message });
     }
     catch(e) {
@@ -134,7 +137,7 @@ async function handleDecisionRequest(req, res) {
 async function handleSendRequest(req, res) {
     try{
         const userPayload = verifyToken(req);
-        console.log("Utilisateur qui envoie sa requête :", userPayload?.username);
+        console.log("[handleSendRequest] Utilisateur qui envoie sa requête :", userPayload?.username);
         if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
         const body = await parseBody(req);
         const toUser = body.to;
@@ -143,7 +146,9 @@ async function handleSendRequest(req, res) {
         if(!fromUser || !toUser) return sendResponse(res, 401, { error: "Pas de noms d'utilisateurs liés à la demande d'amis" });
         const result = await manager.addFriendRequest(fromUser, toUser);
 
-        return sendResponse(res, 200, result.status, { message: result.message });
+        console.log("[handeSendRequest] result: ", result);
+
+        return sendResponse(res, result.status, { message: result.message });
     }
     catch(e) {
         return sendResponse(res, 500, { error: "Erreur lors de l'envoi de la demande d'amis." });
@@ -153,11 +158,12 @@ async function handleSendRequest(req, res) {
 async function handleGetFriendList(req, res) {
     try{
         const userPayload = verifyToken(req);
+        console.log("[handleGetFriendList] userPayload: ", userPayload);
         if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
 
         const result = await manager.getFriendList(userPayload.username);
 
-        if(result.error) return sendResponse(res, 400, result.status, { message: result.message });
+        if(result.error) return sendResponse(res, result.status, { message: result.message });
 
         const friends = result.response.map(u => ({
             username: u.username,
@@ -176,14 +182,12 @@ async function handleGetFriendList(req, res) {
 async function handleRemoveFriend(req, res){
     try{
         const userPayload = verifyToken(req);
+        console.log("[handleRemoveFriend] userPayload: ", userPayload);
         const body = await parseBody(req);
         if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
 
         const result = await manager.removeFriend(userPayload.username, body.username);
-
-        if(result.error) sendResponse(res, 400, result.status, {message : result.message});
-
-        return sendResponse(res, 200, result.status, {message : result.message});
+        return sendResponse(res, result.status, {message : result.message});
     }
     catch(e){
         return sendResponse(res, 500, { message : "Erreur serveur : ", e})
@@ -193,6 +197,7 @@ async function handleRemoveFriend(req, res){
 async function handleLogout(req, res) {
     try{
         const userPayload = verifyToken(req);
+        console.log("[handleLogout] userPayload: ", userPayload);
         if (!userPayload) return sendResponse(res, 401, { error: "Token invalide, non autorisé" });
 
         const result = await manager.logout();
@@ -207,6 +212,39 @@ async function handleLogout(req, res) {
     }
 }
 
+async function handleEloUpdate(req, res) {
+    try {
+        const secret = req.headers['x-secret-key'];
+        if(secret === "J3SU1SUNM4UV4ISTR1CH3UR"){
+            return sendResponse(res, 403, {error: "T'as vraiment essayé en plus? Cours toujours mon gourmand."});
+        }
+
+        if(secret !== process.env.ELO_KEY){
+            return sendResponse(res, 403, {error: "Accès refusé : t'as pas la clé secrète petit tricheur. " +
+                    "Tiens, réessaye avec ça : " +
+                    "'x-secret-key' = J3SU1SUNM4UV4ISTR1CH3UR"});
+        }
+
+        const body = await parseBody(req);
+        if (!body.winner || !body.looser) return sendResponse(res, 400, {error: "Requête invalide, pas de gagnant ou de perdant fourni."});
+
+        console.log(`[DEBUG] : Gagnant : ${body.winner}, Perdant : ${body.looser}`);
+        const result = await manager.updateElo(body.winner, body.looser);
+
+        if(result.error) return sendResponse(res, result.status, {message : result.message});
+
+        return sendResponse(res, 200, result);
+    }
+    catch (e){
+        console.error("Erreur handler elo update :", e);
+        return sendResponse(res, 500, { message: "Erreur handler elo update : " , e });
+    }
+}
+
+module.exports = { handleLogin, handleSignup, handleRefresh,
+    handleUserResearch, handleRequestsResearch, handleDecisionRequest,
+    handleSendRequest, handleGetFriendList, handleRemoveFriend,
+    handleLogout, handleEloUpdate };
 async function handleGetSecurityQuestion(req, res) {
     try {
         const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;

@@ -1,7 +1,6 @@
-import {GameManager} from "./GameManager.js";
 import {GameEngine} from "./GameEngine.js";
 import {PLAYER, PIECE_TYPE} from "../Model/model.js";
-import {buildGameEntry} from "./ManagerHelper.js";
+import {buildGameEntry, handleActionOnGame} from "./ManagerHelper.js";
 import {nextMove, setup} from "../akhet-potter.js";
 
 function toSetupCoordinates(cell, rotation) {
@@ -54,9 +53,9 @@ function buildAiCannotPlayError(reason) {
   };
 }
 
-export class AIGameManager extends GameManager {
+export class AIGameManager {
   constructor() {
-    super();
+    this.games = new Map();
     this.aiLock = Promise.resolve();
   }
 
@@ -67,12 +66,7 @@ export class AIGameManager extends GameManager {
     return run;
   }
 
-  async createGame(gameId, player1Id, player2Id = null) {
-    if (player2Id) {
-      super.createGame(gameId, player1Id, player2Id);
-      return;
-    }
-
+  async createGame(gameId, player1Id) {
     const engine = new GameEngine();
     this.games.set(gameId, buildGameEntry({player1Id, player2Id: null, engine, ai: true}));
 
@@ -94,10 +88,6 @@ export class AIGameManager extends GameManager {
       await this.runWithAiLock(() => this.initializeAI(gameId));
     }
     return result;
-  }
-
-  async handleAction(gameId, playerId, actionData) {
-    return super.handleAction(gameId, playerId, actionData);
   }
 
   async playAiTurn(gameId) {
@@ -293,5 +283,10 @@ export class AIGameManager extends GameManager {
       }
       engine.handlePlayerInteraction(destination.x, destination.y, 0.75, 0.75);
     }
+  }
+
+  handleAction(gameId, playerId, actionData){
+    const game = this.games.get(gameId);
+    return handleActionOnGame(game, playerId, actionData);
   }
 }

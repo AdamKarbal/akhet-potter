@@ -9,9 +9,13 @@ export class GameBoard extends HTMLElement {
         this.renderer = new Renderer(this);
         this.inputHandler = null;
         this.gameId = null;
+
+        this.handleGameState = this.handleGameState.bind(this);
     }
 
     async connectedCallback(){
+
+        //Mise en pace du composant
         const htmlUrl = new URL('./GameBoard.html', import.meta.url);
         const htmlResponse = await fetch(htmlUrl);
         const htmlContent = await htmlResponse.text();
@@ -20,8 +24,10 @@ export class GameBoard extends HTMLElement {
         linkElem.setAttribute('rel', 'stylesheet');
         linkElem.setAttribute('href', new URL('./GameBoard.css', import.meta.url));
         this.shadowRoot.appendChild(linkElem);
+
         console.log("Gameboard chargé (GameBoard.js)");
 
+        //Informe le match-page qu'il est prêt et qu'il peut recevoir de lui les données de game
         requestAnimationFrame(async () => {
             await this.renderer.init();
             this.dispatchEvent(new CustomEvent('board-ready', {
@@ -31,35 +37,14 @@ export class GameBoard extends HTMLElement {
         });
     }
 
+    handleGameState(data) {
+        this.renderer.gameState = data;
+        this.renderer.renderAll();
+    }
+
     setupSocketListeners(){
-        this.socket.on("init-state", (state) => {
-            this.renderer.gameState = state;
-            this.renderer.renderAll();
-        })
-
-        this.socket.on("game-closed", (message) => {
-            if (message) {
-                console.error("Partie fermée:", message);
-                alert(message);
-            }
-        });
-
-        this.socket.on("game-update", (data) => {
-            this.renderer.gameState = data;
-            this.renderer.renderAll();
-
-            if (data.winner && !data.isProcessingTurn) {
-                setTimeout(() => {
-                    const veutRejouer = confirm(`Le Pharaon est tombé ! Victoire du Joueur ${data.winner}. Voulez-vous prendre votre revanche ?`);
-                    if (veutRejouer) {
-                        this.socket.emit("revenge", this.gameId);
-                    } else {
-                        console.log("Le joueur a quitté.");
-                        this.socket.emit("leave-game", this.gameId);
-                    }
-                }, 200);
-            }
-        });
+        this.socket.on("init-state", this.handleGameState);
+        this.socket.on("game-update", this.handleGameState);
     }
 
     getContexts(){
@@ -81,13 +66,16 @@ export class GameBoard extends HTMLElement {
         this.inputHandler.init();
     }
 
-    showWaitingScreen() {
-        this.renderer.drawWaitingScreen();
+    disconnectedCallback() {
+        this.stopSocketListeners();
     }
 
-    disconnectedCallback() {
-        this.socket.off("init-state");
-        this.socket.off("game-update");
+    stopSocketListeners() {
+        if (this.socket) {
+            this.socket.off("init-state", this.handleInitState);
+            this.socket.off("game-update", this.handleGameUpdate);
+            console.log("Écoutes socket du GameBoard arrêtées.");
+        }
     }
 }
 customElements.define('game-board', GameBoard);
