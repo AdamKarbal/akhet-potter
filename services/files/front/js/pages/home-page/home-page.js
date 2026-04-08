@@ -339,7 +339,7 @@ export class HomePage extends HTMLElement{
             const token = localStorage.getItem('token');
             if(!token) {
                 window.location.hash = 'LGN';
-                return;
+                console.log("Token invalide.");
             }
             localStorage.setItem('matchMode', 'ranked');
             socket.emit("find-game");
