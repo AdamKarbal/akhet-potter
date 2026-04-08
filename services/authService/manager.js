@@ -274,10 +274,6 @@
             message : "Modification des elos et ranks effectuée", status : 200}
     }
 
-    module.exports = { login, signup, refresh, searchUsers,
-        acceptFriendRequest, addFriendRequest, denyFriendRequest,
-        getFriendRequests,verifyToken, getFriendList,
-        removeFriend, logout, updateElo };
     async function getSecurityQuestion(username) {
         const user = await getUser(username);
         if (!user) return { error: "Utilisateur introuvable", status: 404 };
@@ -300,4 +296,10 @@
         return { message: "Mot de passe modifié avec succès", status: 200 };
     }
 
-    module.exports = { login, signup, refresh, searchUsers, acceptFriendRequest, addFriendRequest, denyFriendRequest, getFriendRequests,verifyToken, getFriendList, removeFriend, logout, getSecurityQuestion, resetPassword };
+    module.exports = {
+        login, signup, refresh, searchUsers,
+        acceptFriendRequest, addFriendRequest, denyFriendRequest,
+        getFriendRequests, verifyToken, getFriendList,
+        removeFriend, logout, updateElo,
+        getSecurityQuestion, resetPassword
+    };

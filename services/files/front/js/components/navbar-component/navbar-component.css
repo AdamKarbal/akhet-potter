@@ -1,78 +1,50 @@
 .navbar {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    width: 55px;
+    gap: 1.2rem;
+    width: 70px; /* Augmenté */
     border: 2px double #c5a059;
     border-radius: 10px;
     margin: 0.5rem;
-    background-color: rgba(20, 15, 10, 0.55);
+    background-color: rgba(20, 15, 10, 0.7);
     box-shadow: 0 0 15px #d4af37, inset 0 0 20px rgba(212, 175, 55, 0.3);
     height: 95vh;
-}
-
-.navElem > img {
-    width: 90%;
-    height: auto;
-    padding-left: 4px;
-    padding-right: 4px;
-}
-
-.navElem {
-    width: fit-content;
-}
-
-#social-btn > img, #help > img, #play-btn > img, #request-btn > img, #achievement-btn > img {
-    width: 90%;
-    height: auto;
-    padding-left: 4px;
-    padding-right: 4px;
-}
-
-#social-btn {
-    width: fit-content;
-}
-
-#request-btn {
-    width: fit-content;
-}
-
-#help {
-    width: 55px;
-    margin-top: 8rem;
-}
-
-#help > img {
-    width: 90%;
-    height: auto;
-    padding-left: 4px;
-    padding-right: 4px;
-}
-
-#logout-btn {
-    width: 55px;
-}
-
-#logout-btn > img {
-    width: 90%;
-    height: auto;
-    padding-left: 4px;
-    padding-right: 4px;
+    padding: 15px 0;
+    align-items: center;
 }
 
 .navElem, #play-btn, #social-btn, #request-btn, #help, #logout-btn, #achievement-btn {
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 8px;
-    padding: 2px;
+    width: 55px;
+    height: 55px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.navElem:hover, #achievement-btn:hover, #play-btn:hover, #social-btn:hover, #request-btn:hover, #help:hover, #logout-btn:hover {
-    transform: scale(1.15);
+.navElem img, #play-btn img, #social-btn img, #help img, #request-btn img, #achievement-btn img, #logout-btn img {
+    width: 90%;
+    height: auto;
+}
+
+#help {
+    margin-top: auto;
+}
+
+.navElem:hover, #achievement-btn:hover, #play-btn:hover, #social-btn:hover, #request-btn:hover, #help:hover {
+    transform: scale(1.1);
     background-color: rgba(212, 175, 55, 0.2);
-    box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
 }
 
-.navElem:active, #achievement-btn:active, #play-btn:active, #social-btn:active, #request-btn:active, #help:active, #logout-btn:active {
-    transform: scale(0.95);
+#logout-btn:hover {
+    transform: scale(1.1);
+    background-color: rgba(231, 76, 60, 0.2);
+    box-shadow: 0 0 12px rgba(231, 76, 60, 0.6);
+}
+
+.navElem:active, #play-btn:active, #logout-btn:active {
+    transform: scale(0.9);
 }

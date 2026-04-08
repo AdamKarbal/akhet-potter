@@ -57,6 +57,20 @@ export class NavbarComponent extends HTMLElement {
             });
         }
 
+        const helpBtn = this.querySelector('#help');
+        if (helpBtn) {
+            helpBtn.addEventListener('click', () => {
+                window.location.hash = 'HELP';
+            });
+        }
+
+        const settingsBtn = this.querySelector('.navElem img[alt="Réglages"]').parentElement;
+        if (settingsBtn) {
+            settingsBtn.onclick = () => {
+                window.location.hash = 'SETTINGS';
+            };
+        }
+
         const logoutBtn = this.querySelector('#logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {

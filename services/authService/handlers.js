@@ -219,7 +219,9 @@ async function handleEloUpdate(req, res) {
             return sendResponse(res, 403, {error: "T'as vraiment essayé en plus? Cours toujours mon gourmand."});
         }
 
-        if(secret !== process.env.ELO_KEY){
+        const expectedKey = process.env.ELO_KEY || "LE_SECRET_DES_SORCIERS_123";
+
+        if(!secret || secret.trim() !== expectedKey.trim()){
             return sendResponse(res, 403, {error: "Accès refusé : t'as pas la clé secrète petit tricheur. " +
                     "Tiens, réessaye avec ça : " +
                     "'x-secret-key' = J3SU1SUNM4UV4ISTR1CH3UR"});
@@ -274,4 +276,4 @@ async function handleResetPassword(req, res) {
 }
 
 
-module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList, handleRemoveFriend, handleLogout, handleGetSecurityQuestion, handleResetPassword };
+module.exports = { handleLogin, handleSignup, handleRefresh, handleUserResearch, handleRequestsResearch, handleDecisionRequest, handleSendRequest, handleGetFriendList, handleRemoveFriend, handleLogout, handleGetSecurityQuestion, handleResetPassword, handleEloUpdate };

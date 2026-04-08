@@ -5,7 +5,7 @@ import {GameManager} from "./gameservice/Logic/GameManager.js";
 import {PLAYER} from "./gameservice/Model/model.js";
 import { unlockAchievement } from "./utils.js";
 
-const ELO_KEY = process.env.ELO_KEY;
+const ELO_KEY = process.env.ELO_KEY || "LE_SECRET_DES_SORCIERS_123"; // A CHANGER APRES LA POUR APS AVOIR DE PB
 const io = new Server(8003, { cors: { origin: "*"}});
 const pvpManager = new GameManager(io);
 const aiManager = new AIGameManager();
@@ -29,7 +29,29 @@ const gameModes = new Map();
 const reconnectionTimers = new Map();
 // debug toggle pour reconnexions
 const RECON_DEBUG = true;
+async function eloUpdate(gameId, winnerUsername, looserUsername) {
+    try {
+        const response = await fetch("http://auth:8002/update-elo", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-secret-key": ELO_KEY.trim()
+            },
+            body: JSON.stringify({winner: winnerUsername, looser: looserUsername})
+        });
 
+        if (!response.ok) {
+            console.error(`Erreur lors de la mise à jour de l'élo : ${await response.text()}`);
+            return;
+        }
+
+        const eloResult = await response.json();
+        io.to(gameId).emit("elo-updated", eloResult);
+    }
+    catch (error){
+        console.error("Erreur de communication avec le service d'elo :", error);
+    }
+}
 function getManagerByMode(mode) {
     return mode === GAME_MODE.AI ? aiManager : pvpManager;
 }
@@ -83,14 +105,24 @@ function finalizeProcessingTurn(game) {
     return game.engine.getState();
 }
 
-function finalizeAndEmit(gameId, manager) {
+async function finalizeAndEmit(gameId, manager) {
     const game = manager.games.get(gameId);
     if (!game) return null;
     const state = finalizeProcessingTurn(game);
+
     if (state) {
         io.to(gameId).emit("game-update", state);
 
-        if (state.winner) io.to(gameId).emit("game-over", state);
+        if (state.winner) {
+            io.to(gameId).emit("game-over", state);
+
+            const {mode} = getManagerForGame(gameId);
+            if (!game.isFriendly && mode === GAME_MODE.PVP) {
+                const winnerUsername = state.winner === 1 ? game.p1_username : game.p2_username;
+                const looserUsername = state.winner === 1 ? game.p2_username : game.p1_username;
+                await eloUpdate(gameId, winnerUsername, looserUsername);
+            }
+        }
 
         if (!game.engine.winner) {
             game.engine.startTurnTimer();
@@ -719,27 +751,5 @@ io.on("connection", (socket) => {
         }
     });
 
-    async function eloUpdate(gameId, winnerUsername, looserUsername) {
-        try {
-            const response = await fetch("http://auth:8002/api/update-elo", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-secret-key": `${ELO_KEY}`
-                },
-                body: JSON.stringify({winner: winnerUsername, looser: looserUsername})
-            });
 
-            if (!response.ok) {
-                console.error(`Erreur lors de la mise à jour de l'élo des joueurs via AuthService: ${await response.text()}`);
-                return;
-            }
-
-            const eloResult = await response.json();
-            io.to(gameId).emit("elo-updated", eloResult);
-        }
-        catch (error){
-            console.error("Erreur de communication avec le service d'elo :", error);
-        }
-    }
 });

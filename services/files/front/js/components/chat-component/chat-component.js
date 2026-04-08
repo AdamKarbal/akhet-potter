@@ -49,12 +49,30 @@ export class ChatComponent extends HTMLElement {
 
     setGameId(id) {
         this.gameId = id;
-        if (this.socket) {
+        const joinRoom = () => {
             this.socket.emit('join_game_chat', this.gameId);
             const history = this.querySelector('#chatContent');
             if (history) {
                 history.innerHTML = `<div style="color: #aaa; font-style: italic; text-align: center;">Que le duel commence !</div>`;
             }
+        };
+        if (this.socket) {
+            if (this.socket.connected) {
+                joinRoom();
+            } else {
+                this.socket.once('connect', joinRoom);
+            }
+        } else {
+            const waitForSocket = setInterval(() => {
+                if (this.socket) {
+                    clearInterval(waitForSocket);
+                    if (this.socket.connected) {
+                        joinRoom();
+                    } else {
+                        this.socket.once('connect', joinRoom);
+                    }
+                }
+            }, 50);
         }
     }
 
