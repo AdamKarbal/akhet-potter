@@ -337,7 +337,10 @@ export class HomePage extends HTMLElement{
 
         this.querySelector("#btn-jouer-jcj").onclick = () => {
             const token = localStorage.getItem('token');
-            if(!token) { window.location.hash = 'LGN'; return; }
+            if(!token) {
+                window.location.hash = 'LGN';
+                return;
+            }
             localStorage.setItem('matchMode', 'ranked');
             socket.emit("find-game");
         };

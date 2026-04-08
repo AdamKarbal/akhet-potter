@@ -4,12 +4,12 @@ import './pages/login-page/login-page.js'
 import './components/social-component/social-component.js'
 import './pages/request-page/request-component.js'
 import './pages/home-page/home-page.js'
-import './pages/help-page/help-page.js';
+import './pages/help-page/help-page.js'
 import './pages/settings-page/settings-page.js'
 import { socket } from "./socket.js";
 import {audioService} from "./services/AudioService.js";
 import {WaitlistComponent} from "./components/waitlist-component/waitlist-component.js";
-import {GameLoaderComponent} from "./components/gameloader-component/gameloader-component.js";
+import './components/gameloader-component/gameloader-component.js'
 import {RequestService} from "./services/RequestService.js";
 import './pages/achievement-page/achievement-page.js';
 

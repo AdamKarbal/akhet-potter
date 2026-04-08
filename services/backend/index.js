@@ -263,6 +263,7 @@ io.on("connection", (socket) => {
     }
 
     socket.on("invite-friendly", (data) => {
+        console.log(`Côté back : envoi d'une invitation en match à ${data.username}`);
         const targetUsername = data.to;
         const targetSocketId = connectedUsers.get(targetUsername);
         if(targetSocketId){
@@ -285,6 +286,7 @@ io.on("connection", (socket) => {
 
     socket.on("SEND_FRIEND_REQ", (data) => {
         const targetSocketId = connectedUsers.get(data.to);
+        console.log(`Côté back : envoi d'une demande d'ami à ${data.to}`);
         if(targetSocketId){
             io.to(targetSocketId).emit('NEW_FRIEND_REQ', {
                 from: socket.data.username,

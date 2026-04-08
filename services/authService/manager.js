@@ -11,7 +11,6 @@
         if (!token) return null;
         try {
             const decoded = jwt.decode(token);
-            console.log("[verifyToken] decoded token: ", decoded);
             return jwt.verify(token, SECRET_KEY);
         } catch (e) {
             const decoded = jwt.decode(token);

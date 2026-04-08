@@ -385,7 +385,6 @@ export class SOCIALComponent extends HTMLElement {
                     friendListContainer.appendChild(div);
                     const friendlyBtn = div.querySelector("#friendlyBtn");
                     friendlyBtn.addEventListener("click", () => {
-                        console.log(`Envoi d'une invitation en match à ${friend.username}`);
                         socket.emit("invite-friendly", {to : friend.username});
                         localStorage.setItem('matchMode', 'friendly');
                     })

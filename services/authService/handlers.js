@@ -69,8 +69,6 @@ async function handleUserResearch(req, res) {
             return sendResponse(res, 401, { error: "Non autorisé: Token manquant ou invalide" });
         }
 
-        console.log("DEBUG TOKEN HANDLER :", token);
-
         const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
         const query = urlParams.get('username');
 
@@ -98,14 +96,12 @@ async function handleUserResearch(req, res) {
 
 async function handleRequestsResearch(req, res) {
     const userPayload = verifyToken(req);
-    console.log("[handleRequestResearch] DEBUG Payload reçu :", userPayload);
 
     if (!userPayload || !userPayload.username) {
         return sendResponse(res, 401, { error: "Non autorisé : Token invalide ou expiré" });
     }
 
     const result = await manager.getFriendRequests(userPayload.username);
-    console.log("Résultat brut du manager :", result.users);
 
     return sendResponse(res, 200, result.users);
 }

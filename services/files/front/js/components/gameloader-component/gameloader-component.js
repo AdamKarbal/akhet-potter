@@ -6,9 +6,12 @@ export class GameLoaderComponent extends HTMLElement {
     }
 
     async connectedCallback() {
+        const htmlUrl = new URL('./gameloader-component.html', import.meta.url);
+        const cssUrl = new URL('./gameloader-component.css', import.meta.url);
+
         const [html, css] = await Promise.all([
-            fetch('./js/components/gameloader-component/gameloader-component.html').then(res => res.text()),
-            fetch('./js/components/gameloader-component/gameloader-component.css').then(res => res.text())
+            fetch(htmlUrl).then(res => res.text()),
+            fetch(cssUrl).then(res => res.text())
         ]);
 
         const template = document.createElement('template');
