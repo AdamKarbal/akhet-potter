@@ -9,6 +9,7 @@ import {audioService} from "./services/AudioService.js";
 import {WaitlistComponent} from "./components/waitlist-component/waitlist-component.js";
 import {GameLoaderComponent} from "./components/gameloader-component/gameloader-component.js";
 import {RequestService} from "./services/RequestService.js";
+import './pages/achievement-page/achievement-page.js';
 
 function initGlobalNotifications() {
     socket.on("NEW_FRIEND_REQ", (data) => {
@@ -217,6 +218,9 @@ function updateView() {
         app.innerHTML = '';
         app.innerHTML = '<match-page></match-page>';
 
+    }
+    else if ( hash === '#SUCCES') {
+        app.innerHTML = '<achievement-page></achievement-page>';
     }
     else if (hash === '#JCO') {
         audioService.stopMainTheme();

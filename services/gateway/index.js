@@ -40,6 +40,11 @@ const server = http.createServer(function (request, response) {
                 request.url = request.url.replace('/api/game', '');
                 proxy.web(request, response, { target: "http://game:8003" });
             }
+            else if(route === "achievements"){
+                console.log(`[API] Redirection vers SuccesService : ${route}`);
+                request.url = request.url.replace('/api', '');
+                proxy.web(request, response, { target: "http://succes:8005" });
+            }
             else {
                 response.statusCode = 404;
                 response.end("API Endpoint introuvable");

@@ -1,0 +1,72 @@
+.chatbox {
+    padding: 10px;
+    border: 2px double #c5a059;
+    border-radius: 5px;
+    background-color: rgba(20, 15, 10, 0.55);
+    box-shadow: 0 0 15px #d4af37, inset 0 0 20px rgba(212, 175, 55, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 200px;
+    color: white;
+    font-family: 'Georgia', serif;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    border-bottom: 1px solid #c5a059;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+#chatIcon {
+    width: 20px;
+    vertical-align: middle;
+}
+
+#chatContent {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.3);
+    width: 90%;
+    height: 120px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.quick-chat-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.qc-btn {
+    background: linear-gradient(to bottom, #4a3721, #2a1a0a);
+    color: #ffd700;
+    border: 1px solid #c5a059;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 5px;
+    transition: transform 0.1s;
+}
+
+.qc-btn:hover {
+    transform: scale(1.05);
+}
+
+.mute-container {
+    font-size: 0.8rem;
+    color: #c5a059;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}

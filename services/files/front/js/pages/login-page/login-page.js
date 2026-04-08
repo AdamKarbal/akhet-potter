@@ -11,7 +11,7 @@ export class LoginComponent extends HTMLElement {
         this.innerHTML = `
             <style>
                 body {
-                    background-image: url("assets/background1v1.png");
+                    background-image: url("/assets/background1v1.png");
                     background-size: cover;
                     background-position: center;
                     min-height: 100vh;

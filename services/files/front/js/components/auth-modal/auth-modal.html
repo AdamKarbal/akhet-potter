@@ -1,0 +1,23 @@
+<div id="auth-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <h2 id="modal-title">Connexion</h2>
+    <div id="error-msg" class="error-message"></div>
+
+    <form id="auth-form">
+      <input type="text" id="username" placeholder="Nom de sorcier" required>
+      <input type="password" id="password" placeholder="Mot de passe" required>
+
+      <input type="text" id="reg-question" class="reg-only hide" placeholder="Question secrète (ex: Mon 1er balai ?)">
+      <input type="text" id="reg-answer" class="reg-only hide" placeholder="Réponse secrète">
+
+      <p id="security-question-display" class="reset-only hide"></p>
+      <input type="text" id="forgot-answer" class="reset-only hide" placeholder="Votre réponse">
+      <input type="password" id="forgot-new-password" class="reset-only hide" placeholder="Nouveau mot de passe">
+
+      <button type="submit" id="main-btn" class="btn-hp" style="width: 100%">Lancer le sort</button>
+    </form>
+
+    <p id="forgot-pwd-link" class="login-only">Mot de passe oublié ?</p>
+  </div>
+</div>

@@ -1,0 +1,94 @@
+.achievement-card {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-color: rgba(20, 15, 10, 0.8);
+    border: 2px double #555;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.achievement-card.unlocked {
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+
+.achievement-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    z-index: 10;
+}
+
+.achievement-card.unlocked:hover {
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.8);
+}
+
+.achievement-icon {
+    width: 60%;
+    height: auto;
+    filter: grayscale(100%) opacity(0.4);
+    transition: all 0.3s ease;
+}
+
+.achievement-card.unlocked .achievement-icon {
+    filter: none;
+}
+
+.overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.achievement-card:hover .overlay {
+    opacity: 1;
+}
+
+.ach-title {
+    font-family: 'HarryPotter', sans-serif;
+    font-size: 1.8em;
+    color: #888;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.achievement-card.unlocked .ach-title {
+    color: #ffd700;
+}
+
+.ach-desc {
+    font-family: 'Agency FB', sans-serif;
+    font-size: 1.1em;
+    color: #ddd;
+}
+
+.status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-family: 'Agency FB', sans-serif;
+    font-size: 0.9em;
+    color: #ff0000;
+    font-weight: bold;
+}
+
+.achievement-card.unlocked .status {
+    color: #00ff00;
+}

@@ -7,31 +7,29 @@ export class AiLayout extends HTMLElement {
     constructor() {
         super();
     }
-    connectedCallback(){
-        // language=HTML
+
+    async connectedCallback() {
+        const htmlUrl = new URL('./ai-layout.html', import.meta.url);
+        const cssUrl = new URL('./ai-layout.css', import.meta.url); // NOUVEAU
+        const response = await fetch(htmlUrl);
+        const html = await response.text();
         this.innerHTML = `
-            <style>
-                .layout{
-                    display: flex;
-                    flex-direction: row;
-                    gap: 1rem;
-                    justify-content: center;
-                    align-items: center;
-                    margin-top: 2vh;
-                    height: 75%;
-                }
-            </style>
-        <div class="layout">
-            <div class="userinfo"><ai-info></ai-info></div>
-        </div>
-    `;
+            <link rel="stylesheet" href="${cssUrl.href}">
+            ${html}
+        `;
     }
 
-    setPlayerInfo(data){
-        const aiInfo = this.querySelector('ai-info');
-        if (aiInfo && typeof aiInfo.setPlayerInfo === 'function') {
-            aiInfo.setPlayerInfo(data);
-        }
+    setPlayerInfo(data) {
+        const trySetInfo = () => {
+            const aiInfo = this.querySelector('ai-info');
+            if (aiInfo && typeof aiInfo.setPlayerInfo === 'function') {
+                aiInfo.setPlayerInfo(data);
+            } else {
+                setTimeout(trySetInfo, 50);
+            }
+        };
+
+        trySetInfo();
     }
 }
 

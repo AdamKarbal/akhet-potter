@@ -3,81 +3,36 @@ export class PlayerInventory extends HTMLElement {
         super();
     }
 
-    connectedCallback() {
+    async connectedCallback() {
+        const htmlUrl = new URL('./player-inventory.html', import.meta.url);
+        const cssUrl = new URL('./player-inventory.css', import.meta.url);
+        const response = await fetch(htmlUrl);
+        const html = await response.text();
+
         this.innerHTML = `
-            <style>
-                @font-face {
-                    font-family: 'HarryPotter';
-                    src: url('assets/fonts/HARRYP__.TTF') format('truetype');
-                }
-
-                .inventory-container {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                    padding: 5px 15px;
-                    background: rgba(20, 15, 10, 0.7);
-                    border: 2px solid #c5a059;
-                    border-radius: 20px;
-                    box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.2), 0 0 5px rgba(0,0,0,0.8);
-                    transition: all 0.3s ease;
-                }
-
-                .inventory-container.empty {
-                    border-color: #555;
-                    box-shadow: none;
-                    opacity: 0.6;
-                    filter: grayscale(100%);
-                }
-
-                .pyramid-icon {
-                    width: 30px;
-                    height: auto;
-                    filter: drop-shadow(0 0 2px #d4af37);
-                }
-
-                .inventory-container.empty .pyramid-icon {
-                    filter: none;
-                }
-
-                .count {
-                    font-family: 'Agency FB', sans-serif;
-                    font-size: 1.5em;
-                    font-weight: bold;
-                    color: #ffd700;
-                    text-shadow: 1px 1px 2px #000;
-                }
-                
-                .cross {
-                     font-family: 'Agency FB', sans-serif;
-                     font-size: 1.2em;
-                     color: #c5a059;
-                     margin-right: 2px;
-                }
-
-            </style>
-            <div class="inventory-container" id="inv-box">
-                <img class="pyramid-icon" src="assets/pyramidt2.png"> <div style="display: flex; align-items: baseline;">
-                    <span class="cross">x</span>
-                    <span class="count" id="pyramid-count">7</span>
-                </div>
-            </div>
+            <link rel="stylesheet" href="${cssUrl.href}">
+            ${html}
         `;
     }
 
     setReserves(count) {
-        const countSpan = this.querySelector('#pyramid-count');
-        const box = this.querySelector('#inv-box');
+        const trySetReserves = () => {
+            const countSpan = this.querySelector('#pyramid-count');
+            const box = this.querySelector('#inv-box');
 
-        if (countSpan && box) {
-            countSpan.innerText = count;
-            if (count <= 0) {
-                box.classList.add('empty');
+            if (countSpan && box) {
+                countSpan.innerText = count;
+                if (count <= 0) {
+                    box.classList.add('empty');
+                } else {
+                    box.classList.remove('empty');
+                }
             } else {
-                box.classList.remove('empty');
+                setTimeout(trySetReserves, 50);
             }
-        }
+        };
+
+        trySetReserves();
     }
 }
 

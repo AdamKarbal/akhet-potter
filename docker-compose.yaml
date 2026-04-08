@@ -63,6 +63,18 @@ services:
     networks:
       - app-network
 
+  succes:
+    build: ./services/succesService
+    restart: always
+    environment:
+      - MONGO_URL=mongodb://db:27017
+    env_file:
+      - .env
+    networks:
+      - app-network
+    depends_on:
+      - db
+
 volumes:
   mongo-data:
 

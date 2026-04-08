@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import {AIGameManager} from "./gameservice/Logic/AIGameManager.js";
 import {GameManager} from "./gameservice/Logic/GameManager.js";
 import {PLAYER} from "./gameservice/Model/model.js";
+import { unlockAchievement } from "./utils.js";
 
 const ELO_KEY = process.env.ELO_KEY;
 const io = new Server(8003, { cors: { origin: "*"}});
@@ -277,7 +278,7 @@ io.on("connection", (socket) => {
             waitingQueue.splice(index, 1);
         }
     });
-  
+
     socket.on("find-game", () => {
         console.log(`${socket.data.username} is looking for a game`);
 
@@ -320,6 +321,8 @@ io.on("connection", (socket) => {
                 player2.emit("match-found", matchInfo);
                 const created = pvpManager.games.get(matchInfo.gameId);
                 if (created && created.engine) created.engine.startTurnTimer()
+                unlockAchievement(created.p1_token, "play_online");
+                unlockAchievement(created.p2_token, "play_online");
             }
         } else {
             socket.emit("waiting-for-opponent");
@@ -353,6 +356,7 @@ io.on("connection", (socket) => {
             if (game) {
                 socket.emit("init-state", engineStateWithRemaining(game.engine));
                 // Relancer le timer côté backend si c'est le tour du joueur reconnecté
+                unlockAchievement(socket.handshake.auth?.token, "play_ai");
                 try {
                     const playerId = game.players ? game.players[socket.id] : null;
                     const rem = typeof game.engine.remainingTurnMs === 'number' ? game.engine.remainingTurnMs : null;
@@ -509,57 +513,6 @@ io.on("connection", (socket) => {
         me.emit("friendly-match-found", matchInfo);
         senderSocket.emit("friendly-match-found", matchInfo);
     });
-  
-
-    // socket.on("player-action", (data) => {
-    //     const result = pvpManager.handleAction(data.gameId, socket.id, data);
-    //
-    //     if (!result) {
-    //         console.log("Erreur : Impossible de traiter l'action pour la partie", data.gameId);
-    //         return;
-    //     }
-    //
-    //     if (result.error) {
-    //         console.log("Action refusée :", result.error);
-    //         return;
-    //     }
-    //
-    //     io.to(data.gameId).emit("game-update", result);
-    //
-    //     if (result.isProcessingTurn) {
-    //         setTimeout(async () => {
-    //             finalizeAndEmit(data.gameId, manager);
-    //             if (mode === GAME_MODE.AI) {
-    //                 await maybePlayAiTurn(data.gameId);
-    //             }
-    //         }, HUMAN_TURN_ANIMATION_DELAY_MS);
-    //         return;
-    //     }
-    //
-    //     if (result.isProcessingTurn) {
-    //         setTimeout(() => {
-    //             const game = pvpManager.games.get(data.gameId);
-    //             if (game) {
-    //                 game.engine.isProcessingTurn = false;
-    //                 game.engine.lastLaserResult = null;
-    //                 io.to(data.gameId).emit("game-update", game.engine.getState());
-    //             }
-    //         }, 1200);
-    //     }
-    //
-    //     /*if (mode === GAME_MODE.AI) {
-    //         await maybePlayAiTurn(data.gameId);
-    //     }*/
-    //
-    //     if(result.winner){
-    //         io.to(data.gameId).emit("game-over", result);
-    //         const game = pvpManager.games.get(data.gameId);
-    //         // result.winner vaut 1 (PLAYER.P1) ou 2 (PLAYER.P2)
-    //         const winnerUsername = result.winner === 1 ? game.p1_username : game.p2_username;
-    //         const looserUsername = result.winner === 1 ? game.p2_username : game.p1_username;
-    //         if(!data.isFriendly) eloUpdate(data.gameId, winnerUsername, looserUsername);
-    //     }
-    // });
 
     socket.on("player-action", async (data) => {
         const {manager, mode} = getManagerForGame(data.gameId);
@@ -631,6 +584,16 @@ io.on("connection", (socket) => {
             return;
         }
 
+        // Achievement gagner contre l'ia
+        if (result.winner) {
+            const gameInfo = manager.games.get(data.gameId);
+            if (mode === GAME_MODE.AI && result.winner === 1) {
+                unlockAchievement(socket.handshake.auth?.token, "win_ai");
+            } else if (mode === GAME_MODE.PVP) {
+                const winnerToken = result.winner === 1 ? gameInfo.p1_token : gameInfo.p2_token;
+                unlockAchievement(winnerToken, "win_online");
+            }
+        }
         io.to(data.gameId).emit("game-update", result);
 
         if (result.isProcessingTurn) {
@@ -642,10 +605,6 @@ io.on("connection", (socket) => {
             }, HUMAN_TURN_ANIMATION_DELAY_MS);
             return;
         }
-
-        /*if (mode === GAME_MODE.AI) {
-            await maybePlayAiTurn(data.gameId);
-        }*/
 
         if (result.winner) {
             io.to(data.gameId).emit("game-over", result);
@@ -661,19 +620,18 @@ io.on("connection", (socket) => {
 
     socket.on("revenge", async (gameId) => {
         const {manager} = getManagerForGame(gameId);
-      
         if (!manager) {
             socket.emit("game-closed");
             return;
         }
-      
+
         const result = await manager.revenge(gameId);
-          
+
         if(result === "1") return;
-      
+
         if (result == null) {
             socket.emit("game-closed");
-        } 
+        }
         else{
             io.to(gameId).emit("revenge-granted", result);
             try {
@@ -721,6 +679,11 @@ io.on("connection", (socket) => {
                         const winnerUsername = winnerIsP2 ? game.p2_username : game.p1_username;
 
                         io.to(gameId).emit("game-over", { message: "Ton adversaire a quitté la partie. Tu as gagné par forfait !", winner: winnerPlayer });
+
+                        if (mode === GAME_MODE.PVP) {
+                          const winnerToken = game.p1_id === socket.id ? game.p2_token : game.p1_token;
+                          unlockAchievement(winnerToken, "win_online");
+                        }
 
                         if (!game.isFriendly && mode === GAME_MODE.PVP) {
                             try {

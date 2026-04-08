@@ -1,0 +1,13 @@
+{
+  "name": "succes-service",
+  "version": "1.0.0",
+  "description": "Service de gestion des succès d'Akhet",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.3.0"
+  }
+}
