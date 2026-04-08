@@ -47,7 +47,6 @@ export class Timer extends HTMLElement {
         this.interval = null;
         const timerContainer = this.querySelector('#timer');
         const textValue = this.querySelector('.value');
-
         if (timerContainer && textValue) {
             timerContainer.classList.add('inactive');
             textValue.classList.remove('urgent');

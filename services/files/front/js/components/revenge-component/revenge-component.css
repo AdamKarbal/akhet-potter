@@ -1,0 +1,116 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4vh;
+    background: rgba(26, 15, 5, 0.95);
+    border: 3px outset #c5a059;
+    padding: 2rem 4rem;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(197, 160, 89, 0.3);
+    font-family: 'Agency FB', 'Garamond', serif;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10005;
+}
+
+.progress-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1vh;
+}
+
+#revenge-req-counter{
+    margin-top: 1.5vh;
+}
+
+.progress-container {
+    width: 200px;
+    height: 10px;           /* Doit correspondre à la hauteur de la progress-bar */
+    background: #2a1a0a;    /* Fond sombre pour voir le contraste */
+    border: 1px solid #c5a059;
+    border-radius: 5px;
+    overflow: hidden;       /* Pour que la barre ne dépasse pas des arrondis */
+    align-self: center;     /* Aligne verticalement avec le texte */
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background: gold;
+    animation: fill-up 10s linear forwards;
+}
+
+p{
+    font-family: 'Agency FB';
+    color: #fff8dc;
+    font-size: 1.5em;
+    letter-spacing: 2px;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.choice-section {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 2vw;
+}
+
+button {
+    padding: 10px 25px;
+    font-family: 'Agency FB', sans-serif;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    letter-spacing: 1px;
+}
+
+#revenge-btn {
+    background: linear-gradient(135deg, #c5a059 0%, #8a6d3b 100%);
+    color: #1a0f05;
+    border: 1px solid #ffd700;
+    box-shadow: 0 0 10px rgba(197, 160, 89, 0.5);
+}
+
+#revenge-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px #ffd700;
+    filter: brightness(1.2);
+}
+
+#leave-btn {
+    background: none;
+    color: #c5a059;
+    border: 1px solid #c5a059;
+}
+
+#leave-btn:hover {
+    background: rgba(197, 160, 89, 0.1);
+    color: #fb0202;
+    border-color: #fb0202;
+    transform: scale(1.05);
+}
+
+@keyframes appear {
+    from { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+:host {
+    animation: appear 0.4s ease-out forwards;
+}
+
+@keyframes fill-up {
+    from { width: 0%; }
+    to { width: 100%; }
+}

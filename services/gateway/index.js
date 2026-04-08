@@ -28,12 +28,12 @@ const server = http.createServer(function (request, response) {
         if (filePath[1] === "api") {
             const route = filePath[2] ? filePath[2].split('?')[0] : "";
             if (route === "login" || route === "signup" || route === "refresh" || route === "users"
-                || route === "requests" || route === "sendreq" || route === "friends" || route === "managereq"  || route === "logout" || route === "removefriend"
-                || route === "security-question" || route === "reset-password"  )
-            {
+                || route === "requests" || route === "sendreq" || route === "friends"
+                || route === "managereq"  || route === "logout" || route === "removefriend" || route === "update-elo" 
+                || route === "security-question" || route === "reset-password" ) {
                 console.log(`[API] Redirection vers AuthService : ${route}`);
                 request.url = request.url.replace('/api', '');
-                proxy.web(request, response, { target: "http://auth:8002" });
+                proxy.web(request, response, {target: "http://auth:8002"});
             }
             else if(route === "game"){
                 console.log(`[API] Redirection vers GameService : ${route}`);

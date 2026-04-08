@@ -39,6 +39,9 @@ export class GameEngine {
         this.lastAction = null;
         this.turnTimer = null;
         this.onTimeoutCallback = null
+        this.turnTimerStartedAt = null;
+        this.turnTimerDuration = null;
+        this.remainingTurnMs = null;
     }
 
     handlePlayerInteraction(x, y, relX = 0.5, relY = 0.5) {
@@ -176,8 +179,10 @@ export class GameEngine {
         }
         if (relX > 0.6 && relY > 0.6) {
             const p = this.board.getPiece(x, y);
-            this.lastAction = new Rotate(new Cell(x, y), positiveMod(p.rotation - this.pendingRotation.originalRotation) === 90 ? ROTATION_TYPES.CLOCKWISE : ROTATION_TYPES.ANTICLOCKWISE);
-            console.log(`Rotation: ${positiveMod(p.rotation - this.pendingRotation.originalRotation)}, result: ${p.result}`);
+            // use 360 in modulus to avoid NaN and normalize rotation difference
+            const diff = positiveMod(p.rotation - this.pendingRotation.originalRotation, 360);
+            this.lastAction = new Rotate(new Cell(x, y), diff === 90 ? ROTATION_TYPES.CLOCKWISE : ROTATION_TYPES.ANTICLOCKWISE);
+            console.log(`Rotation: ${diff}, result: ${p.rotation}`);
             this.pendingRotation = null;
             this.finishAction();
         } else {
@@ -281,6 +286,7 @@ export class GameEngine {
             },
             isProcessingTurn: this.isProcessingTurn,
             winner: this.winner,
+            remainingTurnMs: this.remainingTurnMs ?? null,
         };
     }
 
@@ -324,22 +330,45 @@ export class GameEngine {
         return LaserPhysics.getPath(this.board, player).path;
     }
 
-    startTurnTimer() {
+    startTurnTimer(durationMs = 21500) {
+        // Start or restart the per-turn timer. If durationMs is provided, use it.
         this.stopTurnTimer();
         if (this.winner) return;
-        this.turnTimer = setTimeout(() => { // ici on met un timeout de 20000 soit 20 secondes, si 20 secondes sont passé on force la fin de game (appelle callback au niveau de managerhelper)
+        // Normalize duration
+        const dur = Math.max(0, Number(durationMs) || 21500);
+        this.turnTimerDuration = dur;
+        this.turnTimerStartedAt = Date.now();
+        this.remainingTurnMs = null;
+        this.turnTimer = setTimeout(() => {
             console.log(`[TIMEOUT] Le joueur ${this.turn} a mis trop de temps.`);
             this.winner = this.turn === PLAYER.P1 ? PLAYER.P2 : PLAYER.P1;
+            // reset timer metadata
+            this.turnTimer = null;
+            this.turnTimerStartedAt = null;
+            this.turnTimerDuration = null;
+            this.remainingTurnMs = null;
             if (this.onTimeoutCallback) {
                 this.onTimeoutCallback(this.winner);
             }
-        }, 21500); // 20secondes + 1.5 pour laisser une marge au front
+        }, dur);
     }
 
     stopTurnTimer() {
         if (this.turnTimer) {
-            clearTimeout(this.turnTimer);
+            try {
+                clearTimeout(this.turnTimer);
+            } catch (e) {
+                // ignore
+            }
+            // compute remaining time
+            if (this.turnTimerStartedAt && this.turnTimerDuration) {
+                const elapsed = Date.now() - this.turnTimerStartedAt;
+                const rem = Math.max(0, this.turnTimerDuration - elapsed);
+                this.remainingTurnMs = rem;
+            }
             this.turnTimer = null;
+            this.turnTimerStartedAt = null;
+            this.turnTimerDuration = null;
         }
     }
 }

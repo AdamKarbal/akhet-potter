@@ -1,18 +1,21 @@
     const { getUser, getCollection } = require('./database');
     const jwt = require('jsonwebtoken');
+    const {sendResponse} = require("./utils");
 
     const SECRET_KEY = process.env.JWT_SECRET;
     const REFRESH_SECRET = process.env.REFRESH_SECRET;
 
     function verifyToken(req) {
-        console.log("ready to verify token")
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
         if (!token) return null;
         try {
+            const decoded = jwt.decode(token);
+            console.log("[verifyToken] decoded token: ", decoded);
             return jwt.verify(token, SECRET_KEY);
         } catch (e) {
-            console.log("Something went wrong with the token verification")
+            const decoded = jwt.decode(token);
+            console.log(`Something went wrong with ${decoded? decoded.username : 'unknown user'}'s token verification, `, e.toString())
             return null;
         }
     }
@@ -106,6 +109,10 @@
         const requests = getCollection('friends');
         const users = getCollection('users');
 
+        if (fromUser === toUser) {
+            return { error: "Tu ne peux pas t'envoyer une demande à toi-même.", status: 400 };
+        }
+
         const existing = await requests.findOne({
             $or: [
                 { from: fromUser, to: toUser, status: "pending" },
@@ -115,7 +122,7 @@
 
         if(existing) return {error : 'Déjà envoyé', status: 400 };
 
-        const user = users.findOne({username: fromUser});
+        const user = await users.findOne({username: fromUser});
         if(user.friends && user.friends.includes(toUser)) return {error : 'Vous êtes déja amis.', status: 400 };
 
         await requests.insertOne({
@@ -131,10 +138,10 @@
     async function acceptFriendRequest(fromUser, toUser){
         const requests = getCollection('friends');
         const users = getCollection('users');
-        const existing = await requests.findOne({ from: fromUser, to: toUser });
+        const existing = await requests.findOne({ from: fromUser, to: toUser, status: "pending" });
         if(existing){
             await requests.updateOne(
-                { from: fromUser, to: toUser },
+                { _id: existing._id },
                 { $set: { status: "accepted" } }
             );
 
@@ -149,17 +156,21 @@
 
     async function denyFriendRequest(fromUser, toUser){
         const requests = getCollection('friends');
-        const existing = await requests.findOne({ from: fromUser, to: toUser });
+        // chercher uniquement une demande en attente
+        const existing = await requests.findOne({ from: fromUser, to: toUser, status: "pending" });
+        console.log("[denyFriendRequest] existing: ", existing);
         if(existing){
+            // Mettre à jour spécifiquement le document pending trouvé (par _id)
             await requests.updateOne(
-                { from: fromUser, to: toUser },
-                { $set: { status: "denied" } }
+              { _id: existing._id },
+              { $set: { status: "denied" } }
             );
-            return {message: "Demande refusée par le destinataire", status: 201};
+            return {message: "Demande refusée par le destinataire", status: 200};
         }
 
         return {message: "Demande introuvable", status: 400};
     }
+
 
     async function getFriendRequests(toUser) {
         const requestsColl = getCollection('friends');
@@ -221,6 +232,52 @@
         }
     }
 
+    function getRankFromElo(elo) {
+        const rank = Math.floor(elo / 1000) + 1;
+        const finalRank = Math.min(7, rank);
+        const suffix = finalRank === 1 ? 'ère' : 'ème';
+        return `${finalRank}${suffix} année`;
+    }
+
+    async function updateElo(winner, looser){
+        const users = getCollection('users');
+        const [w, l] = await Promise.all([
+            users.findOne({ username: winner }),
+            users.findOne({ username: looser })
+        ]);
+
+        const expectedW = 1 / (1 + Math.pow(10, (l.elo - w.elo) / 400));
+        const expectedL = 1 / (1 + Math.pow(10, (w.elo - l.elo) / 400));
+
+        const wGain = Math.round(100 * (1 - expectedW));
+        const lGain = Math.round(100 * (0 - expectedL));
+
+        const newEloW = w.elo + wGain;
+        const newEloL = Math.max(100,l.elo + lGain);
+        const newRankW = getRankFromElo(newEloW);
+        const newRankL = getRankFromElo(newEloL);
+
+        //eloDraw possible?
+        //const eloDraw = w.elo + 100 * (0.5 - expectedResult);
+
+        await Promise.all([
+            users.updateOne({ username: winner }, {
+                $set: { elo: newEloW, rank: newRankW }
+            }),
+            users.updateOne({ username: looser }, {
+                $set: { elo: newEloL, rank: newRankL }
+            })
+        ]);
+
+        return { winnerInfos: {username: winner, newRank : newRankW, newWinnerElo : newEloW, wGain : wGain},
+            looserInfos: {username: looser, newRank : newRankL, newLooserElo : newEloL, lGain : lGain},
+            message : "Modification des elos et ranks effectuée", status : 200}
+    }
+
+    module.exports = { login, signup, refresh, searchUsers,
+        acceptFriendRequest, addFriendRequest, denyFriendRequest,
+        getFriendRequests,verifyToken, getFriendList,
+        removeFriend, logout, updateElo };
     async function getSecurityQuestion(username) {
         const user = await getUser(username);
         if (!user) return { error: "Utilisateur introuvable", status: 404 };

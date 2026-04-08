@@ -1,6 +1,7 @@
 import { PlayerRank } from "../../components/rank/userRank.js";
 import { NavbarComponent } from "../../components/navbar-component/navbar-component.js";
 import {RequestService} from "../../services/RequestService.js";
+import {AuthService} from "../../services/AuthService.js";
 
 export class RequestComponent extends HTMLElement {
     constructor() {
@@ -105,10 +106,13 @@ export class RequestComponent extends HTMLElement {
         `;
         console.log("Composant RequestComponent injecté dans le DOM");
         this.fetchMyRequests();
+        window.addEventListener('friendrequests-changed', () => {
+            this.fetchMyRequests();
+        });
     }
 
     async fetchMyRequests() {
-        const token = localStorage.getItem('token');
+        const token = await AuthService.getValidToken();
         console.log("token : ", token);
         try {
             const response = await fetch(`/api/requests`, {
