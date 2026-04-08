@@ -1,6 +1,6 @@
 import { audioService } from "../../services/AudioService.js";
 import { socket } from "../../socket.js";
-import { AuthService } from "../../services/AuthService.js"; // Ajout de l'importation
+import { AuthService } from "../../services/AuthService.js";
 
 export class HomePage extends HTMLElement{
 
@@ -9,13 +9,13 @@ export class HomePage extends HTMLElement{
     }
 
     RANK_MAPPER = {
-        "1ère année" : 'assets/webp/annee1.webp',
-        "2ème année" : 'assets/webp/annee2.webp',
-        "3ème année" : 'assets/webp/annee3.webp',
-        "4ème année" : 'assets/webp/annee4.webp',
-        "5ème année" : 'assets/webp/annee5.webp',
-        "6ème année" : 'assets/webp/annee6.webp',
-        "7ème année" : 'assets/webp/annee7.webp'
+        "1ère année" : 'assets/annee1.png',
+        "2ème année" : 'assets/annee2.png',
+        "3ème année" : 'assets/annee3.png',
+        "4ème année" : 'assets/annee4.png',
+        "5ème année" : 'assets/annee5.png',
+        "6ème année" : 'assets/annee6.png',
+        "7ème année" : 'assets/annee7.png'
     };
 
     RANK_ORDER = ["1ère année", "2ème année", "3ème année", "4ème année", "5ème année", "6ème année", "7ème année"];
@@ -34,12 +34,11 @@ export class HomePage extends HTMLElement{
                 background-repeat: no-repeat;
                 min-height: 100vh;
                 margin: 0;
-                overflow: hidden;
             }
 
             .home-container {
                 display: grid;
-                grid-template-columns: 70px 1fr;
+                grid-template-columns: 5% 95%;
                 width: 100vw;
                 height: 100vh;
             }
@@ -50,50 +49,7 @@ export class HomePage extends HTMLElement{
                 grid-column: 2;
                 display: grid;
                 grid-template: 7vh 18vh 65vh 10vh / 100%;
-            }  
-            
-            #btn-jouer-jcj, #btn-jouer-jco, #btn-jouer-local {
-                background: linear-gradient(135deg, #bfb432 0%, #9c6d16 100%);
-                color: #140f0a;
-                border: 2px solid #ffd700;
-                border-radius: 25px;
-                padding: 8px 20px;
-                font-family: 'Agency FB', sans-serif;
-                font-weight: bold;
-                font-size: 0.7em;
-                text-transform: uppercase;
-                cursor: pointer;
-                transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-                letter-spacing: 1px;
-                outline: none;
-                min-height: 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-bottom: 5px;
-            }
-
-            #btn-jouer-jcj:hover, #btn-jouer-jco:hover {
-                transform: scale(1.12);
-                background: linear-gradient(135deg, #ffd700 0%, #c5a059 100%);
-                box-shadow: 0 0 18px rgba(212, 175, 55, 0.8), 0 0 6px #ffd700;
-                color: #000;
-            }
-
-            #btn-jouer-jcj:active, #btn-jouer-jco:active {
-                transform: scale(0.97);
-                box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
-            }
-
-            #btn-jouer-local:disabled {
-                background: #444 !important;
-                border-color: #666 !important;
-                color: #888 !important;
-                cursor: not-allowed !important;
-                transform: none !important;
-                box-shadow: none !important;
-            }   
+            }     
             
             .user-log{
                 display: flex;
@@ -151,12 +107,6 @@ export class HomePage extends HTMLElement{
                 transform: scale(1.1);
             }
             
-            .disabled-mode {
-                filter: grayscale(100%) opacity(0.6);
-                pointer-events: none;
-                position: relative;
-            }
-            
             .user-section:hover {
                 transform: scale(1.05); 
                 background-color: rgba(212, 175, 55, 0.15); 
@@ -164,16 +114,25 @@ export class HomePage extends HTMLElement{
                 text-shadow: 0 0 8px #ffd700; 
             }
             
-            .connected, .disconnected {
+            .connected {
                 width: 10px;
                 height: 10px;
+                background-color: #00ff00; 
                 border-radius: 50%;
                 flex-shrink: 0;
+                box-shadow: 0 0 4px #00ff00, 0 0 10px #00ff00, 0 0 18px rgba(0, 255, 0, 0.5);
                 border: 1px solid rgba(255, 255, 255, 0.3);
             }
-
-            .connected { background-color: #00ff00; box-shadow: 0 0 10px #00ff00; }
-            .disconnected { background-color: #ff0000; box-shadow: 0 0 10px #ff0000; }
+            
+            .disconnected {
+                width: 10px;
+                height: 10px;
+                background-color: #ff0000; 
+                border-radius: 50%;
+                flex-shrink: 0;
+                box-shadow: 0 0 4px #ff0000, 0 0 10px #ff0000, 0 0 18px rgba(197,0,0,0.5); 
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
 
             .game-modes{
                 display: flex;
@@ -182,6 +141,20 @@ export class HomePage extends HTMLElement{
                 align-items: center;
                 grid-row : 3;
                 grid-column: 1;
+            }
+            
+            .ranked-i{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                grid-row : 4;
+                grid-column: 1;
+            }
+            
+            #pfp{
+                max-height: 55%;
+                max-width: 55%;
             }
             
             #local, #jcj, #jco{
@@ -211,6 +184,48 @@ export class HomePage extends HTMLElement{
                 object-fit: contain;
             }
  
+            #btn-jouer-jcj, #btn-jouer-jco, #btn-jouer-local {
+                background: linear-gradient(135deg, #bfb432 0%, #9c6d16 100%);
+                color: #140f0a;
+                border: 2px solid #ffd700;
+                border-radius: 25px;
+                padding: 8px 24px;
+                font-family: 'Agency FB', sans-serif;
+                font-weight: bold;
+                font-size: 0.6em;
+                text-transform: uppercase;
+                cursor: pointer;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+                letter-spacing: 1px;
+            }
+
+            #btn-jouer-jcj:hover, #btn-jouer-jco:hover {
+                transform: scale(1.12);
+                background: linear-gradient(135deg, #ffd700 0%, #c5a059 100%);
+                box-shadow: 0 0 18px rgba(212, 175, 55, 0.8), 0 0 6px #ffd700;
+                color: #000;
+            }
+
+            #btn-jouer-jcj:active, #btn-jouer-jco:active {
+                transform: scale(0.97);
+                box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+            }
+
+            #btn-jouer-jcj:disabled {
+                background: #444 !important;
+                border-color: #666 !important;
+                color: #888 !important;
+                cursor: not-allowed !important;
+                transform: none !important;
+                box-shadow: none !important;
+            }
+
+            #btn-jouer-local {
+                filter: grayscale(100%) opacity(0.5);
+                pointer-events: none;
+            }
+                    
             .user-rank{
                 display: flex;
                 flex-direction: row;
@@ -229,51 +244,64 @@ export class HomePage extends HTMLElement{
                 justify-self: center;
             }
             
-            #btn-jouer-jcj:disabled {
-    background: #444 !important;
-    border-color: #666 !important;
-    color: #888 !important;
-    cursor: not-allowed !important;
-    transform: none !important;
-    box-shadow: none !important;
-}
-            
-            .progress-bg { width: 15vw; height: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid #c5a059; border-radius: 10px; overflow: hidden; }
-            .progress-fill { height: 100%; background: linear-gradient(90deg, #c5a059, #ffd700); }
-            .game-mode-desc { font-family: 'Agency FB', sans-serif; font-size: 0.5em; color: rgba(255, 215, 0, 0.6); font-style: italic; margin: 0; text-align: center; max-width: 90%; line-height: 1.1; }
-            #pfp{ max-height: 55%; max-width: 55%; }
-            
-            .rank-card {
+            .rank, .username-card, .prog{
+                font-family: 'Agency FB',serif;
+                font-size: 1.2em;
+                color: #FFD700;
                 display: flex;
+                flex-direction: row;
                 align-items: center;
                 justify-content: center;
-                gap: 12px;
-                background: rgba(255, 215, 0, 0.05);
-                border-radius: 15px;
-                padding: 10px 20px;
-                border: 1px solid rgba(197, 160, 89, 0.2);
-                transition: all 0.3s ease;
-            }
-
-            .rank-card:hover {
-                background: rgba(255, 215, 0, 0.1);
-                border-color: rgba(197, 160, 89, 0.5);
-                box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
-            }
-
-            .info-label {
-                font-family: 'HarryPotter';
-                font-size: 1.8em;
+                gap : 3%;
+                width: 20%;
+            }  
+            
+            .elo {
+                font-family: HarryPotter;
+                font-size: 1.5em;
                 color: #FFD700;
-                text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap : 3%;
+                width: 20%;
+            }
+            
+            .prog{
+                width: 35%;
+            }
+            
+            .progress-bg {
+                width: 15vw; 
+                height: 10px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid #c5a059;
+                border-radius: 10px;
+                overflow: hidden;
             }
 
-            .info-value {
-                font-family: 'Agency FB';
-                font-weight: bold;
-                font-size: 1.4em;
-                color: #fff8dc;
-                letter-spacing: 1px;
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #c5a059, #ffd700);
+                box-shadow: 0 0 10px #ffd700;
+            }
+            
+            .game-mode-desc {
+                font-family: 'Agency FB', sans-serif;
+                font-size: 0.5em; 
+                color: rgba(255, 215, 0, 0.6);
+                font-style: italic;
+                margin: 0;
+                text-align: center;
+                max-width: 90%;
+                line-height: 1.1;
+            }
+
+            .disabled-mode {
+                filter: grayscale(100%) opacity(0.6);
+                pointer-events: none;
+                position: relative;
             }
                 
         </style>
@@ -284,7 +312,7 @@ export class HomePage extends HTMLElement{
             <div class="main-section">
                 <div class="user-log">
                     <div class="user-section" id="user-profile">         
-                        <img id="pfp" src="./../../../assets/webp/goodplayer.webp">
+                        <img id="pfp" src="./../../../assets/goodplayer.png">
                         <span id="username">Se connecter</span>
                     </div>
                     <button id="btn-logout" title="Déconnexion">⏻</button>
@@ -316,6 +344,7 @@ export class HomePage extends HTMLElement{
         `;
 
         socket.emit("quit");
+
         this.querySelector(".user-section").addEventListener("click", () => {
             const token = localStorage.getItem('token');
             const username = localStorage.getItem('username');
@@ -332,15 +361,12 @@ export class HomePage extends HTMLElement{
             } catch (e) {}
             localStorage.clear();
             this.applyDisconnectedState();
-            this.querySelector(".user-rank").innerHTML = '<span class="info-label" style="opacity:0.5">Connectez-vous pour voir informations</span>';
+            this.querySelector(".user-rank").innerHTML = '';
         });
 
         this.querySelector("#btn-jouer-jcj").onclick = () => {
             const token = localStorage.getItem('token');
-            if(!token) {
-                window.location.hash = 'LGN';
-                return;
-            }
+            if(!token) { window.location.hash = 'LGN'; return; }
             localStorage.setItem('matchMode', 'ranked');
             socket.emit("find-game");
         };
@@ -362,11 +388,11 @@ export class HomePage extends HTMLElement{
         dot.classList.add('connected');
         this.querySelector(".user-section").appendChild(dot);
         this.querySelector("#username").innerHTML = username;
-        this.querySelector("#btn-jouer-jcj").innerHTML = "Jouer";
-        this.querySelector("#btn-jouer-jcj").onclick = () => {
-            localStorage.setItem('matchMode', 'ranked');
-            socket.emit("find-game");
-        };
+        this.querySelector("#btn-logout").style.display = "flex";
+        const btnJcj = this.querySelector("#btn-jouer-jcj");
+        btnJcj.disabled = false;
+        btnJcj.style.filter = '';
+        btnJcj.style.pointerEvents = '';
     }
 
     applyDisconnectedState() {
@@ -388,7 +414,7 @@ export class HomePage extends HTMLElement{
         const user = localStorage.getItem('username');
 
         if (!token || !user) {
-            rankSection.innerHTML = '<span class="info-label" style="opacity:0.5">Connectez-vous pour voir vos exploits</span>';
+            rankSection.innerHTML = '';
             this.applyDisconnectedState();
             return;
         }
@@ -405,9 +431,9 @@ export class HomePage extends HTMLElement{
                 const users = await response.json();
                 const u = users?.[0];
                 if (!u) {
-                    // L'utilisateur n'existe pas dans la BDD, état incohérent
+                    rankSection.innerHTML = '';
                     this.applyDisconnectedState();
-                    localStorage.clear(); // Nettoie le localStorage
+                    localStorage.clear();
                     return;
                 }
 
@@ -416,43 +442,50 @@ export class HomePage extends HTMLElement{
                 const nextRankIndex = this.RANK_ORDER.indexOf(u.rank) + 1;
                 const nextRankImg = this.RANK_ORDER[nextRankIndex] ? this.RANK_MAPPER[this.RANK_ORDER[nextRankIndex]] : imgPath;
 
-                rankSection.innerHTML = `
-                <div class="rank-card" style="width: 22%;">
-                    <img style="width:30px; filter: drop-shadow(0 0 5px #ffd700);" src="assets/goodplayer.png">
-                    <span class="info-value" style="color:#ffd700; text-transform: uppercase;">${u.username}</span>
-                </div>
+                rankSection.innerHTML = '';
 
-                <div class="rank-card" style="width: 22%;">
-                    <img style="width:35px" src="${imgPath}">
-                    <span class="info-label">${u.rank}</span>
-                </div>
+                const usernameDiv = document.createElement('div');
+                usernameDiv.innerHTML = `
+                    <img style="width:20%" src="assets/goodplayer.png">
+                    <span>${u.username}</span>`;
+                usernameDiv.classList.add('username-card');
+                rankSection.appendChild(usernameDiv);
 
-                <div class="rank-card" style="width: 20%;">
-                    <img style="width:30px; animation: float 3s infinite ease-in-out;" src="assets/vifdor.png">
-                    <span class="info-label">${u.elo}</span>
-                </div>
+                const rankDiv = document.createElement('div');
+                rankDiv.innerHTML = `
+                    <img style="width:20%" src="${imgPath}">
+                    <span>${u.rank}</span>`;
+                rankDiv.classList.add('rank');
+                rankSection.appendChild(rankDiv);
 
-                <div class="rank-card" style="width: 32%; flex-direction: column; gap: 5px;">
-                    <div style="display: flex; align-items: center; gap: 15px; width: 100%;">
-                        <img style="width:25px; opacity: 0.7;" src="${imgPath}">
+                const eloDiv = document.createElement('div');
+                eloDiv.innerHTML = `
+                    <img style="width:25%" src="assets/vifdor.png">
+                    <span>${u.elo}</span>`;
+                eloDiv.classList.add('elo');
+                rankSection.appendChild(eloDiv);
+
+                const progDiv = document.createElement('div');
+                progDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <img style="width:10%" src="${imgPath}">
                         <div class="progress-bg">
                             <div class="progress-fill" style="width: ${progressPercent}%"></div>
                         </div>
-                        <img style="width:25px; filter: drop-shadow(0 0 8px #ffd700);" src="${nextRankImg}">
-                    </div>
-                    <span style="font-family: 'Agency FB'; font-size: 0.8em; color: #c5a059;">Prochaine Année : ${Math.floor(progressPercent)}%</span>
-                </div>
-            `;
+                        <img style="width:10%" src="${nextRankImg}">
+                    </div>`;
+                progDiv.classList.add('prog');
+                rankSection.appendChild(progDiv);
+
                 this.applyConnectedState(u.username);
             } else {
-                // Gère les erreurs comme 401 Unauthorized (token expiré/invalide)
                 this.applyDisconnectedState();
-                rankSection.innerHTML = '<span class="info-label" style="opacity:0.5">Session expirée. Reconnectez-vous.</span>';
+                rankSection.innerHTML = '';
             }
         } catch(error) {
             console.error("Erreur lors de la récupération des infos joueur:", error);
             this.applyDisconnectedState();
-            rankSection.innerHTML = '<span class="info-label" style="opacity:0.5">Erreur de connexion au serveur.</span>';
+            rankSection.innerHTML = '';
         }
     }
 }

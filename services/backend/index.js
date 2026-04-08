@@ -121,6 +121,7 @@ async function finalizeAndEmit(gameId, manager) {
                 const winnerUsername = state.winner === 1 ? game.p1_username : game.p2_username;
                 const looserUsername = state.winner === 1 ? game.p2_username : game.p1_username;
                 await eloUpdate(gameId, winnerUsername, looserUsername);
+            }
             if (manager === aiManager) {
                 finishTrackedGame(gameId);
                 return state;
@@ -815,4 +816,4 @@ io.on("connection", (socket) => {
     });
 
 
-});}
+});
