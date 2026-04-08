@@ -20,7 +20,7 @@ export class Renderer {
     async init() {
         await new Promise(r => setTimeout(r, 100));
 
-        await this.loadAsset('map', '/assets/map.jpg');
+        await this.loadAsset('map', '/assets/map.webp');
         const pieces = Object.values(PIECE_TYPE);
         const players = [1, 2];
         const promises = [];
