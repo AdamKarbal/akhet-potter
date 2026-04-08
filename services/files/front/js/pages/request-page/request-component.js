@@ -59,6 +59,16 @@ export class RequestComponent extends HTMLElement {
                 grid-template : 100% / 10% 90%;
             }
             
+            .username{
+                font-family: "Agency FB";
+                font-size: 1.5em;
+                background: linear-gradient(to bottom, #FFF8DC 0%, #FFD700 50%, #8B4513 100%);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
+            }
+            
             #requestSection{
                 grid-column: 2;
                 width: 90%;
@@ -68,6 +78,7 @@ export class RequestComponent extends HTMLElement {
             }
             
             .accept-btn, .deny-btn{
+            margin-left: 1vw;
                 background: rgba(40, 30, 20, 0.6);
                 border: 1px solid #c5a059;
                 color: #c5a059;
@@ -163,7 +174,7 @@ export class RequestComponent extends HTMLElement {
             div.className = 'search-item';
             div.innerHTML = `
                 <span class="username">${user.username}</span>
-                <span class="rank"><player-rank></player-rank></span>
+                <span class="rank" style="margin-left: 1vw;"><player-rank></player-rank></span>
                 <button class="accept-btn">Accepter</button>
                 <button class="deny-btn">Refuser</button>
             `;
