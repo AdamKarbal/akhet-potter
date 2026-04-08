@@ -6,13 +6,13 @@ export class HomePage extends HTMLElement{
     }
 
     RANK_MAPPER = {
-        "1ère année" : 'assets/annee1.png',
-        "2ème année" : 'assets/annee2.png',
-        "3ème année" : 'assets/annee3.png',
-        "4ème année" : 'assets/annee4.png',
-        "5ème année" : 'assets/annee5.png',
-        "6ème année" : 'assets/annee6.png',
-        "7ème année" : 'assets/annee7.png'
+        "1ère année" : 'assets/webp/annee1.webp',
+        "2ème année" : 'assets/webp/annee2.webp',
+        "3ème année" : 'assets/webp/annee3.webp',
+        "4ème année" : 'assets/webp/annee4.webp',
+        "5ème année" : 'assets/webp/annee5.webp',
+        "6ème année" : 'assets/webp/annee6.webp',
+        "7ème année" : 'assets/webp/annee7.webp'
     };
 
     RANK_ORDER = ["1ère année", "2ème année", "3ème année", "4ème année", "5ème année", "6ème année", "7ème année"];
@@ -264,7 +264,7 @@ export class HomePage extends HTMLElement{
             <div class="main-section">
                 <div class="user-log">
                     <div class="user-section">         
-                        <img id="pfp" src="./../../../assets/goodplayer.png">
+                        <img id="pfp" src="./../../../assets/webp/goodplayer.webp">
                         <span id="username" >Se connecter<span>
                     </div>
                 </div>

@@ -2,13 +2,13 @@ export class PlayerRank extends HTMLElement {
     constructor() {
         super();
         this.RANK_MAPPER = {
-            "1ère année" : 'assets/annee1.png',
-            "2ème année" : 'assets/annee2.png',
-            "3ème année" : 'assets/annee3.png',
-            "4ème année" : 'assets/annee4.png',
-            "5ème année" : 'assets/annee5.png',
-            "6ème année" : 'assets/annee6.png',
-            "7ème année" : 'assets/annee7.png'
+            "1ère année" : 'assets/webp/annee1.webp',
+            "2ème année" : 'assets/webp/annee2.webp',
+            "3ème année" : 'assets/webp/annee3.webp',
+            "4ème année" : 'assets/webp/annee4.webp',
+            "5ème année" : 'assets/webp/annee5.webp',
+            "6ème année" : 'assets/webp/annee6.webp',
+            "7ème année" : 'assets/webp/annee7.webp'
         };
     }
 
@@ -30,7 +30,7 @@ export class PlayerRank extends HTMLElement {
             const userEloDiv = this.querySelector('.userElo');
             if (userRankDiv && userEloDiv) {
                 if (data.rank) {
-                    const imagePath = this.RANK_MAPPER[data.rank] || 'assets/annee2.png';
+                    const imagePath = this.RANK_MAPPER[data.rank] || 'assets/webp/annee2.webp';
                     userRankDiv.innerHTML = `
                         <img id="userRankImg" src="${imagePath}" alt="${data.rank}">
                         ${data.rank}
