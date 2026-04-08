@@ -1,7 +1,13 @@
 // The http module contains methods to handle http queries.
 const http = require('http');
+const https = require('https');
 const httpProxy = require('http-proxy');
-const url = require("node:url");
+const fs = require('fs');
+
+const config = {
+    cert : fs.readFileSync('./config/fullchain.pem'),
+    key : fs.readFileSync('./config/privkey.pem')
+};
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -16,7 +22,7 @@ proxy.on('error', function (err, req, res) {
 /* The http module contains a createServer function, which takes one argument, which is the function that
 ** will be called whenever a new request arrives to the server.
  */
-const server = http.createServer(function (request, response) {
+const server = https.createServer(config,function (request, response) {
     // First, let's check the URL to see if it's a REST request or a file request.
     // We will remove all cases of "../" in the url for security purposes.
     let filePath = request.url.split("/").filter(function(elem) {
@@ -29,7 +35,7 @@ const server = http.createServer(function (request, response) {
             const route = filePath[2] ? filePath[2].split('?')[0] : "";
             if (route === "login" || route === "signup" || route === "refresh" || route === "users"
                 || route === "requests" || route === "sendreq" || route === "friends"
-                || route === "managereq"  || route === "logout" || route === "removefriend" || route === "update-elo" 
+                || route === "managereq"  || route === "logout" || route === "removefriend" || route === "update-elo"
                 || route === "security-question" || route === "reset-password" ) {
                 console.log(`[API] Redirection vers AuthService : ${route}`);
                 request.url = request.url.replace('/api', '');
@@ -39,11 +45,6 @@ const server = http.createServer(function (request, response) {
                 console.log(`[API] Redirection vers GameService : ${route}`);
                 request.url = request.url.replace('/api/game', '');
                 proxy.web(request, response, { target: "http://game:8003" });
-            }
-            else if(route === "achievements"){
-                console.log(`[API] Redirection vers SuccesService : ${route}`);
-                request.url = request.url.replace('/api', '');
-                proxy.web(request, response, { target: "http://succes:8005" });
             }
             else {
                 response.statusCode = 404;
@@ -60,7 +61,7 @@ const server = http.createServer(function (request, response) {
         response.end(`Something in your request (${request.url}) is strange...`);
     }
 // For the server to be listening to request, it needs a port, which is set thanks to the listen function.
-})
+});
 
 
 server.on('upgrade', function (request, socket, head) {
@@ -78,6 +79,15 @@ server.on('upgrade', function (request, socket, head) {
     }
 })
 
+http.createServer(function(request, response) {
+    const httpsUrl = `https://${request.headers['host']}${request.url}`;
+
+    response.writeHead(308, { 'Location': httpsUrl });
+    response.end('Redirecting to HTTPS');
+}).listen(8080, () => {
+    console.log(`[HTTP] Serveur de redirection lancé sur 80`);
+});
+
 server.listen(8000, () => {
-    console.log(`Gateway server demarré (port 8000)`);
+    console.log(`[HTTPS] : Gateway server demarré (port 8000)`);
 });

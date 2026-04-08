@@ -289,4 +289,11 @@ export class AIGameManager {
     const game = this.games.get(gameId);
     return handleActionOnGame(game, playerId, actionData);
   }
+
+  finishGame(gameId) {
+    if (this.games.has(gameId)) {
+      this.games.delete(gameId);
+      console.log(`Nettoyage [AIGameManager] : partie ${gameId} supprimée de la mémoire.`);
+    }
+  }
 }

@@ -121,6 +121,9 @@ async function finalizeAndEmit(gameId, manager) {
                 const winnerUsername = state.winner === 1 ? game.p1_username : game.p2_username;
                 const looserUsername = state.winner === 1 ? game.p2_username : game.p1_username;
                 await eloUpdate(gameId, winnerUsername, looserUsername);
+            if (manager === aiManager) {
+                finishTrackedGame(gameId);
+                return state;
             }
         }
 
@@ -647,6 +650,9 @@ io.on("connection", (socket) => {
                 const looserUsername = result.winner === 1 ? game.p2_username : game.p1_username;
                 if (!data.isFriendly && mode === GAME_MODE.PVP) await eloUpdate(data.gameId, winnerUsername, looserUsername);
             }
+            if (mode === GAME_MODE.AI) {
+                finishTrackedGame(data.gameId);
+            }
         }
     });
 
@@ -680,10 +686,58 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("leave-game", (gameId) => {
-        pvpManager.finishGame(gameId);
-        io.to(gameId).emit("back-to-homepage");
-        console.log(`Revanche non demandée. Partie d'id : [${gameId}] nettoyée de la mémoire.`);
+    socket.on("leave-game", async (gameId) => {
+        if (!gameId) return;
+
+        const { manager, mode } = getManagerForGame(gameId);
+        if (!manager) return;
+
+        const game = manager.games.get(gameId);
+        if (!game) return;
+
+        let winnerPlayer = null;
+        let winnerUsername = null;
+        let loserUsername = null;
+        let winnerSocketId = null;
+
+        if (game.p1_id === socket.id) {
+            winnerPlayer = 2;
+            winnerUsername = game.p2_username;
+            loserUsername = game.p1_username;
+            winnerSocketId = game.p2_id;
+        } else if (game.p2_id === socket.id) {
+            winnerPlayer = 1;
+            winnerUsername = game.p1_username;
+            loserUsername = game.p2_username;
+            winnerSocketId = game.p1_id;
+        } else {
+            return;
+        }
+
+        if (winnerSocketId) {
+            io.to(winnerSocketId).emit("game-over", {
+                winner: winnerPlayer,
+                reason: "forfeit",
+                message: "Ton adversaire a quitté la partie. Tu as gagné par forfait !"
+            });
+        }
+
+        if (mode === GAME_MODE.PVP) {
+            const winnerToken = winnerPlayer === 1 ? game.p1_token : game.p2_token;
+            if (winnerToken) unlockAchievement(winnerToken, "win_online");
+            if (!game.isFriendly) {
+                try {
+                    await eloUpdate(gameId, winnerUsername, loserUsername);
+                } catch (e) {
+                    console.error("Erreur eloUpdate après leave-game:", e);
+                }
+            }
+        }
+
+        manager.finishGame(gameId);
+        gameModes.delete(gameId);
+        socket.emit("back-to-homepage");
+        console.log(`Forfait volontaire. Partie d'id : [${gameId}] nettoyée de la mémoire.`);
     });
 
     socket.on("disconnect", async () => {
@@ -709,8 +763,15 @@ io.on("connection", (socket) => {
                         const winnerIsP2 = (game.p1_username === disconnectedUsername);
                         const winnerPlayer = winnerIsP2 ? 2 : 1;
                         const winnerUsername = winnerIsP2 ? game.p2_username : game.p1_username;
+                        const winnerSocketId = winnerIsP2 ? game.p2_id : game.p1_id;
 
-                        io.to(gameId).emit("game-over", { message: "Ton adversaire a quitté la partie. Tu as gagné par forfait !", winner: winnerPlayer });
+                        if (winnerSocketId) {
+                            io.to(winnerSocketId).emit("game-over", {
+                                winner: winnerPlayer,
+                                reason: "forfeit",
+                                message: "Ton adversaire a quitté la partie. Tu as gagné par forfait !"
+                            });
+                        }
 
                         if (mode === GAME_MODE.PVP) {
                           const winnerToken = game.p1_id === socket.id ? game.p2_token : game.p1_token;

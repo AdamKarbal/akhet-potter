@@ -359,11 +359,11 @@ export class HomePage extends HTMLElement{
         dot.classList.add('connected');
         this.querySelector(".user-section").appendChild(dot);
         this.querySelector("#username").innerHTML = username;
-        this.querySelector("#btn-logout").style.display = "flex";
-        const btnJcj = this.querySelector("#btn-jouer-jcj");
-        btnJcj.disabled = false;
-        btnJcj.style.filter = '';
-        btnJcj.style.pointerEvents = '';
+        this.querySelector("#btn-jouer-jcj").innerHTML = "Jouer";
+        this.querySelector("#btn-jouer-jcj").onclick = () => {
+            localStorage.setItem('matchMode', 'ranked');
+            socket.emit("find-game");
+        };
     }
 
     applyDisconnectedState() {
