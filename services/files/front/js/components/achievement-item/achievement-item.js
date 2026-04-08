@@ -15,7 +15,7 @@ export class AchievementItem extends HTMLElement {
 
         const title = this.getAttribute('title') || 'Succès Inconnu';
         const description = this.getAttribute('description') || 'Description mystère...';
-        const icon = this.getAttribute('icon') || 'assets/vifdor.png';
+        const icon = this.getAttribute('icon') || 'assets/vifdor-1.webp';
         const unlocked = this.getAttribute('unlocked') === 'true';
 
         const card = this.querySelector('#card');

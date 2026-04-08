@@ -29,7 +29,7 @@ export class HelpPage extends HTMLElement {
                 grid-template-columns: 5% 95%;
                 width: 100vw;
                 height: 100vh;
-                background-image: url("/assets/background1v1.png");
+                background-image: url("/assets/background1v1.webp");
                 background-size: 100% 100%;
                 background-repeat: no-repeat;
             }

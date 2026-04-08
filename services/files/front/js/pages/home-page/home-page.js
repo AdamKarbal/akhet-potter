@@ -9,13 +9,13 @@ export class HomePage extends HTMLElement{
     }
 
     RANK_MAPPER = {
-        "1ère année" : 'assets/annee1.png',
-        "2ème année" : 'assets/annee2.png',
-        "3ème année" : 'assets/annee3.png',
-        "4ème année" : 'assets/annee4.png',
-        "5ème année" : 'assets/annee5.png',
-        "6ème année" : 'assets/annee6.png',
-        "7ème année" : 'assets/annee7.png'
+        "1ère année" : 'assets/annee1.webp',
+        "2ème année" : 'assets/annee2.webp',
+        "3ème année" : 'assets/annee3.webp',
+        "4ème année" : 'assets/annee4.webp',
+        "5ème année" : 'assets/annee5.webp',
+        "6ème année" : 'assets/annee6.webp',
+        "7ème année" : 'assets/annee7.webp'
     };
 
     RANK_ORDER = ["1ère année", "2ème année", "3ème année", "4ème année", "5ème année", "6ème année", "7ème année"];
@@ -29,7 +29,7 @@ export class HomePage extends HTMLElement{
             }
             
             body {
-                background-image: url("/assets/background1v1.png");
+                background-image: url("/assets/background1v1.webp");
                 background-size: 100% 100%;
                 background-repeat: no-repeat;
                 min-height: 100vh;
@@ -312,7 +312,7 @@ export class HomePage extends HTMLElement{
             <div class="main-section">
                 <div class="user-log">
                     <div class="user-section" id="user-profile">         
-                        <img id="pfp" src="./../../../assets/goodplayer.png">
+                        <img id="pfp" src="./../../../assets/goodplayer.webp">
                         <span id="username">Se connecter</span>
                     </div>
                     <button id="btn-logout" title="Déconnexion">⏻</button>
@@ -321,19 +321,19 @@ export class HomePage extends HTMLElement{
                 <div class="game-modes">
                     <div id="jco">
                         <p style="font-size: 1.2em; margin-bottom:auto;">Jouer contre Dumbledore (IA)</p>
-                        <img src="./../../../assets/JCO.png">
+                        <img src="./../../../assets/JCO.webp">
                         <p class="game-mode-desc">Entraînez vos sorts contre un professeur qui ajustera son niveau à votre convenance.</p>
                         <button id="btn-jouer-jco">Jouer</button>
                     </div>
                     <div id="jcj">
                         <p style="font-size: 2em; margin-bottom : auto;">Jouer en ligne</p>
-                        <img src="./../../../assets/JCJ.png">
+                        <img src="./../../../assets/JCJ.webp">
                         <p class="game-mode-desc">Affrontez d'autres sorciers du monde dans des duels épiques.</p>
                         <button id="btn-jouer-jcj">Jouer</button>
                     </div>
                     <div id="local" class="disabled-mode">
                         <p style="font-size: 1.35em; margin-bottom : auto;">Jouer avec un ami en local</p>                        
-                        <img src="./../../../assets/LOCAL.png">
+                        <img src="./../../../assets/LOCAL.webp">
                         <p class="game-mode-desc">Un duel à l'ancienne, sur le même grimoire.</p>
                         <button id="btn-jouer-local" disabled>Indisponible</button>
                     </div>
@@ -446,7 +446,7 @@ export class HomePage extends HTMLElement{
 
                 const usernameDiv = document.createElement('div');
                 usernameDiv.innerHTML = `
-                    <img style="width:20%" src="assets/goodplayer.png">
+                    <img style="width:20%" src="assets/goodplayer.webp">
                     <span>${u.username}</span>`;
                 usernameDiv.classList.add('username-card');
                 rankSection.appendChild(usernameDiv);
@@ -460,7 +460,7 @@ export class HomePage extends HTMLElement{
 
                 const eloDiv = document.createElement('div');
                 eloDiv.innerHTML = `
-                    <img style="width:25%" src="assets/vifdor.png">
+                    <img style="width:25%" src="assets/vifdor-1.webp">
                     <span>${u.elo}</span>`;
                 eloDiv.classList.add('elo');
                 rankSection.appendChild(eloDiv);

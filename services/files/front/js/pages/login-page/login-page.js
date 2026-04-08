@@ -11,7 +11,7 @@ export class LoginComponent extends HTMLElement {
         this.innerHTML = `
             <style>
                 body {
-                    background-image: url("/assets/background1v1.png");
+                    background-image: url("/assets/background1v1.webp");
                     background-size: cover;
                     background-position: center;
                     min-height: 100vh;
@@ -42,7 +42,7 @@ export class LoginComponent extends HTMLElement {
                     aspect-ratio: 1 / 1;
                     border: 12px solid #3a2a1a;
                     box-shadow: 0 0 40px rgba(0,0,0,0.9);
-                    background-image: url("assets/map.jpg");
+                    background-image: url("assets/map.webp");
                     background-size: cover;
                     border-radius: 5px;
                 }
@@ -83,7 +83,7 @@ export class LoginComponent extends HTMLElement {
                 </div>
 
                 <div id="right-aside">
-                    <img src="assets/logo.png" style="max-width:400px">
+                    <img src="assets/logo.webp" style="max-width:400px">
                     <p>Jouer au jeu KHET #1 sous le thème Harry Potter</p>
                     <div class="button-group">
                         <button class="btn-hp" id="btn-register">S'enregistrer</button>

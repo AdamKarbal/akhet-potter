@@ -87,7 +87,7 @@ export class PlayerRank extends HTMLElement {
                 }
                 if (data.elo !== undefined) {
                     userEloDiv.innerHTML = `
-                        <img id="userVOImg" src="assets/vifdor.png" alt="Vif d'Or"> 
+                        <img id="userVOImg" src="assets/vifdor-1.webp" alt="Vif d'Or"> 
                         ${data.elo} Vifs d'Or
                     `;
                 }

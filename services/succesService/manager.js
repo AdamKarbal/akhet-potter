@@ -2,14 +2,14 @@ const { getCollection } = require('./database');
 
 // Liste des succes, si on veut en rajouter juste rajouter dans la liste
 const MASTER_ACHIEVEMENTS = [
-    { id: "play_online", title: "Premier Sang", desc: "Lancer une partie en ligne.", icon: "assets/pieces/old/scarabt1.png" },
-    { id: "play_ai", title: "Entraînement", desc: "Lancer une partie contre l'IA.", icon: "assets/pieces/old/scarabt2.png" },
-    { id: "win_ai", title: "L'Élève dépasse le Maître", desc: "Gagner contre l'IA.", icon: "assets/pieces/old/pharaont1.png" },
-    { id: "add_friend", title: "Sociable", desc: "Ajouter un ami.", icon: "assets/pieces/old/anubist1.png" },
-    { id: "play_friend", title: "Règlement de Comptes", desc: "Lancer un duel contre un ami.", icon: "assets/pieces/old/anubist2.png" },
-    { id: "chat_global", title: "Bavard", desc: "Envoyer un message dans le chat global.", icon: "assets/globalchat.png" },
-    { id: "win_online", title: "Sorcier", desc: "Gagner une partie en ligne.", icon: "assets/pieces/old/pharaont2.png" },
-    { id: "win_multiple_online", title: "Champion des trois sorciers", desc: "Gagner 100 partie en ligne.", icon: "assets/pieces/old/sphinxt1.png" }
+    { id: "play_online", title: "Premier Sang", desc: "Lancer une partie en ligne.", icon: "assets/pieces/old/scarabt1.webp" },
+    { id: "play_ai", title: "Entraînement", desc: "Lancer une partie contre l'IA.", icon: "assets/pieces/old/scarabt2.webp" },
+    { id: "win_ai", title: "L'Élève dépasse le Maître", desc: "Gagner contre l'IA.", icon: "assets/pieces/old/pharaont1.webp" },
+    { id: "add_friend", title: "Sociable", desc: "Ajouter un ami.", icon: "assets/pieces/old/anubist1.webp" },
+    { id: "play_friend", title: "Règlement de Comptes", desc: "Lancer un duel contre un ami.", icon: "assets/pieces/old/anubist2.webp" },
+    { id: "chat_global", title: "Bavard", desc: "Envoyer un message dans le chat global.", icon: "assets/globalchat.webp" },
+    { id: "win_online", title: "Sorcier", desc: "Gagner une partie en ligne.", icon: "assets/pieces/old/pharaont2.webp" },
+    { id: "win_multiple_online", title: "Champion des trois sorciers", desc: "Gagner 100 partie en ligne.", icon: "assets/pieces/old/sphinxt1.webp" }
 ];
 
 async function getAchievementsList(username) {
