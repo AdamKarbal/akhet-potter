@@ -37,7 +37,7 @@ docker compose up --build
 
 ---
 
-### 🌐 Accès en ligne
+### Accès en ligne
 
 http://akhetpotter.ps8.pns.academy/
 
@@ -94,6 +94,7 @@ http://akhetpotter.ps8.pns.academy/
 
   * Sur les pages (pages principales, amis, demandes amis, ...)
   * Tout le monde peut parler dedans
+  * Système de censure avec une blacklist (mot dans la blackliste pour le moment : "insulte", "censure")
     
 * Chat en match :
 
