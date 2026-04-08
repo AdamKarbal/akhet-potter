@@ -4,6 +4,8 @@ import './pages/login-page/login-page.js'
 import './components/social-component/social-component.js'
 import './pages/request-page/request-component.js'
 import './pages/home-page/home-page.js'
+import './pages/help-page/help-page.js';
+import './pages/settings-page/settings-page.js'
 import { socket } from "./socket.js";
 import {audioService} from "./services/AudioService.js";
 import {WaitlistComponent} from "./components/waitlist-component/waitlist-component.js";
@@ -230,6 +232,20 @@ function updateView() {
         app.innerHTML = '<vsordi-page></vsordi-page>';
 
     }
+
+    else if (hash === '#HELP') {
+        audioService.stopInGameTheme();
+        audioService.playMainTheme();
+        console.log("Page aide activée");
+        app.innerHTML = '<help-page></help-page>';
+    }
+
+    else if (hash === '#SETTINGS') {
+        audioService.stopInGameTheme();
+        audioService.playMainTheme();
+        app.innerHTML = '<settings-page></settings-page>';
+    }
+
     else if(hash === '#SOC'){
         audioService.stopInGameTheme();
         audioService.playMainTheme();

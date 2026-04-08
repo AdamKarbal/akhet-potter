@@ -258,7 +258,7 @@ export class GameEngine {
                 this.board.setPiece(hit.x, hit.y, null);
 
                 if (target.type === PIECE_TYPE.PYRAMID) {
-                    this.players[target.owner].reserves++;
+                    this.players[this.turn].reserves++;
                 }
                 if (target.type === PIECE_TYPE.PHARAON) deadPharaonOwner = target.owner;
             });

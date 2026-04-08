@@ -134,7 +134,7 @@ export class AchievementPage extends HTMLElement {
                 <div class="main-section">
                     <div class="user-log">
                         <div class="user-section" id="btn-login">         
-                            <img id="pfp" src="assets/goodplayer.png">
+                            <img id="pfp" src="assets/webp/goodplayer.webp">
                             <span id="username">Se connecter</span>
                         </div>
                     </div>

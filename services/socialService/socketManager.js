@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = process.env.JWT_SECRET;
-const { unlockAchievement } = require('./utils');
+const { unlockAchievement, filterMessage } = require('./utils');
 
 function setupSockets(io) {
     io.use((socket, next) => {
@@ -23,9 +23,11 @@ function setupSockets(io) {
         socket.join('global_room');
 
         socket.on('global_message', (msg) => {
+            const cleanMessage = filterMessage(msg);
+
             socket.to('global_room').emit('global_message_receive', {
                 sender: username,
-                message: msg
+                message: cleanMessage
             });
             unlockAchievement(userToken, "chat_global");
         });

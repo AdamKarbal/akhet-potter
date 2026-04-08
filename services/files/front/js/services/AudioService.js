@@ -11,26 +11,40 @@ class AudioService {
     }
 
     playMainTheme() {
-        if(!this.isMainThemePlayed) this.mainTheme.play();
+        if(!this.isMainThemePlayed) {
+            const playPromise = this.mainTheme.play();
+            // On attrape l'erreur si le navigateur bloque l'autoplay
+            if (playPromise !== undefined) {
+                playPromise.catch(error => console.warn("L'audio attend une interaction utilisateur pour démarrer."));
+            }
+        }
         this.isMainThemePlayed = true;
     }
 
-    stopMainTheme(){
-        if(this.isMainThemePlayed){
+    stopMainTheme() {
+        if(this.isMainThemePlayed) {
             this.mainTheme.pause();
             this.mainTheme.currentTime = 0;
         }
         this.isMainThemePlayed = false;
     }
 
-    playEffect(name) {
-        const effect = new Audio(`../../assets/sounds/${name}.mp3`);
-        effect.play();
+    playInGameTheme(){
+        if(!this.isIngameThemePlayed) {
+            const playPromise = this.inGameTheme.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => console.warn("L'audio attend une interaction utilisateur pour démarrer."));
+            }
+        }
+        this.isIngameThemePlayed = true;
     }
 
-    playInGameTheme(){
-        if(!this.isIngameThemePlayed) this.inGameTheme.play();
-        this.isIngameThemePlayed = true;
+    playEffect(name) {
+        const effect = new Audio(`../../assets/sounds/${name}.mp3`);
+        const playPromise = effect.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {}); // On ignore silencieusement
+        }
     }
 
     stopInGameTheme(){

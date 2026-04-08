@@ -1,3 +1,19 @@
+const BLACKLIST = ["censure", "insulte", "motinterdit"];
+
+function filterMessage(message) {
+    if (!message) return message;
+
+    let filteredMessage = message;
+
+    BLACKLIST.forEach(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        const stars = '*'.repeat(word.length);
+        filteredMessage = filteredMessage.replace(regex, stars);
+    });
+
+    return filteredMessage;
+}
+
 async function unlockAchievement(token, achievementId) {
     try {
         await fetch('http://succes:8005/achievements/unlock', {
@@ -13,4 +29,4 @@ async function unlockAchievement(token, achievementId) {
     }
 }
 
-module.exports = {unlockAchievement};
+module.exports = {unlockAchievement, filterMessage};
