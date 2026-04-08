@@ -309,16 +309,14 @@ export class HomePage extends HTMLElement{
         </div>
         `
 
-        socket.emit("quit"); //debug
 
         this.querySelector(".user-section").addEventListener("click", (e) => {
             window.location.hash = 'LGN';
         });
 
-        this.querySelector("#btn-jouer-jcj").addEventListener("click", () => {
-            localStorage.setItem('matchMode', 'ranked');
-            socket.emit("find-game");
-        });
+        this.querySelector("#btn-jouer-jcj").onclick = () => {
+            window.location.hash = "LGN";
+        };
 
         this.querySelector("#btn-jouer-jco").addEventListener("click", () => {
             window.location.hash = 'JCO';
@@ -349,7 +347,8 @@ export class HomePage extends HTMLElement{
         this.querySelector("#username").innerHTML = username;
         this.querySelector("#btn-jouer-jcj").innerHTML = "Jouer";
         this.querySelector("#btn-jouer-jcj").onclick = () => {
-            window.location.hash = 'JCJ';
+            localStorage.setItem('matchMode', 'ranked');
+            socket.emit("find-game");
         };
     }
 

@@ -61,7 +61,12 @@ export class QuitComponent extends HTMLElement {
 
         if (leavebtn) {
             leavebtn.addEventListener('click', () => {
-                window.location.hash = '';
+                const quitEvent = new CustomEvent('request-quit', {
+                    bubbles: true,
+                    composed: true,
+                });
+
+                this.dispatchEvent(quitEvent)
             });
         }
     }

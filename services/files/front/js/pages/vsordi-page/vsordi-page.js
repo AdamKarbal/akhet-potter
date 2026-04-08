@@ -4,6 +4,7 @@ import '../../components/chat-component/chat-component.js'
 import '../../components/navbar-component/navbar-component.js'
 import '../../components/GameBoard/GameBoard.js'
 import '../../components/AI-layout/ai-layout.js'
+import '../../components/quit-component/quit-component.js'
 import {API_URL} from "../../../config.js";
 import {audioService} from "../../services/AudioService.js";
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
@@ -11,6 +12,8 @@ import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 export class JcOComponent extends HTMLElement{
     constructor() {
         super();
+        this._gameEnded = false;
+        this._gameId = null;
     }
 
     connectedCallback() {
@@ -101,12 +104,28 @@ export class JcOComponent extends HTMLElement{
             this.socket.emit("launch-game");
         })//On utilise cet événement pour éviter une RC sur le chargement du board et le dessin de l'attente
 
+        const quitComp = this.querySelector('quit-component');
+        if (quitComp) {
+            quitComp.addEventListener('request-quit', () => {
+                if (this._gameId) {
+                    this.socket.emit("leave-game", this._gameId);
+                } else {
+                    window.location.hash = '';
+                }
+            });
+        }
+
+        this.socket.on("back-to-homepage", () => {
+            window.location.hash = '';
+        });
+
         this.socket.on("waiting-for-opponent", () => {
             console.log("En attente d'un adversaire...");
             this.querySelector("game-board").showWaitingScreen();
         });
 
         this.socket.on("match-found", (matchInfo) => {
+            this._gameId = matchInfo.gameId;
             this.socket.off("waiting-for-opponent");
             const pl1 = this.querySelector("#pl1");
             const pl2 = this.querySelector("#pl2");
@@ -161,11 +180,32 @@ export class JcOComponent extends HTMLElement{
                 handleTimers(state);
                 handleReserves(state);
             });
+            this.socket.on("game-over", (state) => {
+                const timerIA = this.querySelector('#pl1 player-timer');
+                const timerHumain = this.querySelector('#pl2 player-timer');
+                if (timerIA) timerIA.stopTimer();
+                if (timerHumain) timerHumain.stopTimer();
+                if (this._gameEnded) return;
+                this._gameEnded = true;
+                const iWin = state && state.winner === 1;
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a0f05;border:3px double #c5a059;color:#fff8dc;padding:26px;border-radius:12px;z-index:10002;font-family:\'Agency FB\',sans-serif;text-align:center;min-width:280px;';
+                toast.innerHTML = `<div style="font-size:1.7em;color:#d4af37;margin-bottom:8px;">${iWin ? 'VICTOIRE' : 'DEFAITE'}</div><div>${iWin ? 'Tu as battu l\'IA !' : 'L\'IA a gagné cette manche.'}</div>`;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    if (document.body.contains(toast)) toast.remove();
+                    window.location.hash = '';
+                }, 2600);
+            });
             this.socket.on("game-closed", () => {
                 const timerIA = this.querySelector('#pl1 player-timer');
                 const timerHumain = this.querySelector('#pl2 player-timer');
                 if (timerIA) timerIA.stopTimer();
                 if (timerHumain) timerHumain.stopTimer();
+                if (!this._gameEnded) {
+                    this._gameEnded = true;
+                    window.location.hash = '';
+                }
             });
         });
     }

@@ -12,6 +12,8 @@ export class MatchComponent extends HTMLElement{
         super();
         this.isGameActive = false;
         this.internalNav = false;
+        this._forfeitEnded = false;
+        this._eloToastOpen = false;
         this.socket = socket;
         this.hashHandler = (event) => {
             if (this.internalNav) {
@@ -99,6 +101,7 @@ export class MatchComponent extends HTMLElement{
         </div>
     `;
         const matchInfo = JSON.parse(sessionStorage.getItem('matchInfo'));
+        this._matchInfo = matchInfo;
 
         if (matchInfo) {
             const pl1 = this.querySelector("#pl1");
@@ -115,9 +118,20 @@ export class MatchComponent extends HTMLElement{
                 }, { once: true });
 
                 this.socket.on('game-over', (data) => {
+                    if (data && data.reason === 'forfeit') {
+                        this.isGameActive = false;
+                        this._forfeitEnded = true;
+                        this.showForfeitWinToast(data.message || "Victoire par forfait");
+                        setTimeout(() => {
+                            if (this._forfeitEnded && !this._eloToastOpen) {
+                                window.location.hash = '';
+                            }
+                        }, 4500);
+                        return;
+                    }
                     const revengePopup = document.createElement('revenge-component');
                     this.appendChild(revengePopup);
-                    revengePopup.setResult(data.winner);
+                    revengePopup.setResult(data);
 
                     const timeoutId = setTimeout(() => {
                             if (this.contains(revengePopup)) {
@@ -170,7 +184,7 @@ export class MatchComponent extends HTMLElement{
         });
 
         const inGameChat = this.querySelector("chat-component");
-        if (inGameChat) inGameChat.setGameId(matchInfo.gameId);
+        if (inGameChat && matchInfo && matchInfo.gameId) inGameChat.setGameId(matchInfo.gameId);
 
         const handleTimers = (state) => {
             const timer1 = this.querySelector('#pl1 player-timer');
@@ -212,6 +226,7 @@ export class MatchComponent extends HTMLElement{
 
         this.socket.on("init-state", (state) => {
             console.debug('[match-page] init-state remainingTurnMs=', state && state.remainingTurnMs);
+            this._joining = false;
             handleTimers(state);
             handleReserves(state);
         });
@@ -269,6 +284,7 @@ export class MatchComponent extends HTMLElement{
     }
 
     showEloEvolutionToast(data) {
+        this._eloToastOpen = true;
         const toast = document.createElement('div');
         const isWinner = this.socket.data.username === data.winnerInfos.username;
 
@@ -321,15 +337,58 @@ export class MatchComponent extends HTMLElement{
             toast.style.transform = 'translate(-50%, -50%) scale(1)';
         });
 
-        toast.querySelector('#close-elo').onclick = () => {
+        const closeToast = () => {
             toast.style.opacity = '0';
             toast.style.transform = 'translate(-50%, -50%) scale(0.8)';
             setTimeout(() => {
                 toast.remove();
+                this._eloToastOpen = false;
                 this.isGameActive = false;
                 window.location.hash = '';
             }, 500);
         };
+
+        toast.querySelector('#close-elo').onclick = closeToast;
+
+        if (this._forfeitEnded) {
+            setTimeout(() => {
+                if (document.body.contains(toast)) closeToast();
+            }, 3500);
+        }
+    }
+
+    showForfeitWinToast(message) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.7);
+            background: #1a0f05;
+            border: 3px double #c5a059;
+            color: #fff8dc;
+            padding: 30px;
+            border-radius: 12px;
+            z-index: 10002;
+            font-family: 'Agency FB', sans-serif;
+            text-align: center;
+            min-width: 340px;
+            opacity: 0;
+            transition: all 0.3s;
+        `;
+        toast.innerHTML = `
+            <div style="font-size:2em; color:#d4af37; margin-bottom:10px;">🏆</div>
+            <div style="font-size:1.4em; margin-bottom:12px;">${message}</div>
+            <div style="font-size:1.1em; color:#d4af37;">Victoire par forfait</div>
+        `;
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, -50%) scale(1)';
+        });
+        setTimeout(() => {
+            toast.remove();
+        }, 3500);
     }
 
     warningToastLeave(oldUrl) {
@@ -403,7 +462,8 @@ export class MatchComponent extends HTMLElement{
 
         leaveBtn.onclick = () => {
             this.isGameActive = false;
-            this.socket.emit("leave-game");
+            const gid = this._matchInfo ? this._matchInfo.gameId : null;
+            if (gid) this.socket.emit("leave-game", gid);
             toast.remove();
             window.location.hash = '';
         };
@@ -424,9 +484,7 @@ export class MatchComponent extends HTMLElement{
 
     disconnectedCallback() {
         window.removeEventListener("hashchange", this.hashHandler);
-        if (this.isGameActive) {
-            this.socket.emit("leave-game");
-        }
+        this._joining = false;
     }
 
 }
