@@ -148,9 +148,9 @@ function toast(data, event){
 
     toast.innerHTML = `
             <div>${data.message}</div>
-            <div style="display: flex; gap=1rem; justify-content: flex-end;">
+            <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; margin-top: 2vh">
                 <button id="toast-accept" style="background: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Accepter</button>
-                <button id="toast-deny" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Refuser</button>
+                <button id="toast-deny" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-left: 1vw">Refuser</button>
             </div>
         `;
 
