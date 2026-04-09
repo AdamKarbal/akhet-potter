@@ -84,7 +84,6 @@ export class JcOComponent extends HTMLElement{
             <navbar-component id="nav"></navbar-component>
             <div class="board"><game-board></game-board></div>
             <div id="right-aside">
-                <moves-component></moves-component>
                 <quit-component></quit-component>
             </div>
             <ai-layout id="pl1"></ai-layout>

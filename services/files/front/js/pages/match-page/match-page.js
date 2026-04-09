@@ -1,5 +1,4 @@
 import '../../components/player-layout/player-layout.js'
-import '../../components/moves-component/moves-component.js'
 import '../../components/chat-component/chat-component.js'
 import '../../components/navbar-component/navbar-component.js'
 import '../../components/GameBoard/GameBoard.js'
@@ -93,7 +92,6 @@ export class MatchComponent extends HTMLElement{
             <div class="board"><game-board></game-board></div>
             <div id="right-aside">
                 <chat-component></chat-component>
-                <moves-component></moves-component>
                 <quit-component></quit-component>
             </div>
             <player-layout id="pl1"></player-layout>
