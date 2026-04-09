@@ -713,6 +713,13 @@ io.on("connection", (socket) => {
         const game = manager.games.get(gameId);
         if (!game) return;
 
+        if (game.engine && game.engine.winner) {
+            manager.finishGame(gameId);
+            gameModes.delete(gameId);
+            socket.emit("back-to-homepage");
+            return;
+        }
+
         let winnerPlayer = null;
         let winnerUsername = null;
         let loserUsername = null;
@@ -753,6 +760,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", async () => {
+
         console.log(`Joueur déconnecté : ${socket.data.username}`);
         connectedUsers.delete(socket.data.username);
 
