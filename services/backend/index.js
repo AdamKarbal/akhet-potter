@@ -29,6 +29,28 @@ const gameModes = new Map();
 const reconnectionTimers = new Map();
 // debug toggle pour reconnexions
 const RECON_DEBUG = true;
+
+async function handleEloIfNeeded(gameId, game, winnerPlayer) {
+    try {
+        if (!game) return;
+
+        const { mode } = getManagerForGame(gameId);
+
+        if (game.isFriendly) return;
+        if (mode !== GAME_MODE.PVP) return;
+
+        const winnerUsername = winnerPlayer === 1 ? game.p1_username : game.p2_username;
+        const loserUsername = winnerPlayer === 1 ? game.p2_username : game.p1_username;
+
+        console.log("[ELO] Update:", winnerUsername, "vs", loserUsername);
+
+        await eloUpdate(gameId, winnerUsername, loserUsername);
+    } catch (e) {
+        console.error("Erreur handleEloIfNeeded:", e);
+    }
+}
+
+
 async function eloUpdate(gameId, winnerUsername, looserUsername) {
     try {
         const response = await fetch("http://auth:8002/update-elo", {
@@ -115,16 +137,11 @@ async function finalizeAndEmit(gameId, manager) {
 
         if (state.winner) {
             io.to(gameId).emit("game-over", state);
-
+            await handleEloIfNeeded(gameId, game, state.winner);
             const {mode} = getManagerForGame(gameId);
-            if (!game.isFriendly && mode === GAME_MODE.PVP) {
-                const winnerUsername = state.winner === 1 ? game.p1_username : game.p2_username;
-                const looserUsername = state.winner === 1 ? game.p2_username : game.p1_username;
-                await eloUpdate(gameId, winnerUsername, looserUsername);
-                if (manager === aiManager) {
-                    finishTrackedGame(gameId);
-                    return state;
-                }
+            if (manager === aiManager) {
+                finishTrackedGame(gameId);
+                return state;
             }
 
             if (!game.engine.winner) {
@@ -649,9 +666,7 @@ io.on("connection", (socket) => {
             const game = (resolvedManager || pvpManager).games.get(data.gameId);
             // result.winner vaut 1 (PLAYER.P1) ou 2 (PLAYER.P2)
             if (game) {
-                const winnerUsername = result.winner === 1 ? game.p1_username : game.p2_username;
-                const looserUsername = result.winner === 1 ? game.p2_username : game.p1_username;
-                if (!data.isFriendly && mode === GAME_MODE.PVP) await eloUpdate(data.gameId, winnerUsername, looserUsername);
+                await handleEloIfNeeded(data.gameId, game, result.winner);
             }
             if (mode === GAME_MODE.AI) {
                 finishTrackedGame(data.gameId);
@@ -728,13 +743,7 @@ io.on("connection", (socket) => {
         if (mode === GAME_MODE.PVP) {
             const winnerToken = winnerPlayer === 1 ? game.p1_token : game.p2_token;
             if (winnerToken) unlockAchievement(winnerToken, "win_online");
-            if (!game.isFriendly) {
-                try {
-                    await eloUpdate(gameId, winnerUsername, loserUsername);
-                } catch (e) {
-                    console.error("Erreur eloUpdate après leave-game:", e);
-                }
-            }
+            await handleEloIfNeeded(gameId, game, winnerPlayer);
         }
 
         manager.finishGame(gameId);
@@ -781,13 +790,7 @@ io.on("connection", (socket) => {
                           unlockAchievement(winnerToken, "win_online");
                         }
 
-                        if (!game.isFriendly && mode === GAME_MODE.PVP) {
-                            try {
-                                await eloUpdate(gameId, winnerUsername, disconnectedUsername);
-                            } catch (e) {
-                                console.error("Erreur eloUpdate après disconnect:", e);
-                            }
-                        }
+                        await handleEloIfNeeded(gameId, game, winnerPlayer);
 
                         // arrêter et nettoyer la partie immédiatement
                         try {
