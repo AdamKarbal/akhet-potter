@@ -281,14 +281,17 @@ io.on("connection", (socket) => {
     }
 
     socket.on("invite-friendly", (data) => {
-        console.log(`Côté back : envoi d'une invitation en match à ${data.username}`);
+        console.log(`Côté back : envoi d'une invitation en match à ${data.to}`);
+        console.log(`Username de l'envoyeur : ${socket.data.username}`);
         const targetUsername = data.to;
         const targetSocketId = connectedUsers.get(targetUsername);
+        const senderSocketId = connectedUsers.get(socket.data.username);
         if(targetSocketId){
             io.to(targetSocketId).emit("NEW_FRIENDLY_MATCH", {
                 from: socket.data.username,
                 message: `Nouvelle demande de match amical de ${socket.data.username} !`
             });
+            io.to(senderSocketId).emit("invitation-sent");
 
             setTimeout(() => {
                 if(!pvpManager.isMatchExisting(socket.data.username, targetUsername)){
@@ -305,6 +308,7 @@ io.on("connection", (socket) => {
     socket.on("SEND_FRIEND_REQ", (data) => {
         const targetSocketId = connectedUsers.get(data.to);
         console.log(`Côté back : envoi d'une demande d'ami à ${data.to}`);
+        console.log(`Username de l'envoyeur : ${socket.data.username}`);
         if(targetSocketId){
             io.to(targetSocketId).emit('NEW_FRIEND_REQ', {
                 from: socket.data.username,
@@ -336,6 +340,7 @@ io.on("connection", (socket) => {
 
     socket.on("find-game", () => {
         console.log(`${socket.data.username} is looking for a game`);
+        const searcherSocketId = connectedUsers.get(socket.data.username);
 
         const existingIndex = waitingQueue.findIndex(s => s.data.username === socket.data.username);
         if (existingIndex !== -1) {
@@ -380,7 +385,7 @@ io.on("connection", (socket) => {
                 unlockAchievement(created.p2_token, "play_online");
             }
         } else {
-            socket.emit("waiting-for-opponent");
+            io.to(searcherSocketId).emit("waiting-for-opponent");
         }
     });
 
