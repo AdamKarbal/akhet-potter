@@ -323,6 +323,7 @@ io.on("connection", (socket) => {
 
     socket.on("find-game", () => {
         console.log(`${socket.data.username} is looking for a game`);
+        const searcherSocketId = connectedUsers.get(socket.data.username);
 
         const existingIndex = waitingQueue.findIndex(s => s.data.username === socket.data.username);
         if (existingIndex !== -1) {
@@ -367,7 +368,7 @@ io.on("connection", (socket) => {
                 unlockAchievement(created.p2_token, "play_online");
             }
         } else {
-            socket.emit("waiting-for-opponent");
+            io.to(searcherSocketId).emit("waiting-for-opponent");
         }
     });
 

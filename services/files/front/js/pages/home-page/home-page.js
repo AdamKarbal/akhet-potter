@@ -179,9 +179,8 @@ export class HomePage extends HTMLElement{
             }
             
             #local > img, #jcj > img, #jco > img{
-                max-height: 62%; 
-                width: auto;
-                object-fit: contain;
+                height:auto; 
+                max-width: 135%;
             }
  
             #btn-jouer-jcj, #btn-jouer-jco, #btn-jouer-local {
@@ -320,19 +319,19 @@ export class HomePage extends HTMLElement{
                 <div class="user-rank"></div> 
                 <div class="game-modes">
                     <div id="jco">
-                        <p style="font-size: 1.2em; margin-bottom:auto;">Jouer contre Dumbledore (IA)</p>
+                        <p style="font-size: 1.2em; margin-bottom:auto; text-align: center;">Jouer contre Dumbledore (IA)</p>
                         <img src="./../../../assets/JCO.webp">
                         <p class="game-mode-desc">Entraînez vos sorts contre un professeur qui ajustera son niveau à votre convenance.</p>
                         <button id="btn-jouer-jco">Jouer</button>
                     </div>
                     <div id="jcj">
-                        <p style="font-size: 2em; margin-bottom : auto;">Jouer en ligne</p>
+                        <p style="font-size: 2em; margin-bottom : auto; text-align: center;">Jouer en ligne</p>
                         <img src="./../../../assets/JCJ.webp">
                         <p class="game-mode-desc">Affrontez d'autres sorciers du monde dans des duels épiques.</p>
                         <button id="btn-jouer-jcj">Jouer</button>
                     </div>
                     <div id="local" class="disabled-mode">
-                        <p style="font-size: 1.35em; margin-bottom : auto;">Jouer avec un ami en local</p>                        
+                        <p style="font-size: 1.35em; margin-bottom : auto; text-align: center;">Jouer avec un ami en local</p>                        
                         <img src="./../../../assets/LOCAL.webp">
                         <p class="game-mode-desc">Un duel à l'ancienne, sur le même grimoire.</p>
                         <button id="btn-jouer-local" disabled>Indisponible</button>

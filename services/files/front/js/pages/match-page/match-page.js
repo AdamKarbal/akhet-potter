@@ -286,7 +286,7 @@ export class MatchComponent extends HTMLElement{
     showEloEvolutionToast(data) {
         this._eloToastOpen = true;
         const toast = document.createElement('div');
-        const isWinner = this.socket.data.username === data.winnerInfos.username;
+        const isWinner = localStorage.getItem('username') === data.winnerInfos.username;
 
         toast.style.cssText = `
         position: fixed;
@@ -323,11 +323,13 @@ export class MatchComponent extends HTMLElement{
             margin-top: 25px;
             background: none;
             border: 1px solid #c5a059;
+            border-radius: 15px;
             color: #c5a059;
             padding: 8px 20px;
             cursor: pointer;
             font-family: 'Agency FB';
             transition: all 0.3s;
+            font-size: 1em;
         ">CONTINUER</button>
     `;
         document.body.appendChild(toast);
