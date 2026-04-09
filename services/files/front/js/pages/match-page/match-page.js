@@ -344,7 +344,6 @@ export class MatchComponent extends HTMLElement{
                 toast.remove();
                 this._eloToastOpen = false;
                 this.isGameActive = false;
-                window.location.hash = '';
             }, 500);
         };
 
