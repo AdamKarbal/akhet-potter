@@ -9,6 +9,7 @@ export class HomePage extends HTMLElement{
     }
 
     RANK_MAPPER = {
+        "Non classé" : 'assets/webp/unranked.webp', //TODO:AJOUTER LASSEt
         "1ère année" : 'assets/annee1.webp',
         "2ème année" : 'assets/annee2.webp',
         "3ème année" : 'assets/annee3.webp',
@@ -245,7 +246,7 @@ export class HomePage extends HTMLElement{
             
             .rank, .username-card, .prog{
                 font-family: 'Agency FB',serif;
-                font-size: 1.2em;
+                font-size: 1.6em;
                 color: #FFD700;
                 display: flex;
                 flex-direction: row;
@@ -302,7 +303,13 @@ export class HomePage extends HTMLElement{
                 pointer-events: none;
                 position: relative;
             }
-                
+            
+                        
+            .unavailable {
+                color: #888;
+                opacity: 0.75;
+                font-style: oblique;
+            }         
         </style>
         
         <div class="home-container">
@@ -353,15 +360,19 @@ export class HomePage extends HTMLElement{
         this.querySelector("#btn-logout").addEventListener("click", async () => {
             const token = localStorage.getItem('token');
             try {
-                await fetch("/api/logout", {
+                const res = await fetch("/api/logout", {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if(res){
+                    localStorage.clear();
+                    this.applyDisconnectedState();
+                    this.fillUserInfo();
+                }
             } catch (e) {}
             localStorage.clear();
             this.applyDisconnectedState();
-            this.fillUserInfo("Non classé", 0, "Non connecté");
-            this.querySelector(".user-rank").innerHTML = '';
+            this.fillUserInfo();
         });
 
         this.querySelector("#btn-jouer-jcj").onclick = () => {
@@ -448,11 +459,13 @@ export class HomePage extends HTMLElement{
     }
 
     fillUserInfo(rank, elo, username) {
+        const unkProg = 'assets/webp/unknownprog.webp';
+
         const section = this.querySelector(".user-rank");
-        const imgPath = rank ? this.RANK_MAPPER[rank] : "Non classé";
+        const imgPath = rank ? this.RANK_MAPPER[rank] : this.RANK_MAPPER["Non classé"];
         const progressPercent = elo? ((elo % 1000) / 1000) * 100 : ((0 % 1000) / 1000) * 100;
-        const nextRankIndex = this.RANK_ORDER.indexOf(rank) + 1; //TODO: A REGLER QUAND LASSET EST PRET
-        const nextRankImg = this.RANK_ORDER[nextRankIndex] ? this.RANK_MAPPER[this.RANK_ORDER[nextRankIndex]] : imgPath;
+        const nextRankIndex = this.RANK_ORDER.indexOf(rank) + 1;
+        const nextRankImg = rank ? this.RANK_MAPPER[this.RANK_ORDER[nextRankIndex]] : unkProg;
 
         section.innerHTML = '';
 
@@ -464,10 +477,11 @@ export class HomePage extends HTMLElement{
         section.appendChild(usernameDiv);
 
         const rankDiv = document.createElement('div');
+        rankDiv.classList.add('rank');
         rankDiv.innerHTML = `
                     <img style="width:20%" src="${imgPath}">
                     <span>${rank ? rank : "Non classé"}</span>`;
-        rankDiv.classList.add('rank');
+        if(!rank) rankDiv.classList.add('unavailable');
         section.appendChild(rankDiv);
 
         const eloDiv = document.createElement('div');
@@ -480,11 +494,11 @@ export class HomePage extends HTMLElement{
         const progDiv = document.createElement('div');
         progDiv.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 15px;">
-                        <img style="width:10%" src="${imgPath}">
+                        <img style="width:10%" src="${rank ? imgPath : unkProg}">
                         <div class="progress-bg">
                             <div class="progress-fill" style="width: ${progressPercent}%"></div>
                         </div>
-                        <img style="width:10%" src="${nextRankImg}">
+                        <img style="width:10%" src="${rank? nextRankImg : unkProg}">
                     </div>`;
         progDiv.classList.add('prog');
         section.appendChild(progDiv);
