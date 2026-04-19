@@ -12,6 +12,19 @@
     align-items: center;
 }
 
+#main-btn{
+    font-family: "Agency FB", serif;
+    font-size: 1.4em;
+}
+
+.auth-modal-img{
+    width: 20%;
+}
+
+#modal-title{
+    font-family: "Agency FB", serif;
+}
+
 .modal-content {
     background: #2a1a0a;
     border: 3px solid #ffd700;
@@ -87,7 +100,7 @@ h2 {
     font-size: 0.8rem;
     text-decoration: underline;
     cursor: pointer;
-    margin-top: -5px;
+    margin-top: 2.5vh;
 }
 
 #forgot-pwd-link:hover {

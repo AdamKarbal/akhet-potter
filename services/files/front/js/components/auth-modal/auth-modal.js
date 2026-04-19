@@ -169,10 +169,11 @@ export class AuthModalComponent extends HTMLElement {
     }
 
     openForLogin() {
+        const loginBtn = this.querySelector('#main-btn');
         this.currentMode = 'login';
         this.resetFormUI();
         this.querySelector('#modal-title').innerText = "Se connecter";
-        this.querySelector('#main-btn').innerText = "Connexion";
+        loginBtn.innerText = "Connexion";
         this.querySelector('#forgot-pwd-link').classList.remove('hide');
 
         const modal = this.querySelector('#auth-modal');

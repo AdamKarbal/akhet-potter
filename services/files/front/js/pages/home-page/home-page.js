@@ -9,6 +9,7 @@ export class HomePage extends HTMLElement{
     }
 
     RANK_MAPPER = {
+        "Non classé" : 'assets/webp/unranked.webp', //TODO:AJOUTER LASSEt
         "1ère année" : 'assets/annee1.webp',
         "2ème année" : 'assets/annee2.webp',
         "3ème année" : 'assets/annee3.webp',
@@ -137,6 +138,7 @@ export class HomePage extends HTMLElement{
         if (!token || !user) {
             rankSection.innerHTML = '';
             this.applyDisconnectedState();
+            this.fillUserInfo();
             return;
         }
 
@@ -157,56 +159,66 @@ export class HomePage extends HTMLElement{
                     localStorage.clear();
                     return;
                 }
+                this.fillUserInfo(u.rank, u.elo, u.username);
+            }
+        }
+        catch(error) {
+            console.error("Erreur lors de la récupération des infos joueur:", error);
+            this.applyDisconnectedState();
+            this.fillUserInfo();
+        }
+    }
 
-                const imgPath = this.RANK_MAPPER[u.rank];
-                const progressPercent = ((u.elo % 1000) / 1000) * 100;
-                const nextRankIndex = this.RANK_ORDER.indexOf(u.rank) + 1;
-                const nextRankImg = this.RANK_ORDER[nextRankIndex] ? this.RANK_MAPPER[this.RANK_ORDER[nextRankIndex]] : imgPath;
+    fillUserInfo(rank, elo, username) {
+        const unkProg = 'assets/webp/unknownprog.webp';
 
-                rankSection.innerHTML = '';
+        const section = this.querySelector(".user-rank");
+        const imgPath = rank ? this.RANK_MAPPER[rank] : this.RANK_MAPPER["Non classé"];
+        const progressPercent = elo? ((elo % 1000) / 1000) * 100 : ((0 % 1000) / 1000) * 100;
+        const nextRankIndex = this.RANK_ORDER.indexOf(rank) + 1;
+        const nextRankImg = rank ? this.RANK_MAPPER[this.RANK_ORDER[nextRankIndex]] : unkProg;
 
-                const usernameDiv = document.createElement('div');
-                usernameDiv.innerHTML = `
+        section.innerHTML = '';
+
+        const usernameDiv = document.createElement('div');
+        usernameDiv.innerHTML = `
                     <img style="width:20%" src="assets/goodplayer.webp">
-                    <span>${u.username}</span>`;
-                usernameDiv.classList.add('username-card');
-                rankSection.appendChild(usernameDiv);
+                    <span>${ username ? username : "Invité"}</span>`;
+        usernameDiv.classList.add('username-card');
+        section.appendChild(usernameDiv);
 
-                const rankDiv = document.createElement('div');
-                rankDiv.innerHTML = `
+        const rankDiv = document.createElement('div');
+        rankDiv.classList.add('rank');
+        rankDiv.innerHTML = `
                     <img style="width:20%" src="${imgPath}">
-                    <span>${u.rank}</span>`;
-                rankDiv.classList.add('rank');
-                rankSection.appendChild(rankDiv);
+                    <span>${rank ? rank : "Non classé"}</span>`;
+        if(!rank) rankDiv.classList.add('unavailable');
+        section.appendChild(rankDiv);
 
-                const eloDiv = document.createElement('div');
-                eloDiv.innerHTML = `
+        const eloDiv = document.createElement('div');
+        eloDiv.innerHTML = `
                     <img style="width:25%" src="assets/vifdor-1.webp">
-                    <span>${u.elo}</span>`;
-                eloDiv.classList.add('elo');
-                rankSection.appendChild(eloDiv);
+                    <span>${elo ? elo : "---"}</span>`;
+        eloDiv.classList.add('elo');
+        section.appendChild(eloDiv);
 
-                const progDiv = document.createElement('div');
-                progDiv.innerHTML = `
+        const progDiv = document.createElement('div');
+        progDiv.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 15px;">
-                        <img style="width:10%" src="${imgPath}">
+                        <img style="width:10%" src="${rank ? imgPath : unkProg}">
                         <div class="progress-bg">
                             <div class="progress-fill" style="width: ${progressPercent}%"></div>
                         </div>
-                        <img style="width:10%" src="${nextRankImg}">
+                        <img style="width:10%" src="${rank? nextRankImg : unkProg}">
                     </div>`;
-                progDiv.classList.add('prog');
-                rankSection.appendChild(progDiv);
+        progDiv.classList.add('prog');
+        section.appendChild(progDiv);
 
-                this.applyConnectedState(u.username);
-            } else {
-                this.applyDisconnectedState();
-                rankSection.innerHTML = '';
-            }
-        } catch(error) {
-            console.error("Erreur lors de la récupération des infos joueur:", error);
+        if(rank && elo && username){
+            this.applyConnectedState(username);
+        }
+        else{
             this.applyDisconnectedState();
-            rankSection.innerHTML = '';
         }
     }
 }
