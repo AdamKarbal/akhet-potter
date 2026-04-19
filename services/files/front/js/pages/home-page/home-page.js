@@ -53,16 +53,19 @@ export class HomePage extends HTMLElement{
                 btnLogout.addEventListener("click", async () => {
                     const token = localStorage.getItem('token');
                     try {
-                        await fetch("/api/logout", {
+                        const res = await fetch("/api/logout", {
                             method: 'POST',
                             headers: { 'Authorization': `Bearer ${token}` }
                         });
+                        if(res){
+                            localStorage.clear();
+                            this.applyDisconnectedState();
+                            this.fillUserInfo();
+                        }
                     } catch (e) {}
                     localStorage.clear();
-                    if (socket) socket.disconnect();
                     this.applyDisconnectedState();
-                    const userRank = this.querySelector(".user-rank");
-                    if (userRank) userRank.innerHTML = '';
+                    this.fillUserInfo();
                 });
             }
 
