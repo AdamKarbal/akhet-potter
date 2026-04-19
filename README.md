@@ -33,13 +33,13 @@ docker compose up --build
 ```
 
 5. Ouvrir dans le navigateur :
-   https://localhost:8000/
+   http://localhost:8000/
 
 ---
 
 ### Acces en ligne
 
-https://akhetpotter.ps8.pns.academy/
+http://akhetpotter.ps8.pns.academy/
 
 ---
 
