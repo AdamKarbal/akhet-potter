@@ -1,6 +1,6 @@
-#  PS8 - Akhet'Potter
+# PS8 - Akhet'Potter
 
-##  Membres de l'équipe
+## Membres de l'equipe
 
 * LABORIE Raphaël
 * HITMI Younes
@@ -8,11 +8,11 @@
 
 ---
 
-##  Installation & Lancement
+## Installation & Lancement
 
-###  Installation locale
+### Installation locale
 
-1. Cloner le dépôt :
+1. Cloner le depot :
 
 ```bash
 git clone <url-du-repo>
@@ -33,45 +33,43 @@ docker compose up --build
 ```
 
 5. Ouvrir dans le navigateur :
-   http://localhost:8000/
+   https://localhost:8000/
 
 ---
 
-### Accès en ligne
+### Acces en ligne
 
-http://akhetpotter.ps8.pns.academy/
+https://akhetpotter.ps8.pns.academy/
 
 ---
 
-##  Fonctionnalités
+## Fonctionnalites
 
-###  Authentification
+### Authentification
 
 * Inscription avec :
-
   * Username
   * Mot de passe
-  * Question de sécurité
-  * Réponse à la question
+  * Question de securite
+  * Reponse a la question
     
 * Connection avec :
   * Username
   * Mot de passe
     
-* Mot de passe oublié :
-
+* Mot de passe oublie :
   * Saisie du username
-  * Question affichée
-  * Vérification de la réponse
+  * Question affichee
+  * Verification de la reponse
   * Modification du mot de passe
 
 ---
 
-### Succès
+### Succes
 
 * Premier sang : lancer une partie en ligne
-* Entraînement : jouer contre l’IA
-* L'élève dépasse le maître : battre l’IA
+* Entrainement : jouer contre l'IA
+* L'eleve depasse le maitre : battre l'IA
 * Sociable : ajouter un ami
 * Bavard : envoyer un message
 * Sorcier : gagner une partie en ligne
@@ -91,15 +89,13 @@ http://akhetpotter.ps8.pns.academy/
 ### Chat
 
 * Chat global :
-
   * Sur les pages (pages principales, amis, demandes amis, ...)
   * Tout le monde peut parler dedans
-  * Système de censure avec une blacklist (mot dans la blackliste pour le moment : "insulte", "censure")
+  * Systeme de censure avec une blacklist (mot dans la blackliste pour le moment : "insulte", "censure")
     
 * Chat en match :
-
-  * Messages prédéfinis
-  * Possibilité de mute
+  * Messages predefinis
+  * Possibilite de mute
 
 ---
 
@@ -113,110 +109,79 @@ http://akhetpotter.ps8.pns.academy/
 ### Mode 1v1 en ligne
 
 * Match en ligne
-* Système de room
+* Systeme de room
 
 ---
 
 ### ELO & Ligues
 
-* 7 ligues (années façon Poudlard)
-* 1000 ELO pour passer à la suivante
+* 7 ligues (annees facon Poudlard)
+* 1000 ELO pour passer a la suivante
 
 ---
 
-## Architecture ( à partir d'ici pas à jour jusqu'au 19/04/26 23h59 grand maxxxx)
+## Architecture Backend
 
-Le dossier `services/` contient tous les services du projet.
+Le projet repose sur une architecture orientee microservices. Cette separation permet d'isoler les responsabilites, de simplifier la maintenance, de faciliter la montee en charge ciblable de certains services (comme le jeu en ligne).
 
-Chaque service Node.js contient :
+### Services developpes et leurs responsabilites
 
-* `package.json`
-* `index.js` (serveur HTTP)
-* Logique métier
+* **gateway** (Port 8000) : 
+  C'est le point d'entree unique de l'application. Il gere le routage des requetes HTTP entrantes vers les microservices appropries, et le reverse-proxying des connexions WebSockets. Ce service permet de centraliser la gestion de la securite et d'abstraire la complexite de l'infrastructure backend au client.
 
----
+* **files** (Port 8001) : 
+  Serveur de fichiers statiques. Il est responsable de delivrer le contenu du Front-End (HTML, CSS, JS, images, son) au client.
 
-### 🔹 Services existants
+* **auth** (Port 8002) : 
+  Service d'authentification et de gestion des donnees utilisateurs. Il s'occupe de la creation de compte, de la connexion (generation de JWT), de la gestion de mot de passe oublie, mais aussi des relations sociales (liste d'amis, requetes d'amis) en interaction avec la base de donnees MongoDB.
 
-* **gateway**
+* **game** (Port 8003) : 
+  Le moteur de jeu multijoueur et JvIA. Ce service maintient l'etat des parties en temps reel, gere la file d'attente (matchmaking), applique les regles du jeu, synchronise les actions des joueurs (timers, coups) et distribue les notifications liees au jeu (demandes de duels entre amis).
 
-  * Point d’entrée
-  * Redirige les requêtes
+* **social** (Port 8004) : 
+  Gere la messagerie globale. Ce service permet la communication de tous les joueurs connectes sur l'interface principale, avec filtrage des insultes.
 
-* **files**
+* **succes** (Port 8005) : 
+  Gere la logique d'accomplissement des joueurs. Il est contacte de maniere asynchrone a la fin des actions cles (victoire, premier match, premier message, etc.) pour debloquer et stocker les succes sans ralentir le flux principal de jeu ou d'authentification.
 
-  * Sert les fichiers front
+* **db** (Port 27017) : 
+  Instance MongoDB centralisant la donnee persistante de l'application (utilisateurs, amis, historiques, succes).
 
----
+### Stratégie de Communication et Flux de Donnees
 
-### ➕ Ajouter un service
+* **Requetes HTTP (REST)** : 
+  Le client Front-End initie des requetes HTTP classiques (via `fetch`) vers la `gateway` pour toutes les actions ne necessitant pas de bidirectionnalite rapide. Cela concerne : 
+  - La recuperation des fichiers statiques (vers le service `files`).
+  - Toutes les actions de gestion de compte et de relations (login, signup, friend requests) redirigees vers le service `auth`.
+  - La consultation des succes (redirige vers `succes`).
+  - La communication inter-services pour des validations se fait egalement en HTTP de serveur a serveur (ex: le `game` service qui requete le `succes` service via `fetch` pour valider un trophee).
 
-```bash
-mkdir services/mon-service
-cd services/mon-service
-npm init -y
-```
-
-Créer ensuite un `index.js` avec un serveur HTTP.
-
----
-
-### 🔗 Communication entre services
-
-Packages utilisés :
-
-```bash
-npm install axios http-proxy
-```
-
-* **http-proxy** → transfert de requêtes
-* **axios** → requêtes REST
+* **WebSockets (Temps Reel)** : 
+  Le client initialise deux connexions persistantes bidirectionnelles distinctes afin de garantir la reactivite :
+  1. **GameSocket** (vers `game`) : Initiee au chargement de la page si l'utilisateur est connecte. Elle transmet les actions de matchmaking, les coups joues, les timers, et recoit les etats du plateau ainsi que les notifications sociales prioritaires (invitation en duel, toast "demande d'ami recu").
+  2. **SocialSocket** (vers `social`) : Initiee par le composant de chat global. Elle gere un canal de diffusion massif asynchrone pour les messages du hall.
+  
+L'utilisation de WebSockets pour le jeu et le chat est incontournable afin d'eviter le long-polling repetitif qui surchargerait le serveur, assurant une experience fluide pendant la partie. Le choix de separer en deux connexions (Game et Social) permet d'eviter d'avoir des lags dans une partie. La `gateway` gere dynamiquement la transmission des connexions WebSockets aux bons services cibles grace a des chemins distincts (`/socket.io/` vs `/social.io/`).
 
 ---
+## Remarque
 
-## Structure
+Concernant le service d'authentification (authService), la gestion des fonctionnalités sociales (ajout, suppression et liste d'amis) aurait dû être transférée vers le service socialService. Toutefois, cette migration n'a pu être réalisée par manque de temps et par un défaut de synchronisation au sein de l'équipe.
+
+---
+## Structure des Dossiers
 
 ```
 ps8-26-akhet-potter/
-│
-├── services/
-│   ├── gateway/
-│   ├── files/
-│   └── autres services
-│
-├── docker-compose.yaml
-└── README.md
+|
+|-- services/
+|   |-- authService/
+|   |-- backend/ (game service)
+|   |-- files/
+|   |-- gateway/
+|   |-- socialService/
+|   |-- succesService/
+|
+|-- docker-compose.yaml
+|-- README.md
 ```
-
----
-
-## Commandes utiles
-
-### Lancer
-
-```bash
-docker compose up --build
-```
-
-### Stopper
-
-```bash
-docker compose down
-```
-
-### Rebuild complet
-
-```bash
-docker compose down -v
-docker compose up --build
-```
-
----
-
-## Remarques
-
-* Architecture microservices
-* Services indépendants
-* Gateway central
-
----

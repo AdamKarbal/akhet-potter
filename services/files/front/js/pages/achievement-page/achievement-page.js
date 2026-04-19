@@ -7,165 +7,46 @@ export class AchievementPage extends HTMLElement {
         super();
     }
 
-    connectedCallback() {
-        this.innerHTML = `
-            <style>
-                @font-face {
-                    font-family: 'HarryPotter';
-                    src: url('/assets/fonts/HARRYP__.TTF') format('truetype');
-                }
-                
-                body {
-                    background-image: url("/assets/background1v1.webp");
-                    background-size: 100% 100%;
-                    background-repeat: no-repeat;
-                    min-height: 100vh;
-                    margin: 0;
-                }
+    async connectedCallback() {
+        const htmlUrl = new URL('./achievement-page.html', import.meta.url);
+        const cssUrl = new URL('./achievement-page.css', import.meta.url);
 
-                .home-container {
-                    display: grid;
-                    grid-template-columns: 5% 95%;
-                    width: 100vw;
-                    height: 100vh;
-                }
-                
-                #nav { grid-column: 1; }
-                
-                .main-section {
-                    grid-column: 2;
-                    display: grid;
-                    /* 10vh Profil | 15vh Titre | 70vh Cadre Succès | 5vh marge bas */
-                    grid-template: 10vh 15vh 70vh 5vh / 100%;
-                }     
-                
-                .user-log {
-                    display: flex;
-                    flex-direction: row;
-                    justify-content: flex-end;
-                    align-items: center;
-                    padding-right: 25px;
-                    grid-row: 1;
-                }
-                
-                .user-section {
-                    display: flex;
-                    flex-direction: row;
-                    justify-content: center;
-                    align-items: center;
-                    width: fit-content;
-                    height: 60%;
-                    gap: 0.75rem;
-                    padding: 0 1vw;
-                    border: 2px double #c5a059;
-                    border-radius: 40px;
-                    box-shadow: 0 0 2.5px #d4af37, inset 0 0 5px rgba(212, 175, 55, 0.3);
-                    font-family: 'Agency FB', sans-serif;
-                    font-size: 1.2em;
-                    color: #FFD700;
-                    background-color: rgba(0,0,0, 0.4);   
-                    cursor: pointer;
-                    transition: all 0.3s ease;  
-                }
-                
-                .user-section:hover {
-                    transform: scale(1.05); 
-                    background-color: rgba(212, 175, 55, 0.15); 
-                    box-shadow: 0 0 15px #ffd700, inset 0 0 10px rgba(212, 175, 55, 0.5);
-                }
+        try {
+            const [htmlResponse] = await Promise.all([
+                fetch(htmlUrl)
+            ]);
 
-                #pfp { max-height: 70%; width: auto; }
+            const html = await htmlResponse.text();
 
-                .page-title {
-                    grid-row: 2;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    font-family: 'HarryPotter', sans-serif;
-                    font-size: 5em;
-                    color: #FFD700;
-                    text-shadow: 0 0 15px rgba(255, 215, 0, 0.5), 2px 2px 4px #000;
-                    margin: 0;
-                    letter-spacing: 3px;
-                }
+            this.innerHTML = `
+                <link rel="stylesheet" href="${cssUrl.href}">
+                ${html}
+            `;
 
-                .achievements-frame {
-                    grid-row: 3;
-                    width: 85%;
-                    height: 100%;
-                    justify-self: center;
-                    background-color: rgba(10, 5, 0, 0.65);
-                    border: 3px double #c5a059;
-                    border-radius: 15px;
-                    box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 30px rgba(212, 175, 55, 0.1);
-                    padding: 2rem;
-                    box-sizing: border-box;
-                                        overflow-y: auto; 
-                }
-
-                .achievements-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                    gap: 2rem;
-                }
-
-                .achievements-frame::-webkit-scrollbar {
-                    width: 12px;
-                }
-                .achievements-frame::-webkit-scrollbar-track {
-                    background: rgba(0, 0, 0, 0.5);
-                    border-radius: 10px;
-                    border: 1px solid #4a3b2a;
-                }
-                .achievements-frame::-webkit-scrollbar-thumb {
-                    background: linear-gradient(to bottom, #c5a059, #8B4513);
-                    border-radius: 10px;
-                    border: 1px solid #ffd700;
-                }
-                .achievements-frame::-webkit-scrollbar-thumb:hover {
-                    background: #ffd700;
-                }
-
-            </style>
-            
-            <div class="home-container">
-                <navbar-component id="nav"></navbar-component>
-                
-                <div class="main-section">
-                    <div class="user-log">
-                        <div class="user-section" id="btn-login">         
-                            <img id="pfp" src="assets/webp/goodplayer.webp">
-                            <span id="username">Se connecter</span>
-                        </div>
-                    </div>
-                    
-                    <h1 class="page-title">Salle des Trophees</h1>
-                    
-                    <div class="achievements-frame">
-                        <div class="achievements-grid" id="achievements-list">
-                            </div>
-                    </div>
-                </div> 
-            </div>
-        `;
-
-        this.setupEventListeners();
-        this.loadAchievements();
-        const usernameSpan = this.querySelector('#username');
-        const token = localStorage.getItem('token');
-        if (token && localStorage.getItem('username')) {
-            usernameSpan.innerText = localStorage.getItem('username');
+            this.setupEventListeners();
+            this.loadAchievements();
+            const usernameSpan = this.querySelector('#username');
+            const token = localStorage.getItem('token');
+            if (token && localStorage.getItem('username')) {
+                usernameSpan.innerText = localStorage.getItem('username');
+            }
+        } catch (error) {
+            console.error("Failed to load achievement page resources:", error);
         }
     }
 
     setupEventListeners() {
-        this.querySelector("#btn-login").addEventListener("click", () => {
-            window.location.hash = 'LGN';
-        });
+        const btnLogin = this.querySelector("#btn-login");
+        if (btnLogin) {
+            btnLogin.addEventListener("click", () => {
+                window.location.hash = 'LGN';
+            });
+        }
     }
 
     async loadAchievements() {
         const grid = this.querySelector('#achievements-list');
+        if (!grid) return;
         const token = localStorage.getItem('token');
 
         // Verifie si le joueur est co
