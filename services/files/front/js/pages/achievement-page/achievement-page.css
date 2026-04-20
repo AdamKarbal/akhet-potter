@@ -1,4 +1,3 @@
-/* --- STYLES PAR DÉFAUT (PC) --- */
 @font-face {
     font-family: 'HarryPotter';
     src: url('/assets/fonts/HARRYP__.TTF') format('truetype');
@@ -26,7 +25,6 @@ body {
     display: grid;
     grid-template: 10vh 15vh 70vh 5vh / 100%;
 }
-
 
 .user-log {
     display: flex;
@@ -97,55 +95,54 @@ body {
     gap: 2rem;
 }
 
-/* --- STYLES ANDROID (Remplace le Media Query) --- */
+/* --- STYLES ANDROID (.is-android) --- */
 
 .is-android .home-container {
-    display: grid;
-    grid-template-columns: 60px 1fr; /* Garde la nav sur le côté */
+    display: flex;
+    flex-direction: column;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
 }
 
 .is-android #nav {
-    grid-column: 1;
+    order: 2;
+    width: 100%;
+    height: 60px;
     display: block !important;
-    z-index: 100;
 }
 
 .is-android .main-section {
-    grid-column: 2;
+    order: 1;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    align-items: center;
     padding: 10px;
     box-sizing: border-box;
     overflow: hidden;
 }
 
 .is-android .user-log {
-    display: none !important; /* Plus de bouton se connecter */
+    display: none !important;
 }
 
 .is-android .page-title {
     font-size: 2.2em;
-    margin: 10px 0;
+    margin: 15px 0;
     text-align: center;
+    width: 100%;
+    justify-content: center;
     flex-shrink: 0;
 }
 
 .is-android .achievements-frame {
     background: none;
     border: none;
-    box-shadow: none;
-    padding: 0 5px;
-    width: 100%;
+    padding: 0;
+    width: 100vw;
     overflow-y: auto;
     overflow-x: hidden;
-    flex-grow: 1;
-    /* Cache la scrollbar */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
 }
 
 .is-android .achievements-frame::-webkit-scrollbar {
@@ -154,7 +151,10 @@ body {
 
 .is-android .achievements-grid {
     display: flex;
-    flex-direction: column; /* Scroll vertical */
-    gap: 12px;
-    padding-bottom: 30px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 15px;
+    width: 100%;
+    padding: 10px 0 100px 0;
 }
