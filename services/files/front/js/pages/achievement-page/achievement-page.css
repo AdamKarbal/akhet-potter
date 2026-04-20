@@ -23,8 +23,9 @@ body {
 .main-section {
     grid-column: 2;
     display: grid;
+    /* 10vh Profil | 15vh Titre | 70vh Cadre Succès | 5vh marge bas */
     grid-template: 10vh 15vh 70vh 5vh / 100%;
-}
+}     
 
 .user-log {
     display: flex;
@@ -50,14 +51,14 @@ body {
     font-family: 'Agency FB', sans-serif;
     font-size: 1.2em;
     color: #FFD700;
-    background-color: rgba(0,0,0, 0.4);
+    background-color: rgba(0,0,0, 0.4);   
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s ease;  
 }
 
 .user-section:hover {
-    transform: scale(1.05);
-    background-color: rgba(212, 175, 55, 0.15);
+    transform: scale(1.05); 
+    background-color: rgba(212, 175, 55, 0.15); 
     box-shadow: 0 0 15px #ffd700, inset 0 0 10px rgba(212, 175, 55, 0.5);
 }
 
@@ -84,9 +85,10 @@ body {
     background-color: rgba(10, 5, 0, 0.65);
     border: 3px double #c5a059;
     border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 30px rgba(212, 175, 55, 0.1);
     padding: 2rem;
     box-sizing: border-box;
-    overflow-y: auto;
+    overflow-y: auto; 
 }
 
 .achievements-grid {
@@ -95,67 +97,85 @@ body {
     gap: 2rem;
 }
 
-/* --- STYLES ANDROID (.is-android) --- */
-
-.is-android .home-container {
-    display: flex;
-    flex-direction: column;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+.achievements-frame::-webkit-scrollbar {
+    width: 12px;
+}
+.achievements-frame::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    border: 1px solid #4a3b2a;
+}
+.achievements-frame::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #c5a059, #8B4513);
+    border-radius: 10px;
+    border: 1px solid #ffd700;
+}
+.achievements-frame::-webkit-scrollbar-thumb:hover {
+    background: #ffd700;
 }
 
-.is-android #nav {
-    order: 2;
-    width: 100%;
-    height: 60px;
-    display: block !important;
-}
+@media (max-width: 768px) {
+    .home-container {
+        display: grid;
+        /* On garde 2 colonnes : une petite pour la nav (ex: 50px) et le reste pour le contenu */
+        grid-template-columns: 60px 1fr;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+    }
 
-.is-android .main-section {
-    order: 1;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    box-sizing: border-box;
-    overflow: hidden;
-}
+    #nav {
+        grid-column: 1;
+        display: block !important; /* On force l'affichage */
+        z-index: 100;
+        background-color: rgba(0, 0, 0, 0.8); /* Optionnel : fond plus sombre pour mobile */
+    }
 
-.is-android .user-log {
-    display: none !important;
-}
+    .main-section {
+        grid-column: 2;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        padding: 10px;
+        box-sizing: border-box;
+        overflow: hidden; /* Empêche le body de scroller */
+    }
 
-.is-android .page-title {
-    font-size: 2.2em;
-    margin: 15px 0;
-    text-align: center;
-    width: 100%;
-    justify-content: center;
-    flex-shrink: 0;
-}
+    /* On cache toujours le bouton login comme tu l'as demandé */
+    .user-log {
+        display: none !important;
+    }
 
-.is-android .achievements-frame {
-    background: none;
-    border: none;
-    padding: 0;
-    width: 100vw;
-    overflow-x: auto; /* Changed to horizontal scroll */
-    overflow-y: hidden; /* Hide vertical scroll */
-    white-space: nowrap; /* Ensure items stay in one line */
-}
+    .page-title {
+        font-size: 2.2em; /* Un peu plus petit pour laisser de la place à la nav */
+        margin: 10px 0;
+        text-align: center;
+        flex-shrink: 0;
+        font-family: 'HarryPotter', sans-serif;
+        color: #FFD700;
+    }
 
-.is-android .achievements-frame::-webkit-scrollbar {
-    display: none;
-}
+    .achievements-frame {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding: 0 5px;
+        width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        flex-grow: 1;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
 
-.is-android .achievements-grid {
-    display: flex; /* Changed to flex for horizontal layout */
-    flex-direction: row; /* Items now arrange horizontally */
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 15px;
-    width: auto; /* Allow content to define width for scrolling */
-    padding: 10px 0 100px 0;
+    .achievements-frame::-webkit-scrollbar {
+        display: none;
+    }
+
+    .achievements-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding-bottom: 30px;
+    }
 }
