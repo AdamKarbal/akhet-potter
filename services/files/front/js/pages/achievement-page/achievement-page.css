@@ -113,3 +113,69 @@ body {
 .achievements-frame::-webkit-scrollbar-thumb:hover {
     background: #ffd700;
 }
+
+@media (max-width: 768px) {
+    .home-container {
+        display: grid;
+        /* On garde 2 colonnes : une petite pour la nav (ex: 50px) et le reste pour le contenu */
+        grid-template-columns: 60px 1fr;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    #nav {
+        grid-column: 1;
+        display: block !important; /* On force l'affichage */
+        z-index: 100;
+        background-color: rgba(0, 0, 0, 0.8); /* Optionnel : fond plus sombre pour mobile */
+    }
+
+    .main-section {
+        grid-column: 2;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        padding: 10px;
+        box-sizing: border-box;
+        overflow: hidden; /* Empêche le body de scroller */
+    }
+
+    /* On cache toujours le bouton login comme tu l'as demandé */
+    .user-log {
+        display: none !important;
+    }
+
+    .page-title {
+        font-size: 2.2em; /* Un peu plus petit pour laisser de la place à la nav */
+        margin: 10px 0;
+        text-align: center;
+        flex-shrink: 0;
+        font-family: 'HarryPotter', sans-serif;
+        color: #FFD700;
+    }
+
+    .achievements-frame {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding: 0 5px;
+        width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        flex-grow: 1;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .achievements-frame::-webkit-scrollbar {
+        display: none;
+    }
+
+    .achievements-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding-bottom: 30px;
+    }
+}
