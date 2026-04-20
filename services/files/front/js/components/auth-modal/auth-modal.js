@@ -1,4 +1,4 @@
-import { socket } from "../../socket.js"
+import {connectSocket, socket} from "../../socket.js"
 import { API_URL } from "../../../config.js"
 
 export class AuthModalComponent extends HTMLElement {
@@ -62,7 +62,7 @@ export class AuthModalComponent extends HTMLElement {
                 localStorage.setItem('username', username);
                 if (socket) {
                     socket.auth = { token: data.token };
-                    socket.connect();
+                    await connectSocket();
                 }
                 window.location.hash = '';
                 this.close();

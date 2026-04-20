@@ -1,6 +1,7 @@
 // The http module contains methods to handle http queries.
 const http = require('http');
 const httpProxy = require('http-proxy');
+const {addCors} = require("../helpers/cors");
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -12,11 +13,36 @@ proxy.on('error', function (err, req, res) {
     }
 });
 
+proxy.on('proxyRes', function (proxyRes, req) {
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+        'http://localhost',
+        'http://localhost:8000',
+        'http://akhetpotter.ps8.pns.academy'
+    ];
+
+    if (origin && allowedOrigins.includes(origin)) {
+        proxyRes.headers['access-control-allow-origin'] = origin;
+        proxyRes.headers['access-control-allow-credentials'] = 'true';
+        proxyRes.headers['vary'] = 'Origin';
+        proxyRes.headers['access-control-allow-methods'] = 'GET, POST, OPTIONS, PUT, PATCH, DELETE';
+        proxyRes.headers['access-control-allow-headers'] = 'X-Requested-With, Content-Type, Authorization, Cache-Control, Pragma';
+    }
+});
+
 
 /* The http module contains a createServer function, which takes one argument, which is the function that
 ** will be called whenever a new request arrives to the server.
  */
 const server = http.createServer(function (request, response) {
+    addCors(request, response);
+
+    if (request.method === 'OPTIONS') {
+        response.statusCode = 204;
+        response.end();
+        return;
+    }
+
     // First, let's check the URL to see if it's a REST request or a file request.
     // We will remove all cases of "../" in the url for security purposes.
     let filePath = request.url.split("/").filter(function(elem) {
