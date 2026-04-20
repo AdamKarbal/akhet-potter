@@ -1,4 +1,5 @@
 import '../global-chat-component/global-chat-component.js'
+import {API_URL} from "../../../config.js";
 
 export class NavbarComponent extends HTMLElement {
     constructor() {
@@ -76,7 +77,7 @@ export class NavbarComponent extends HTMLElement {
             logoutBtn.addEventListener('click', async () => {
                 const token = localStorage.getItem('token');
                 try {
-                    const response = await fetch("/api/logout", {
+                    const response = await fetch(API_URL + "/api/logout", {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

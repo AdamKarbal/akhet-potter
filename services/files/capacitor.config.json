@@ -1,0 +1,9 @@
+{
+  "appId": "com.akhetpotter.app",
+  "appName": "Akhet'Potter",
+  "webDir": "front",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  }
+}

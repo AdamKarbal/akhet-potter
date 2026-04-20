@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Akhet\'Potter</string>
+    <string name="title_activity_main">Akhet\'Potter</string>
+    <string name="package_name">com.akhetpotter.app</string>
+    <string name="custom_url_scheme">com.akhetpotter.app</string>
+</resources>

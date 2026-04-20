@@ -1,6 +1,7 @@
 import { socket } from "../../socket.js";
 import { RequestService} from "../../services/RequestService.js";
 import {AuthService} from "../../services/AuthService.js";
+import {API_URL} from "../../../config.js";
 
 export class SOCIALComponent extends HTMLElement {
     constructor() {
@@ -266,7 +267,7 @@ export class SOCIALComponent extends HTMLElement {
     async executeSearch(query) {
         const token = await AuthService.getValidToken();
         try {
-            const response = await fetch(`/api/users/search?username=${encodeURIComponent(query)}`, {
+            const response = await fetch(API_URL + `/api/users/search?username=${encodeURIComponent(query)}`, {
                 method : 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -327,7 +328,7 @@ export class SOCIALComponent extends HTMLElement {
         button.innerText = "Envoi...";
         try {
             const fromUser = await AuthService.getValidToken();
-            const response = await fetch(`/api/sendreq`, {
+            const response = await fetch(API_URL + `/api/sendreq`, {
                 method: 'POST',
                 body: JSON.stringify({ to: targetUser }),
                 headers: {
@@ -357,7 +358,7 @@ export class SOCIALComponent extends HTMLElement {
         try{
             const token = await AuthService.getValidToken();
             if (!token) return;
-            const response = await fetch('/api/friends', {
+            const response = await fetch(API_URL + '/api/friends', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
