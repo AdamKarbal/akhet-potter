@@ -1,7 +1,11 @@
-@font-face {
-    font-family: 'HarryPotter';
-    src: url('/assets/fonts/HARRYP__.TTF') format('truetype');
-}
+@font-face { font-family: 'HarryPotter'; src: url('/assets/fonts/HARRYP__.TTF') format('truetype'); }
+
+.soc-container { display: grid; grid-template-columns: 10% 45% 45%; width: 100vw; height: 100vh; }
+#nav { grid-column: 1; }
+.mobile-only { display: none; }
+
+#friendsSection { grid-column: 2; display: flex; flex-direction: column; padding: 2rem; gap: 1.5rem; align-items: center; }
+#searchSection { grid-column: 3; display: flex; flex-direction: column; padding: 2rem; gap: 1.5rem; }
 
 body {
     background-image: url("/assets/background1v1.webp");
@@ -11,31 +15,9 @@ body {
     margin: 0;
 }
 
-.soc-container {
-    display: grid;
-    grid-template-columns: 10% 45% 45%;
-    width: 100vw;
-    height: 100vh;
-}
 
-#nav { grid-column: 1; }
 
-#friendsSection {
-    grid-column: 2;
-    display: flex;
-    flex-direction: column;
-    padding: 2rem;
-    gap: 1.5rem;
-    align-items: center;
-}
 
-#searchSection {
-    grid-column: 3;
-    display: flex;
-    flex-direction: column;
-    padding: 2rem;
-    gap: 1.5rem;
-}
 
 #friendTitle, .searchbar-label {
     font-family: 'HarryPotter', sans-serif;
@@ -183,4 +165,48 @@ body {
     cursor: default;
     box-shadow: none;
     transform: none;
+}
+
+.is-android .pc-only { display: none !important; } /* CACHE LA VUE PC SUR ANDROID */
+.is-android .mobile-only { display: flex !important; } /* AFFICHE LA VUE MOBILE */
+
+.is-android .soc-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+}
+
+.is-android #nav { order: 2; height: 60px; width: 100%; }
+
+.is-android .main-content {
+    order: 1; flex: 1; overflow-y: auto; padding: 15px;
+    display: flex; flex-direction: column; gap: 15px;
+}
+
+.is-android #social-title {
+    font-family: 'HarryPotter'; font-size: 2.5em; text-align: center;
+    background: linear-gradient(to bottom, #FFF8DC, #FFD700);
+    -webkit-background-clip: text; color: transparent; margin: 10px 0;
+}
+
+.is-android .mobile-section {
+    background: rgba(30, 20, 10, 0.6); border: 1px solid rgba(197, 160, 89, 0.3);
+    border-radius: 10px; overflow: hidden;
+}
+
+.is-android .section-header {
+    background: rgba(197, 160, 89, 0.15); padding: 12px 15px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'Agency FB'; color: #ffd700; cursor: pointer;
+}
+
+.is-android .count { background: #8B4513; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
+.is-android .hidden-mobile { display: none !important; }
+
+/* Items Mobile */
+.is-android .friend-item, .is-android .search-item {
+    width: 100% !important; height: 70px !important; margin-bottom: 8px;
+    padding: 8px; display: flex; align-items: center; gap: 10px;
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(197, 160, 89, 0.2);
 }
