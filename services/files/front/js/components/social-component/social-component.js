@@ -315,9 +315,7 @@ export class SOCIALComponent extends HTMLElement {
             if (btn) {
                 btn.addEventListener('click', () => {
                     const list = this.querySelector(`#${listId}`);
-                    if (list) {
-                        list.classList.toggle('hidden-mobile');
-                    }
+                    if (list) list.classList.toggle('hidden-mobile');
                 });
             }
         });

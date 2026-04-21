@@ -155,13 +155,6 @@ body {
     border: 1px solid rgba(197, 160, 89, 0.3);
     border-radius: 10px;
     overflow: hidden;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.is-android .mobile-section:has(.hidden-mobile) {
-    grid-template-rows: auto 0fr;
 }
 
 .is-android .section-header {
@@ -174,27 +167,6 @@ body {
     font-size: clamp(0.95em, 4vw, 1.1em);
     color: #ffd700;
     cursor: pointer;
-    z-index: 2;
-}
-
-.is-android .section-content {
-    min-height: 0;
-    width: 100%;
-    box-sizing: border-box;
-    overflow-y: auto;
-    max-height: 45vh;
-    scrollbar-width: none;
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.4s ease, transform 0.4s ease;
-}
-
-.is-android .hidden-mobile {
-    display: block !important;
-    opacity: 0 !important;
-    transform: translateY(-20px) !important;
-    pointer-events: none;
-    overflow: hidden;
 }
 
 .is-android .count {
@@ -203,6 +175,14 @@ body {
     padding: 2px 10px;
     border-radius: 10px;
     font-size: clamp(0.8em, 3vw, 1em);
+}
+
+.is-android .section-content {
+    width: 100%;
+    box-sizing: border-box;
+    padding: clamp(6px, 2vw, 10px) 0;
+    overflow-y: auto;
+    max-height: 45vh;
 }
 
 .is-android .search-item,
@@ -223,7 +203,10 @@ body {
 }
 
 .is-android .friend-item .rank,
-.is-android .search-item .rank { order: 1; flex-shrink: 0; }
+.is-android .search-item .rank {
+    order: 1;
+    flex-shrink: 0;
+}
 
 .is-android .friend-item .username,
 .is-android .search-item .username {
@@ -237,7 +220,23 @@ body {
 }
 
 .is-android .friend-item #friendlyBtn,
-.is-android .friend-item .remove-btn,
+.is-android .friend-item .remove-btn {
+    order: 3;
+    flex-shrink: 0;
+    background: rgba(40, 30, 20, 0.6);
+    border: 1px solid #c5a059;
+    color: #c5a059;
+    padding: clamp(4px, 1.5vw, 7px) clamp(8px, 3vw, 14px);
+    font-family: 'Agency FB';
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: clamp(0.8em, 3vw, 0.95em);
+}
+
+.is-android .friend-item #friendlyBtn {
+    margin-right: clamp(4px, 1.5vw, 8px);
+}
+
 .is-android .accept-btn,
 .is-android .deny-btn,
 .is-android .add-btn {
@@ -253,13 +252,17 @@ body {
     font-size: clamp(0.8em, 3vw, 0.95em);
 }
 
-.is-android .friend-item #friendlyBtn,
 .is-android .accept-btn {
     margin-right: clamp(4px, 1.5vw, 8px);
 }
 
+.is-android .hidden-mobile { display: none !important; }
+
+
 .is-android player-rank .rank-text,
-.is-android player-rank .elo-text { display: none !important; }
+.is-android player-rank .elo-text {
+    display: none !important;
+}
 
 .is-android player-rank .rankContainer {
     flex-direction: row;
