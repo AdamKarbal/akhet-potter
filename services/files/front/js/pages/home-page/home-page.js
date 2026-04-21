@@ -45,7 +45,7 @@ export class HomePage extends HTMLElement{
                 userSection.addEventListener("click", () => {
                     const token = localStorage.getItem('token');
                     const username = localStorage.getItem('username');
-                    window.location.hash = (token && username) ? 'SUCCES' : 'LGN';
+                    window.location.hash = (token && username) ? 'LGN' : 'LGN';
                 });
             }
 
