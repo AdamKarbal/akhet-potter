@@ -1,3 +1,4 @@
+/* --- STYLES PAR DÉFAUT (PC) --- */
 @font-face {
     font-family: 'HarryPotter';
     src: url('/assets/fonts/HARRYP__.TTF') format('truetype');
@@ -25,6 +26,7 @@ body {
     display: grid;
     grid-template: 10vh 15vh 70vh 5vh / 100%;
 }
+
 
 .user-log {
     display: flex;
@@ -95,55 +97,55 @@ body {
     gap: 2rem;
 }
 
-/* --- STYLES ANDROID (.is-android) --- */
+/* --- STYLES ANDROID (Remplace le Media Query) --- */
 
 .is-android .home-container {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 60px 1fr; /* Garde la nav sur le côté */
     width: 100vw;
     height: 100vh;
     overflow: hidden;
 }
 
 .is-android #nav {
-    order: 2;
-    width: 100%;
-    height: 60px;
+    grid-column: 1;
     display: block !important;
+    z-index: 100;
 }
 
 .is-android .main-section {
-    order: 1;
-    flex: 1;
+    grid-column: 2;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    height: 100vh;
     padding: 10px;
     box-sizing: border-box;
     overflow: hidden;
 }
 
 .is-android .user-log {
-    display: none !important;
+    display: none !important; /* Plus de bouton se connecter */
 }
 
 .is-android .page-title {
     font-size: 2.2em;
-    margin: 15px 0;
+    margin: 10px 0;
     text-align: center;
-    width: 100%;
-    justify-content: center;
     flex-shrink: 0;
 }
 
 .is-android .achievements-frame {
     background: none;
     border: none;
-    padding: 0;
-    width: 100vw;
-    overflow-x: auto; /* Changed to horizontal scroll */
-    overflow-y: hidden; /* Hide vertical scroll */
-    white-space: nowrap; /* Ensure items stay in one line */
+    box-shadow: none;
+    padding: 0 5px;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-grow: 1;
+    /* Cache la scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .is-android .achievements-frame::-webkit-scrollbar {
@@ -151,11 +153,8 @@ body {
 }
 
 .is-android .achievements-grid {
-    display: flex; /* Changed to flex for horizontal layout */
-    flex-direction: row; /* Items now arrange horizontally */
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 15px;
-    width: auto; /* Allow content to define width for scrolling */
-    padding: 10px 0 100px 0;
+    display: flex;
+    flex-direction: column; /* Scroll vertical */
+    gap: 12px;
+    padding-bottom: 30px;
 }
