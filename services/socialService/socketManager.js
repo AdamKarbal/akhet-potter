@@ -20,7 +20,10 @@ function setupSockets(io) {
         const username = socket.user.username;
         const userToken = socket.handshake.auth.token;
         console.log(`[SOCIAL] Le sorcier ${username} est connecté.`);
+        
         socket.join('global_room');
+        // Join a personal room to receive direct notifications
+        socket.join(`user_${username}`);
 
         socket.on('global_message', (msg) => {
             const cleanMessage = filterMessage(msg);
@@ -46,7 +49,16 @@ function setupSockets(io) {
             });
         });
 
-            socket.on('disconnect', () => {
+        // Gérer l'envoi de notification de demande d'ami
+        socket.on('SEND_FRIEND_REQ', (data) => {
+            console.log(`[SOCIAL] Demande d'ami de ${username} vers ${data.to}`);
+            // Emettre vers la room personnelle du destinataire
+            socket.to(`user_${data.to}`).emit('NEW_FRIEND_REQ', {
+                from: username
+            });
+        });
+
+        socket.on('disconnect', () => {
             console.log(`[SOCIAL] ${username} a quitté le chat.`);
         });
     });

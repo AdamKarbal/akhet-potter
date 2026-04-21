@@ -141,8 +141,9 @@ body {
     border: none;
     padding: 0;
     width: 100vw;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto; /* Changed to horizontal scroll */
+    overflow-y: hidden; /* Hide vertical scroll */
+    white-space: nowrap; /* Ensure items stay in one line */
 }
 
 .is-android .achievements-frame::-webkit-scrollbar {
@@ -150,11 +151,11 @@ body {
 }
 
 .is-android .achievements-grid {
-    display: flex;
-    flex-direction: column;
+    display: flex; /* Changed to flex for horizontal layout */
+    flex-direction: row; /* Items now arrange horizontally */
     align-items: stretch;
     justify-content: flex-start;
     gap: 15px;
-    width: 100%;
+    width: auto; /* Allow content to define width for scrolling */
     padding: 10px 0 100px 0;
 }

@@ -1,7 +1,29 @@
 // The http module contains methods to handle http queries.
 const http = require('http');
 const httpProxy = require('http-proxy');
-const {addCors} = require("../helpers/cors");
+
+// Simple CORS middleware replacement
+function addCors(req, res) {
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+        'http://localhost',
+        'http://localhost:8000',
+        'http://akhetpotter.ps8.pns.academy',
+        'capacitor://localhost',
+        'http://localhost:8100' // Ionic/Capacitor default development ports
+    ];
+
+    if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+        res.setHeader('Access-Control-Allow-Origin', '*'); // Fallback or adjust as needed
+    }
+    
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization, Cache-Control, Pragma');
+}
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -18,7 +40,9 @@ proxy.on('proxyRes', function (proxyRes, req) {
     const allowedOrigins = [
         'http://localhost',
         'http://localhost:8000',
-        'http://akhetpotter.ps8.pns.academy'
+        'http://akhetpotter.ps8.pns.academy',
+        'capacitor://localhost',
+        'http://localhost:8100'
     ];
 
     if (origin && allowedOrigins.includes(origin)) {
