@@ -48,3 +48,70 @@
 .navElem:active, #play-btn:active, #logout-btn:active {
     transform: scale(0.9);
 }
+
+.is-android .navbar {
+    display: flex;
+    flex-direction: row;
+    width: 95vw;
+    height: 7vh;
+    border: 2px double #c5a059;
+    border-radius: 10px;
+    margin: 0.5rem;
+    background-color: rgba(20, 15, 10, 0.7);
+    box-shadow: 0 0 15px #d4af37, inset 0 0 20px rgba(212, 175, 55, 0.3);
+    padding: 15px 0;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.is-android .navElem, .is-android #play-btn, .is-android #social-btn, .is-android #request-btn, .is-android #help, .is-android #logout-btn, .is-android #achievement-btn {
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 8px;
+        width: 55px;
+        height: 55px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+.is-android .navElem img, .is-android #social-btn img, .is-android #help img, .is-android #request-btn img, .is-android #achievement-btn img, .is-android #logout-btn img {
+        width: auto;
+        height: 110%;
+    }
+
+.is-android #play-btn img{
+    width: auto;
+    height: 155%;
+}
+
+.is-android #help {
+        margin-top: auto;
+    }
+
+.is-android .navElem:active, .is-android #play-btn:active, .is-android #logout-btn:active {
+        transform: scale(0.9);
+    }
+
+.is-android #request-btn { order: 1; }
+.is-android #btn-globalchat { order: 0; }
+.is-android #social-btn      { order: 2; }
+.is-android #play-btn        { order: 3; }
+.is-android #achievement-btn { order: 4; }
+.is-android #reglages        { order: 5; }
+.is-android #help {
+    order: 6;
+    margin-top: 0;
+}
+
+.is-android #logout-btn, .is-android #reglages, .is-android #request-btn{
+    display: none;
+}
+
+.is-android #play-btn img        { content: url('../../../assets/mobile-navbar/jouer.png'); }
+.is-android #social-btn img      { content: url('../../../assets/mobile-navbar/social.png'); }
+.is-android #btn-globalchat img  { content: url('../../../assets/mobile-navbar/globalchat.png'); }
+.is-android #achievement-btn img { content: url('../../../assets/mobile-navbar/achievement.png'); }
+.is-android #help img            { content: url('../../../assets/mobile-navbar/aide.png'); }
+.is-android #request-btn img            { content: url('../../../assets/mobile-navbar/request.png'); }

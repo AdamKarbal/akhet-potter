@@ -13,6 +13,22 @@ import './components/gameloader-component/gameloader-component.js'
 import {RequestService} from "./services/RequestService.js";
 import './pages/achievement-page/achievement-page.js';
 
+const configureAndroidStyles = async () => {
+    try {
+        const { Device } = await import('@capacitor/device');
+        const info = await Device.getInfo();
+        if (info.platform === 'android') {
+            document.body.classList.add('is-android');
+        }
+    } catch (error) {
+        console.warn("Mode Web détecté.");
+        if (window.innerWidth < 768) {
+            document.body.classList.add('is-android');
+        }
+    }
+};
+
+
 function initGlobalNotifications() {
     socket.on("NEW_FRIEND_REQ", (data) => {
         toast(data, "NEW_FRIEND_REQ");
@@ -212,7 +228,7 @@ initGlobalNotifications();
 function updateView() {
     const app = document.getElementById('app');
     const hash = window.location.hash;
-
+    configureAndroidStyles();
     if (hash === '#JCJ') {
         console.log("Mode JcJ activé");
         audioService.stopMainTheme();
