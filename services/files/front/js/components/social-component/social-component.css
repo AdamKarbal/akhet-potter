@@ -1,11 +1,7 @@
-@font-face { font-family: 'HarryPotter'; src: url('/assets/fonts/HARRYP__.TTF') format('truetype'); }
-
-.soc-container { display: grid; grid-template-columns: 10% 45% 45%; width: 100vw; height: 100vh; }
-#nav { grid-column: 1; }
-.mobile-only { display: none; }
-
-#friendsSection { grid-column: 2; display: flex; flex-direction: column; padding: 2rem; gap: 1.5rem; align-items: center; }
-#searchSection { grid-column: 3; display: flex; flex-direction: column; padding: 2rem; gap: 1.5rem; }
+@font-face {
+    font-family: 'HarryPotter';
+    src: url('/assets/fonts/HARRYP__.TTF') format('truetype');
+}
 
 body {
     background-image: url("/assets/background1v1.webp");
@@ -15,9 +11,32 @@ body {
     margin: 0;
 }
 
+.soc-container {
+    display: grid;
+    grid-template-columns: 10% 45% 45%;
+    width: 100vw;
+    height: 100vh;
+}
 
+#nav { grid-column: 1; }
+.mobile-only { display: none !important; }
 
+#friendsSection {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    gap: 1.5rem;
+    align-items: center;
+}
 
+#searchSection {
+    grid-column: 3;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    gap: 1.5rem;
+}
 
 #friendTitle, .searchbar-label {
     font-family: 'HarryPotter', sans-serif;
@@ -30,12 +49,7 @@ body {
     margin-bottom: 0.5rem;
 }
 
-/* Champ de recherche stylisé */
-.searchbar-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-}
+.searchbar-container { display: flex; flex-direction: column; gap: 0.8rem; }
 
 .searchbar-container > input {
     background-color: rgba(20, 15, 10, 0.7);
@@ -47,37 +61,22 @@ body {
     font-size: 1.1em;
     outline: none;
     box-shadow: 0 0 10px rgba(212, 175, 55, 0.2), inset 0 0 10px rgba(0, 0, 0, 0.5);
-    transition: all 0.3s ease;
     width: 85%;
 }
 
-.searchbar-container > input:focus {
-    border-color: #d4af37;
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.5), inset 0 0 10px rgba(212, 175, 55, 0.1);
-    background-color: rgba(30, 25, 15, 0.8);
-}
-
-.searchbar-container > input::placeholder {
-    color: rgba(197, 160, 89, 0.4);
-    font-style: italic;
-}
-
-.search-item {
+.pc-only .search-item, .pc-only .friend-item {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     background: rgba(20, 15, 10, 0.5);
     border: 1px solid rgba(197, 160, 89, 0.3);
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding: 10px;
     border-radius: 8px;
     margin-bottom: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    width: fit-content;
-    gap: 1.5rem;
+    width: 90%;
+    gap: 1rem;
 }
 
 .username {
@@ -87,10 +86,9 @@ body {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.4));
 }
 
-.add-btn {
+.add-btn, .remove-btn, #friendlyBtn {
     background: rgba(40, 30, 20, 0.6);
     border: 1px solid #c5a059;
     color: #c5a059;
@@ -98,115 +96,204 @@ body {
     cursor: pointer;
     border-radius: 5px;
     padding: 6px 12px;
-    transition: all 0.2s;
 }
 
-.add-btn:hover {
-    background: #c5a059;
-    color: #140f0a;
-    box-shadow: 0 0 12px #d4af37;
-    transform: scale(1.05);
-}
-
-.add-btn:disabled {
-    border-color: #666;
-    color: #666;
-    cursor: default;
-    box-shadow: none;
-    transform: none;
-}
-
-#searchResults {
-    margin-top: 1rem;
-    max-height: 70vh;
-    overflow-y: auto;
-}
-
-.hidden { display: none; }
-
-.friend-item {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(20, 15, 10, 0.5);
-    border: 1px solid rgba(197, 160, 89, 0.3);
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    gap: 1.5rem;
-}
-
-.remove-btn, #friendlyBtn {
-    background: rgba(40, 30, 20, 0.6);
-    border: 1px solid #c5a059;
-    color: #c5a059;
-    font-family: 'Agency FB', sans-serif;
-    cursor: pointer;
-    border-radius: 5px;
-    padding: 6px 12px;
-    transition: all 0.2s;
-}
-
-.remove-btn:hover, #friendlyBtn:hover {
-    background: #c5a059;
-    color: #140f0a;
-    box-shadow: 0 0 12px #d4af37;
-    transform: scale(1.05);
-}
-
-.remove-btn:disabled, #friendlyBtn:disabled {
-    border-color: #666;
-    color: #666;
-    cursor: default;
-    box-shadow: none;
-    transform: none;
-}
-
-.is-android .pc-only { display: none !important; } /* CACHE LA VUE PC SUR ANDROID */
-.is-android .mobile-only { display: flex !important; } /* AFFICHE LA VUE MOBILE */
+.is-android .pc-only { display: none !important; }
+.is-android .mobile-only { display: flex !important; }
 
 .is-android .soc-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+    display: flex !important;
+    flex-direction: column !important;
     width: 100vw;
+    min-height: 100vh;
 }
 
-.is-android #nav { order: 2; height: 60px; width: 100%; }
+.is-android #nav {
+    order: 2;
+    width: 100%;
+    height: 70px;
+    display: block !important;
+    flex-shrink: 0;
+}
 
 .is-android .main-content {
-    order: 1; flex: 1; overflow-y: auto; padding: 15px;
-    display: flex; flex-direction: column; gap: 15px;
+    order: 1;
+    flex: 1;
+    overflow-y: auto;
+    padding: clamp(10px, 4vw, 20px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 3vw, 18px);
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .is-android #social-title {
-    font-family: 'HarryPotter'; font-size: 2.5em; text-align: center;
+    font-family: 'HarryPotter';
+    font-size: clamp(1.8em, 8vw, 2.5em);
+    text-align: center;
     background: linear-gradient(to bottom, #FFF8DC, #FFD700);
-    -webkit-background-clip: text; color: transparent; margin: 10px 0;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin: 0 0 4px 0;
+}
+
+.is-android .searchbar-container input {
+    width: 100%;
+    background: rgba(20, 15, 10, 0.8);
+    border: 1px solid #c5a059;
+    padding: clamp(10px, 3vw, 14px) clamp(14px, 4vw, 18px);
+    border-radius: 10px;
+    text-align: center;
+    box-sizing: border-box;
+    color: #fff;
+    font-size: clamp(0.9em, 3.5vw, 1.1em);
 }
 
 .is-android .mobile-section {
-    background: rgba(30, 20, 10, 0.6); border: 1px solid rgba(197, 160, 89, 0.3);
-    border-radius: 10px; overflow: hidden;
+    background: rgba(30, 20, 10, 0.6);
+    border: 1px solid rgba(197, 160, 89, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 .is-android .section-header {
-    background: rgba(197, 160, 89, 0.15); padding: 12px 15px;
-    display: flex; justify-content: space-between; align-items: center;
-    font-family: 'Agency FB'; color: #ffd700; cursor: pointer;
+    background: rgba(197, 160, 89, 0.15);
+    padding: clamp(10px, 3vw, 14px) clamp(14px, 4vw, 20px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Agency FB';
+    font-size: clamp(0.95em, 4vw, 1.1em);
+    color: #ffd700;
+    cursor: pointer;
 }
 
-.is-android .count { background: #8B4513; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
+.is-android .count {
+    background: #8B4513;
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: clamp(0.8em, 3vw, 1em);
+}
+
+.is-android .section-content {
+    width: 100%;
+    box-sizing: border-box;
+    padding: clamp(6px, 2vw, 10px) 0;
+    overflow-y: auto;
+    max-height: 45vh;
+}
+
+.is-android .search-item,
+.is-android .friend-item {
+    width: calc(100% - clamp(12px, 4vw, 20px)) !important;
+    margin: clamp(5px, 1.5vw, 8px) clamp(6px, 2vw, 10px) !important;
+    padding: clamp(10px, 3vw, 16px) clamp(12px, 4vw, 20px) !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: rgba(20, 15, 10, 0.8) !important;
+    border: 1px solid rgba(197, 160, 89, 0.5) !important;
+    border-radius: 12px !important;
+    gap: clamp(6px, 2.5vw, 12px) !important;
+    min-width: 0 !important;
+}
+
+.is-android .friend-item .rank,
+.is-android .search-item .rank {
+    order: 1;
+    flex-shrink: 0;
+}
+
+.is-android .friend-item .username,
+.is-android .search-item .username {
+    order: 2;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: clamp(1em, 4vw, 1.3em) !important;
+}
+
+.is-android .friend-item #friendlyBtn,
+.is-android .friend-item .remove-btn {
+    order: 3;
+    flex-shrink: 0;
+    background: rgba(40, 30, 20, 0.6);
+    border: 1px solid #c5a059;
+    color: #c5a059;
+    padding: clamp(4px, 1.5vw, 7px) clamp(8px, 3vw, 14px);
+    font-family: 'Agency FB';
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: clamp(0.8em, 3vw, 0.95em);
+}
+
+.is-android .friend-item #friendlyBtn {
+    margin-right: clamp(4px, 1.5vw, 8px);
+}
+
+.is-android .accept-btn,
+.is-android .deny-btn,
+.is-android .add-btn {
+    order: 3;
+    flex-shrink: 0;
+    background: rgba(40, 30, 20, 0.6);
+    border: 1px solid #c5a059;
+    color: #c5a059;
+    padding: clamp(4px, 1.5vw, 7px) clamp(8px, 3vw, 14px);
+    font-family: 'Agency FB';
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: clamp(0.8em, 3vw, 0.95em);
+}
+
+.is-android .accept-btn {
+    margin-right: clamp(4px, 1.5vw, 8px);
+}
+
 .is-android .hidden-mobile { display: none !important; }
 
-/* Items Mobile */
-.is-android .friend-item, .is-android .search-item {
-    width: 100% !important; height: 70px !important; margin-bottom: 8px;
-    padding: 8px; display: flex; align-items: center; gap: 10px;
-    background: rgba(0,0,0,0.4); border: 1px solid rgba(197, 160, 89, 0.2);
+
+.is-android player-rank .rank-text,
+.is-android player-rank .elo-text {
+    display: none !important;
+}
+
+.is-android player-rank .rankContainer {
+    flex-direction: row;
+    gap: clamp(4px, 1.5vw, 8px);
+    align-items: center;
+}
+
+.is-android player-rank #userRankImg {
+    width: clamp(32px, 9vw, 48px) !important;
+    height: auto !important;
+}
+
+.is-android player-rank .userElo {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: clamp(3px, 1vw, 6px) !important;
+}
+
+.is-android player-rank .elo-number {
+    font-family: 'Agency FB', sans-serif;
+    font-size: clamp(0.85em, 3.5vw, 1.05em);
+    background: linear-gradient(to bottom, #FFF8DC 0%, #FFD700 50%, #8B4513 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.5));
+    white-space: nowrap;
+}
+
+.is-android player-rank #userVOImg {
+    width: clamp(22px, 6vw, 34px) !important;
+    height: auto !important;
+    margin-left: 0 !important;
 }
