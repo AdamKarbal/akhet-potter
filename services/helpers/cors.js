@@ -3,13 +3,22 @@
 ** (for instance, some of your api urls may accept GET and POST request whereas some others will only accept PUT).
 ** Access-Control-Allow-Headers is an example of how to authorize some headers, the ones given in this example
 ** are probably not the ones you will need. */
-function openedCors(response) {
+function openedCors(request,response) {
+    const origin = request.headers.origin;
+    const allowedOrigins = [
+        'http://localhost',
+        'http://localhost:8000',
+        'http://akhetpotter.ps8.pns.academy'
+    ];
     // Website you wish to allow to connect to your server.
-    response.setHeader('Access-Control-Allow-Origin', '*');
+    if (allowedOrigins.includes(origin)) {
+        response.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    response.setHeader('Vary', 'Origin');
     // Request methods you wish to allow.
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     // Request headers you wish to allow.
-    response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,Content-Type, Authorization, Cache-Control, Pragma' );
     // Set to true if you need the website to include cookies in the requests sent to the API.
     response.setHeader('Access-Control-Allow-Credentials', true);
 }

@@ -3,6 +3,8 @@
  * (c) 2014-2024 Guillermo Rauch
  * Released under the MIT License.
  */
+import {connectSocket} from "./socket";
+
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -4192,7 +4194,7 @@
           socket = new Socket(this, nsp, opts);
           this.nsps[nsp] = socket;
         } else if (this._autoConnect && !socket.active) {
-          socket.connect();
+          await connectSocket();
         }
         return socket;
       }

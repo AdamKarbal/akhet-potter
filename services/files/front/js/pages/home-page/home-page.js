@@ -149,8 +149,7 @@ export class HomePage extends HTMLElement{
         try {
             const response = await fetch(API_URL + `/api/users/search?username=${user}&t=${Date.now()}`, {
                 headers : {
-                    'Authorization': `Bearer ${token}`,
-                    'Cache-Control': 'no-cache, no-store, must-revalidate'
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
