@@ -2,6 +2,7 @@ import { audioService } from "../../services/AudioService.js";
 import { socket } from "../../socket.js";
 import { AuthService } from "../../services/AuthService.js";
 import {API_URL} from "../../../config.js";
+import {RankProgressBar} from "../../components/progression-bar/progression-bar.js";
 
 export class HomePage extends HTMLElement{
     constructor() {
@@ -126,6 +127,18 @@ export class HomePage extends HTMLElement{
                     jcjsec.classList.remove('selected');
                     jcosec.classList.add('selected');
                 });
+
+                const userSection = this.querySelector(".user-rank");
+                if (userSection) {
+                    userSection.addEventListener("click", async () => {
+                        if(await AuthService.getValidToken()){
+                           window.location.hash = 'PROF';
+                        }
+                        else{
+                            window.location.hash = 'LGN';
+                        }
+                    })
+                }
 
                 const descriptions = {
                     local: "Entraînez-vous localement sur votre appareil. Parfait pour tester de nouvelles stratégies de lancer sans pression.",
@@ -280,17 +293,10 @@ export class HomePage extends HTMLElement{
         eloDiv.classList.add('elo');
         section.appendChild(eloDiv);
 
-        const progDiv = document.createElement('div');
-        progDiv.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <img style="width:10%" src="${rank ? imgPath : unkProg}">
-                        <div class="progress-bg">
-                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
-                        </div>
-                        <img style="width:10%" src="${rank? nextRankImg : unkProg}">
-                    </div>`;
-        progDiv.classList.add('prog');
-        section.appendChild(progDiv);
+        const progBar = document.createElement('progression-bar');
+        section.appendChild(progBar);
+
+        progBar.updateProgress(rank, elo);
 
         if(rank && elo && username){
             this.applyConnectedState(username);

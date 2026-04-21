@@ -12,6 +12,7 @@ import {WaitlistComponent} from "./components/waitlist-component/waitlist-compon
 import './components/gameloader-component/gameloader-component.js'
 import {RequestService} from "./services/RequestService.js";
 import './pages/achievement-page/achievement-page.js';
+import './pages/profile-page/profile-page.js'
 
 const configureAndroidStyles = async () => {
     try {
@@ -282,6 +283,13 @@ function updateView() {
         console.log("Page demande d'amis activé");
         app.innerHTML = '';
         app.innerHTML = '<request-component></request-component>';
+    }
+    else if (hash === '#PROF'){
+        audioService.stopInGameTheme();
+        audioService.playMainTheme();
+        console.log("Page profil du joueur activée");
+        app.innerHTML = '';
+        app.innerHTML = '<profile-page></profile-page>';
     }
     else {
         audioService.stopInGameTheme();

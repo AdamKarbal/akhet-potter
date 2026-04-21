@@ -382,7 +382,7 @@ body {
     width: 20%;
 }
 
-.is-android .prog{
+.is-android progression-bar{
     display: none;
 }
 
