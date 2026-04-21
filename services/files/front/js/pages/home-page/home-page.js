@@ -85,6 +85,13 @@ export class HomePage extends HTMLElement{
                 btnJouerJco.onclick = () => { window.location.hash = 'JCO'; };
             }
 
+            if(document.body.classList.contains('is-android')) {
+                const button = document.createElement("button");
+                button.classList.add('play-btn');
+                button.innerText = `Jouer`;
+                this.querySelector(".main-section").appendChild(button);
+            }
+
             audioService.playMainTheme();
             this.retrievePlayerInfo();
             
@@ -185,23 +192,23 @@ export class HomePage extends HTMLElement{
 
         const usernameDiv = document.createElement('div');
         usernameDiv.innerHTML = `
-                    <img style="width:20%" src="assets/goodplayer.webp">
-                    <span>${ username ? username : "Invité"}</span>`;
+                    <img class="payloadimg" src="assets/goodplayer.webp">
+                    <span class="payloadtext">${ username ? username : "Invité"}</span>`;
         usernameDiv.classList.add('username-card');
         section.appendChild(usernameDiv);
 
         const rankDiv = document.createElement('div');
         rankDiv.classList.add('rank');
         rankDiv.innerHTML = `
-                    <img style="width:20%" src="${imgPath}">
-                    <span>${rank ? rank : "Non classé"}</span>`;
+                    <img class="payloadimg" src="${imgPath}">
+                    <span class="payloadtext">${rank ? rank : "Non classé"}</span>`;
         if(!rank) rankDiv.classList.add('unavailable');
         section.appendChild(rankDiv);
 
         const eloDiv = document.createElement('div');
         eloDiv.innerHTML = `
-                    <img style="width:25%" src="assets/vifdor-1.webp">
-                    <span>${elo ? elo : "---"}</span>`;
+                    <img class="payloadimg" src="assets/vifdor-1.webp">
+                    <span class="payloadtext">${elo ? elo : "---"}</span>`;
         eloDiv.classList.add('elo');
         section.appendChild(eloDiv);
 
