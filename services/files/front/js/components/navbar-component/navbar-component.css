@@ -27,6 +27,7 @@
 .navElem img, #play-btn img, #social-btn img, #help img, #request-btn img, #achievement-btn img, #logout-btn img {
     width: 90%;
     height: auto;
+    pointer-events: none; /* FIX: Prevents the image from swallowing click events on mobile Webviews */
 }
 
 #help {
@@ -79,6 +80,7 @@
 .is-android .navElem img, .is-android #social-btn img, .is-android #help img, .is-android #request-btn img, .is-android #achievement-btn img, .is-android #logout-btn img {
         width: auto;
         height: 110%;
+        pointer-events: none; /* Double check for mobile */
     }
 
 .is-android #play-btn img{

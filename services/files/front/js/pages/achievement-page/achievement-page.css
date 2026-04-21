@@ -27,7 +27,6 @@ body {
     grid-template: 10vh 15vh 70vh 5vh / 100%;
 }
 
-
 .user-log {
     display: flex;
     flex-direction: row;
@@ -97,53 +96,59 @@ body {
     gap: 2rem;
 }
 
-/* --- STYLES ANDROID (Remplace le Media Query) --- */
 
 .is-android .home-container {
-    display: grid;
-    grid-template-columns: 60px 1fr; /* Garde la nav sur le côté */
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
 }
 
 .is-android #nav {
-    grid-column: 1;
+    order: 2;
+    width: 100% !important;
+    height: 70px !important;
+    flex-shrink: 0;
     display: block !important;
     z-index: 100;
 }
 
 .is-android .main-section {
-    grid-column: 2;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    padding: 10px;
-    box-sizing: border-box;
-    overflow: hidden;
+    order: 1;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    flex: 1 !important;
+    padding: clamp(10px, 3vw, 16px);
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 .is-android .user-log {
-    display: none !important; /* Plus de bouton se connecter */
+    display: none !important;
 }
 
 .is-android .page-title {
-    font-size: 2.2em;
-    margin: 10px 0;
-    text-align: center;
+    font-size: clamp(1.8em, 8vw, 2.8em) !important;
+    margin: clamp(6px, 2vw, 12px) 0 !important;
+    text-align: center !important;
     flex-shrink: 0;
+    width: 100%;
+    letter-spacing: 1px;
 }
 
 .is-android .achievements-frame {
-    background: none;
-    border: none;
-    box-shadow: none;
-    padding: 0 5px;
-    width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    flex-grow: 1;
-    /* Cache la scrollbar */
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 clamp(8px, 3vw, 16px) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    flex: 1 !important;
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -153,8 +158,10 @@ body {
 }
 
 .is-android .achievements-grid {
-    display: flex;
-    flex-direction: column; /* Scroll vertical */
-    gap: 12px;
-    padding-bottom: 30px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: clamp(8px, 2.5vw, 14px) !important;
+    padding-bottom: 20px;
+    width: 100%;
 }
