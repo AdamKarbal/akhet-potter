@@ -40,12 +40,41 @@ export class MatchComponent extends HTMLElement{
             `;
             
             this.setupGame();
-
+            setTimeout(() => {
+                this.setupChatToggle();
+            }, 50);
         } catch (error) {
             console.error("Failed to load match page resources:", error);
         }
     }
 
+    setupChatToggle() {
+        const trySetup = () => {
+            const btn = this.querySelector("#chat-toggle-btn");
+            const chat = this.querySelector("#game-chat");
+
+            if (!chat) {
+                setTimeout(trySetup, 100);
+                return;
+            }
+
+            // Cacher le chat uniquement sur mobile
+            const isMobile = document.body.classList.contains('is-android');
+            if (isMobile) {
+                chat.style.display = "none";
+            }
+
+            if (!btn) return; // pas de bouton sur desktop, on s'arrête là
+
+            btn.addEventListener("click", () => {
+                const isOpen = chat.classList.contains("open");
+                chat.classList.toggle("open", !isOpen);
+                chat.style.display = isOpen ? "none" : "block";
+            });
+        };
+
+        trySetup();
+    }
     setupGame() {
         const matchInfo = JSON.parse(sessionStorage.getItem('matchInfo'));
         this._matchInfo = matchInfo;
