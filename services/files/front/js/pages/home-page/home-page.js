@@ -4,9 +4,9 @@ import { AuthService } from "../../services/AuthService.js";
 import {API_URL} from "../../../config.js";
 
 export class HomePage extends HTMLElement{
-
     constructor() {
         super();
+        this.gameMode = null;
     }
 
     RANK_MAPPER = {
@@ -86,10 +86,78 @@ export class HomePage extends HTMLElement{
             }
 
             if(document.body.classList.contains('is-android')) {
+                const localsec = this.querySelector("#local");
+                const jcjsec = this.querySelector("#jcj");
+                const jcosec = this.querySelector("#jco");
                 const button = document.createElement("button");
                 button.classList.add('play-btn');
                 button.innerText = `Jouer`;
                 this.querySelector(".main-section").appendChild(button);
+
+                localsec.addEventListener("click", async () => {
+                    animateText('local');
+                    button.style.filter = "grayscale(100%)";
+                    button.innerText = `JOUER`;
+                    button.disabled = true;
+                    this.gameMode = 'LOC';
+                    localsec.classList.add('selected');
+                    jcjsec.classList.remove('selected');
+                    jcosec.classList.remove('selected');
+                });
+                jcjsec.addEventListener("click", async () => {
+                    this.gameMode = 'JCJ';
+                    animateText('jcj');
+                    if(!await AuthService.getValidToken()){
+                        button.style.filter = "none";
+                        button.disabled = false;
+                        button.innerText = `SE CONNECTER`;
+                    }
+                    localsec.classList.remove('selected');
+                    jcjsec.classList.add('selected');
+                    jcosec.classList.remove('selected');
+                });
+                jcosec.addEventListener("click", async () => {
+                    button.innerText = `JOUER`;
+                    animateText('jco');
+                    button.style.filter = "none";
+                    button.disabled = false;
+                    this.gameMode = 'JCO';
+                    localsec.classList.remove('selected');
+                    jcjsec.classList.remove('selected');
+                    jcosec.classList.add('selected');
+                });
+
+                const descriptions = {
+                    local: "Entraînez-vous localement sur votre appareil. Parfait pour tester de nouvelles stratégies de lancer sans pression.",
+                    jcj: "Affrontez des sorciers du monde entier en temps réel. Grimpez dans le classement pour atteindre la 7ème année !",
+                    jco: "Défiez l'Intelligence Artificielle. Un adversaire redoutable qui ne connaît pas la fatigue ni la pitié."
+                };
+
+                let typingInterval = null;
+
+                const animateText = (id) => {
+                    const descElement = this.querySelector('.game-mode-desc-mobile');
+                    if (!descElement) return;
+
+                    const text = descriptions[id] || "";
+                    descElement.textContent = "";
+                    clearInterval(typingInterval);
+
+                    let index = 0;
+                    typingInterval = setInterval(() => {
+                        if (index < text.length) {
+                            descElement.textContent += text.charAt(index);
+                            index++;
+                        } else {
+                            clearInterval(typingInterval);
+                        }
+                    }, 10);
+                };
+
+                button.addEventListener("click", async () => {
+                    if(button.innerText === "SE CONNECTER") window.location.hash = 'LGN';
+                    else window.location.hash = this.gameMode;
+                })
             }
 
             audioService.playMainTheme();
