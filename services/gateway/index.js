@@ -1,7 +1,7 @@
 // The http module contains methods to handle http queries.
 const http = require('http');
 const httpProxy = require('http-proxy');
-const {addCors} = require("../helpers/cors");
+const {addCors} = require("./helpers/cors.js");
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();

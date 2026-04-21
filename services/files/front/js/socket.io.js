@@ -2210,7 +2210,7 @@ import {connectSocket} from "./socket";
       key: "onDrain",
       value: function onDrain() {
         this.writeBuffer.splice(0, this.prevBufferLen);
-        // setting prevBufferLen = 0 is very important
+        // setting-component prevBufferLen = 0 is very important
         // for example, when upgrading, upgrade packet is sent over,
         // and a nonzero prevBufferLen could cause problems on `drain`
         this.prevBufferLen = 0;
@@ -4194,7 +4194,7 @@ import {connectSocket} from "./socket";
           socket = new Socket(this, nsp, opts);
           this.nsps[nsp] = socket;
         } else if (this._autoConnect && !socket.active) {
-          await connectSocket();
+          connectSocket();
         }
         return socket;
       }
