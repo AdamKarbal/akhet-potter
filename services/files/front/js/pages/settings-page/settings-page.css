@@ -32,6 +32,7 @@ box-sizing: border-box; /* Évite que les bordures agrandissent les éléments *
 
 .is-android #nav {
     grid-row: 2;
+    align-self: center;
 }
 
 .is-android .main-content {

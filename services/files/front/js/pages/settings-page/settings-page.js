@@ -1,5 +1,6 @@
 import "../../components/navbar-component/navbar-component.js";
 import "../../components/setting-component/setting-component.js";
+import "../../components/settings-list-component/settings-list-component.js";
 
 export class SettingsPage extends HTMLElement {
     constructor() {
