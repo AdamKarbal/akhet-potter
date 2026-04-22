@@ -394,7 +394,10 @@ body {
 }
 
 .is-android .payloadimg{
-    width: 50%;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    object-fit: contain;
 }
 
 .is-android .payloadtext{
