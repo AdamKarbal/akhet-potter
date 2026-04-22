@@ -1,5 +1,6 @@
-import { Renderer } from "../../game/Utils/Renderer.js";
-import { InputHandler } from "../../game/Utils/InputManager.js"
+import {Renderer} from "../../game/Utils/Renderer.js";
+import {InputHandler} from "../../game/Utils/InputManager.js";
+import {HapticsService} from "../../services/HapticsService.js";
 
 export class GameBoard extends HTMLElement {
     constructor(){
@@ -38,6 +39,12 @@ export class GameBoard extends HTMLElement {
     }
 
     handleGameState(data) {
+        if (data.isProcessingTurn && data.laserPath && data.laserPath.length > 0) {
+            HapticsService.vibrateDestroy();
+        }
+        else if (this.renderer.gameState && this.renderer.gameState.turn === data.turn) {
+            HapticsService.vibrateMove();
+        }
         this.renderer.gameState = data;
         this.renderer.renderAll();
     }

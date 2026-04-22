@@ -15,7 +15,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Winky+Sans:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 </head>
-<body>
+<body style="overflow: hidden;">
+        <div id="custom-splash" style="
+                    position: fixed;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background: url('assets/background1v1.webp') no-repeat center center / cover;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 999999;
+                    transition: opacity 0.5s ease-out;
+                ">
+            <img src="assets/logo.webp" alt="Akhet Potter" style="
+                        width: 70%;
+                        max-width: 400px;
+                        filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
+                        animation: pulseLogo 2s infinite ease-in-out;
+                    ">
+        </div>
+    <style>
+        @keyframes pulseLogo {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
     <div id="app">
     </div>
 </body>

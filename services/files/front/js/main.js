@@ -14,6 +14,7 @@ import {RequestService} from "./services/RequestService.js";
 import './pages/achievement-page/achievement-page.js';
 import './pages/profile-page/profile-page.js'
 import './pages/mobile-settings-help-page/mobile-settings-help-page.js';
+import { HapticsService } from "./services/HapticsService.js";
 
 const configureAndroidStyles = async () => {
     try {
@@ -30,6 +31,20 @@ const configureAndroidStyles = async () => {
     }
 };
 
+async function lockOrientation() {
+    const isMobile = window.Capacitor && window.Capacitor.getPlatform() !== 'web';
+
+    if (isMobile) {
+        try {
+            if (window.Capacitor.Plugins.ScreenOrientation) {
+                await window.Capacitor.Plugins.ScreenOrientation.lock({ type: 'portrait' });
+                console.log("Orientation bloquée en mode portrait.");
+            }
+        } catch (e) {
+            console.warn("ScreenOrientation plugin non disponible", e);
+        }
+    }
+}
 
 function initGlobalNotifications() {
     socket.on("NEW_FRIEND_REQ", (data) => {
@@ -46,6 +61,7 @@ function initGlobalNotifications() {
     socket.on("match-found", (matchInfo) => {
         removeWaitlist();
         console.log("Match trouvé !", matchInfo);
+        HapticsService.vibrateMatchFound();
         localStorage.setItem('matchMode', matchInfo.isFriendly ? 'friendly' : 'ranked');
         sessionStorage.setItem('matchInfo', JSON.stringify(matchInfo));
         window.location.hash = 'JCJ';
@@ -53,6 +69,7 @@ function initGlobalNotifications() {
 
     socket.on("friendly-match-found", (matchInfo) => {
         console.log("Match amical créé !", matchInfo);
+        HapticsService.vibrateMatchFound();
         const gameloader = document.createElement('game-loader');
         document.body.appendChild(gameloader);
         gameloader.addEventListener('loader-finished', () => {
@@ -356,5 +373,37 @@ function updateView() {
     }
 }
 
-window.addEventListener('load', updateView);
-window.addEventListener('hashchange', updateView);
+async function handleSplashScreen() {
+    const isMobile = window.Capacitor && window.Capacitor.getPlatform() !== 'web';
+
+    if (isMobile) {
+        try {
+            await window.Capacitor.Plugins.SplashScreen.hide();
+        } catch (e) {
+            console.warn("SplashScreen plugin non disponible", e);
+        }
+        setTimeout(() => {
+            const splash = document.getElementById('custom-splash');
+            if (splash) {
+                splash.style.opacity = '0';
+                setTimeout(() => splash.remove(), 500);
+            }
+        }, 2500);
+
+    } else {
+        setTimeout(() => {
+            const splash = document.getElementById('custom-splash');
+            if (splash) {
+                splash.style.opacity = '0';
+                setTimeout(() => splash.remove(), 500);
+            }
+        }, 2000);
+    }
+}
+
+window.addEventListener('load', () => {
+    updateView();
+    handleSplashScreen();
+    lockOrientation();
+});
+window.addEventListener('hashchange', updateView);window.addEventListener('hashchange', updateView);
