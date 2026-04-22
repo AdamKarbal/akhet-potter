@@ -4,69 +4,64 @@
     border-radius: 5px;
     background-color: rgba(20, 15, 10, 0.55);
     box-shadow: 0 0 15px #d4af37, inset 0 0 20px rgba(212, 175, 55, 0.3);
+
     display: flex;
     flex-direction: column;
-    align-items: center;
-    min-width: 200px;
-    color: white;
-    font-family: 'Georgia', serif;
-}
+    height: 100%;
 
-.chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    border-bottom: 1px solid #c5a059;
-    padding-bottom: 5px;
-    margin-bottom: 10px;
+    color: white;
 }
 
 #chatIcon {
     width: 20px;
-    vertical-align: middle;
+    height: 20px;
+    object-fit: contain;
 }
 
+/* HEADER */
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8em;
+}
+
+/* CONTENT */
 #chatContent {
-    padding: 10px;
-    border-radius: 5px;
-    background-color: rgba(0, 0, 0, 0.3);
-    width: 90%;
-    height: 120px;
+    flex: 1;
     overflow-y: auto;
-    font-size: 0.9rem;
+
+    padding: 5px;
+    font-size: 0.75rem;
+
+    background: rgba(0,0,0,0.3);
+    border-radius: 5px;
+
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
 }
 
+/* QUICK CHAT */
 .quick-chat-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 10px;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+    margin-top: 5px;
 }
 
 .qc-btn {
-    background: linear-gradient(to bottom, #4a3721, #2a1a0a);
-    color: #ffd700;
+    padding: 6px;
+    font-size: 0.7rem;
+
+    background: linear-gradient(to bottom, #3a2a15, #1f1407);
     border: 1px solid #c5a059;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    padding: 5px;
-    transition: transform 0.1s;
+    border-radius: 6px;
+
+    color: #ffd700;
 }
 
-.qc-btn:hover {
-    transform: scale(1.05);
-}
-
-.mute-container {
-    font-size: 0.8rem;
-    color: #c5a059;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+/* 🔥 EMPÊCHE LE SCROLL GLOBAL */
+.is-android body {
+    overflow: hidden;
 }

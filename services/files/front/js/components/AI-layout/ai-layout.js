@@ -2,6 +2,7 @@ import {Timer} from "../timer/timer.js";
 import {PlayerInfo} from "../userInfo/userInfo.js";
 import {PlayerRank} from "../rank/userRank.js";
 import {AiInfo} from "../aiInfo/aiInfo.js";
+import {PlayerInventory} from "../player-inventory/player-inventory.js";
 
 export class AiLayout extends HTMLElement {
     constructor() {

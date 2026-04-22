@@ -1,3 +1,4 @@
+/* --- STYLES PAR DÉFAUT (PC) --- */
 @font-face {
     font-family: 'HarryPotter';
     src: url('/assets/fonts/HARRYP__.TTF') format('truetype');
@@ -23,9 +24,8 @@ body {
 .main-section {
     grid-column: 2;
     display: grid;
-    /* 10vh Profil | 15vh Titre | 70vh Cadre Succès | 5vh marge bas */
     grid-template: 10vh 15vh 70vh 5vh / 100%;
-}     
+}
 
 .user-log {
     display: flex;
@@ -51,14 +51,14 @@ body {
     font-family: 'Agency FB', sans-serif;
     font-size: 1.2em;
     color: #FFD700;
-    background-color: rgba(0,0,0, 0.4);   
+    background-color: rgba(0,0,0, 0.4);
     cursor: pointer;
-    transition: all 0.3s ease;  
+    transition: all 0.3s ease;
 }
 
 .user-section:hover {
-    transform: scale(1.05); 
-    background-color: rgba(212, 175, 55, 0.15); 
+    transform: scale(1.05);
+    background-color: rgba(212, 175, 55, 0.15);
     box-shadow: 0 0 15px #ffd700, inset 0 0 10px rgba(212, 175, 55, 0.5);
 }
 
@@ -85,10 +85,9 @@ body {
     background-color: rgba(10, 5, 0, 0.65);
     border: 3px double #c5a059;
     border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 30px rgba(212, 175, 55, 0.1);
     padding: 2rem;
     box-sizing: border-box;
-    overflow-y: auto; 
+    overflow-y: auto;
 }
 
 .achievements-grid {
@@ -97,19 +96,72 @@ body {
     gap: 2rem;
 }
 
-.achievements-frame::-webkit-scrollbar {
-    width: 12px;
+
+.is-android .home-container {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
 }
-.achievements-frame::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-    border: 1px solid #4a3b2a;
+
+.is-android #nav {
+    order: 2;
+    width: 100% !important;
+    height: 70px !important;
+    flex-shrink: 0;
+    display: block !important;
+    z-index: 100;
 }
-.achievements-frame::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #c5a059, #8B4513);
-    border-radius: 10px;
-    border: 1px solid #ffd700;
+
+.is-android .main-section {
+    order: 1;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    flex: 1 !important;
+    padding: clamp(10px, 3vw, 16px);
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
-.achievements-frame::-webkit-scrollbar-thumb:hover {
-    background: #ffd700;
+
+.is-android .user-log {
+    display: none !important;
+}
+
+.is-android .page-title {
+    font-size: clamp(1.8em, 8vw, 2.8em) !important;
+    margin: clamp(6px, 2vw, 12px) 0 !important;
+    text-align: center !important;
+    flex-shrink: 0;
+    width: 100%;
+    letter-spacing: 1px;
+}
+
+.is-android .achievements-frame {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 clamp(8px, 3vw, 16px) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    flex: 1 !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.is-android .achievements-frame::-webkit-scrollbar {
+    display: none;
+}
+
+.is-android .achievements-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: clamp(8px, 2.5vw, 14px) !important;
+    padding-bottom: 20px;
+    width: 100%;
 }

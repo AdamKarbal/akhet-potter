@@ -1,17 +1,45 @@
-
 <div class="soc-container">
   <navbar-component id="nav"></navbar-component>
 
-  <div id="friendsSection">
+  <!-- VERSION PC -->
+  <div id="friendsSection" class="pc-only">
     <span id="friendTitle">Amis</span>
-    <div id="friendList"></div>
+    <div id="friendListPC"></div>
   </div>
 
-  <div id="searchSection">
+  <div id="searchSection" class="pc-only">
     <div class="searchbar-container">
       <span class="searchbar-label">Rechercher un sorcier :</span>
-      <input type="text" id="input" placeholder="Ex: HarryDu06">
+      <input type="text" id="inputPC" placeholder="Ex: HarryDu06">
     </div>
-    <div id="searchResults"></div>
+    <div id="searchResultsPC"></div>
+  </div>
+
+  <!-- VERSION MOBILE -->
+  <div class="main-content mobile-only">
+    <h1 id="social-title">Social</h1>
+
+    <div id="searchSectionMobile">
+      <div class="searchbar-container">
+        <input type="text" id="inputMobile" placeholder="Rechercher un sorcier...">
+      </div>
+      <div id="searchResultsMobile"></div>
+    </div>
+
+    <div class="mobile-section">
+      <div class="section-header" id="toggleRequests">
+        <span>Demandes d'amis</span>
+        <span class="count" id="reqCount">0</span>
+      </div>
+      <div class="section-content hidden-mobile" id="reqListMobile"></div>
+    </div>
+
+    <div class="mobile-section">
+      <div class="section-header" id="toggleFriends">
+        <span>Mes Amis</span>
+        <span class="count" id="friendCount">0</span>
+      </div>
+      <div class="section-content" id="friendListMobile"></div>
+    </div>
   </div>
 </div>

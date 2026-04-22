@@ -1,10 +1,20 @@
 <div class="container">
     <navbar-component id="nav"></navbar-component>
-    <div class="board"><game-board></game-board></div>
-    <div id="right-aside">
-        <chat-component></chat-component>
-        <quit-component></quit-component>
+    <div class="board">
+        <game-board></game-board>
     </div>
+
     <player-layout id="pl1"></player-layout>
     <player-layout id="pl2"></player-layout>
+
+    <div id="right-panel">
+        <chat-component id="game-chat"></chat-component>
+        <div id="right-aside">
+            <quit-component></quit-component>
+        </div>
+    </div>
+
+    <div id="chat-toggle-btn">
+        <img src="../../../assets/webp/chat.webp" alt="Chat">
+    </div>
 </div>

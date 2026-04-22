@@ -386,7 +386,6 @@ io.on("connection", (socket) => {
 
     socket.on("find-game", () => {
         console.log(`${socket.data.username} is looking for a game`);
-        const searcherSocketId = connectedUsers.get(socket.data.username);
 
         const existingIndex = waitingQueue.findIndex(s => s.data.username === socket.data.username);
         if (existingIndex !== -1) {
@@ -429,10 +428,12 @@ io.on("connection", (socket) => {
                 if (created && created.engine) created.engine.startTurnTimer()
                 unlockAchievement(created.p1_token, "play_online");
                 unlockAchievement(created.p2_token, "play_online");
+                return;
             }
-        } else {
-            io.to(searcherSocketId).emit("waiting-for-opponent");
-        }
+        } 
+        
+        // Si on arrive ici, c'est qu'il n'y a pas encore d'adversaire.
+        socket.emit("waiting-for-opponent");
     });
 
     socket.on("launch-game", async () => {

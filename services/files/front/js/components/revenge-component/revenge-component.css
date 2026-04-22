@@ -76,28 +76,28 @@ button {
 }
 
 #revenge-btn {
-    background: linear-gradient(135deg, #c5a059 0%, #8a6d3b 100%);
-    color: #1a0f05;
-    border: 1px solid #ffd700;
-    box-shadow: 0 0 10px rgba(197, 160, 89, 0.5);
+    background: linear-gradient(135deg, #6b4c1e, #3d2a0e);
+    color: #ffd700;
+    border: 1px solid #c5a059;
+    box-shadow: 0 0 10px rgba(197, 160, 89, 0.3);
 }
 
 #revenge-btn:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 20px #ffd700;
+    box-shadow: 0 0 20px rgba(197, 160, 89, 0.6);
     filter: brightness(1.2);
 }
 
 #leave-btn {
-    background: none;
-    color: #c5a059;
-    border: 1px solid #c5a059;
+    background: rgba(40, 25, 10, 0.6);
+    color: #8a6d3b;
+    border: 1px solid #4a3520;
 }
 
 #leave-btn:hover {
-    background: rgba(197, 160, 89, 0.1);
-    color: #fb0202;
-    border-color: #fb0202;
+    background: rgba(60, 35, 15, 0.8);
+    color: #c5a059;
+    border-color: #6b4c1e;
     transform: scale(1.05);
 }
 
@@ -113,4 +113,37 @@ button {
 @keyframes fill-up {
     from { width: 0%; }
     to { width: 100%; }
+}
+
+:host-context(.is-android) {
+    width: 80vw;
+    padding: 1.2rem 1.4rem;
+    gap: 1.5vh;
+    margin: 0 10px;
+}
+
+:host-context(.is-android) p {
+    font-size: 1em;
+    letter-spacing: 0.5px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+:host-context(.is-android) .progress-container {
+    width: 120px;
+}
+
+:host-context(.is-android) .choice-section {
+    gap: 12px;
+    margin-top: 4px;
+}
+
+:host-context(.is-android) button {
+    font-size: 0.9em;
+    padding: 8px 14px;
+}
+
+:host-context(.is-android) #revenge-req-counter {
+    margin-top: 6px;
+    font-size: 0.9em;
 }
