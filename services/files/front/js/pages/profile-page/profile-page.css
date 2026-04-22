@@ -1,0 +1,219 @@
+@font-face {
+    font-family: 'HarryPotter';
+    src: url('/assets/fonts/HARRYP__.TTF') format('truetype');
+}
+
+body {
+    background-image: url("/assets/background1v1.webp");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.is-android .profile-container {
+    display: grid;
+    grid-template-rows: 90% 10%;
+    width: 100vw;
+    height: 100vh;
+}
+
+.is-android .rank {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 2vw;
+}
+
+.is-android #nav {
+    grid-row: 2;
+    justify-self: center;
+    align-self: center;
+}
+
+.is-android .main-section {
+    grid-row: 1;
+    display: grid;
+    grid-template: 35% 15% 50% / 100%;
+}
+
+.is-android .profile-sec {
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    place-self: center;
+    width: 70vw;
+    padding: 10px;
+    border: 2px double #c5a059;
+    border-radius: 12px;
+    background-color: rgba(20, 15, 10, 0.9);
+    box-shadow: 0 0 15px #d4af37, inset 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.is-android .username, .is-android #elo {
+    margin: 0 2vw;
+    font-family: 'HarryPotter', sans-serif;
+    color: #FFD700;
+    font-size: 1.85em;
+}
+
+.is-android #rank {
+    font-family: 'Agency FB', sans-serif;
+    color: #FFD700;
+    font-size: 1.7em;
+    margin: 0;
+}
+
+.is-android .elo {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.is-android .nameNpic {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border-bottom: 1px double #c5a059;
+    padding: 5px;
+}
+
+.is-android .nameNpic img{
+    height: 8vh;
+    width: auto;
+    object-fit: contain;
+    margin: 5px;
+}
+
+
+.is-android .eloNrank {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+}
+
+.is-android #rankImg {
+    height: 8vh;
+    width: auto;
+    object-fit: contain;
+    margin: 5px;
+}
+
+.is-android .profile-pic {
+    height: 10vh;
+    width: auto;
+    margin-bottom: 5px;
+}
+
+.is-android .eloNrank img {
+    height: 5vh;
+    width: auto;
+}
+
+.is-android .prog {
+    display: flex;
+    flex-direction: column;
+    gap: 2vw;
+    grid-row: 2;
+    width: 70%;
+    place-self: center;
+    padding: 5vw;
+    border: 2px double #c5a059;
+    border-radius: 12px;
+    background-color: rgba(20, 15, 10, 0.9);
+    box-shadow: 0 0 15px #d4af37, inset 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.is-android .title {
+    margin: 0;
+    font-family: 'HarryPotter', sans-serif;
+    color: #FFD700;
+    font-size: 1.85em;
+    align-self: center;
+}
+
+.is-android .friends {
+    margin-top: 2vh;
+    grid-row: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+}
+
+.is-android .friends-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    padding: 15px;
+    width: 100%;
+    overflow-y: auto;
+    max-height: 40vh;
+    scrollbar-width: none;
+}
+
+.is-android .friends-list::-webkit-scrollbar {
+    display: none;
+}
+
+.is-android .friend-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 40vw;
+    aspect-ratio: 1 / 1;
+    border: 2px double #c5a059;
+    border-radius: 12px;
+    background-color: rgba(20, 15, 10, 0.9);
+    box-shadow: 0 0 10px #d4af37, inset 0 0 15px rgba(212, 175, 55, 0.2);
+    flex-shrink: 0;
+    gap: 1vh;
+}
+
+.is-android .friend-item img {
+    width: 50%;
+    height: auto;
+}
+
+.is-android .friend-item p {
+    margin: 0;
+    font-family: 'Agency FB', sans-serif;
+    color: #FFD700;
+    font-size: 1.3em;
+    text-align: center;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.is-android .status-diode {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.is-android .status-diode.online {
+    background-color: #00ff00;
+    box-shadow: 0 0 8px #00ff00, 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+.is-android .status-diode.offline {
+    background-color: #ff0000;
+    box-shadow: 0 0 8px #ff0000, 0 0 15px rgba(255, 0, 0, 0.5);
+}

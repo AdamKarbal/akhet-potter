@@ -8,9 +8,11 @@ import './pages/help-page/help-page.js'
 import './pages/settings-page/settings-page.js'
 import { socket } from "./socket.js";
 import {audioService} from "./services/AudioService.js";
+import {WaitlistComponent} from "./components/waitlist-component/waitlist-component.js";
 import './components/gameloader-component/gameloader-component.js'
 import {RequestService} from "./services/RequestService.js";
 import './pages/achievement-page/achievement-page.js';
+import './pages/profile-page/profile-page.js'
 import './pages/mobile-settings-help-page/mobile-settings-help-page.js';
 
 const configureAndroidStyles = async () => {
@@ -289,6 +291,13 @@ function updateView() {
         console.log("Page mobile settings/help activé");
         app.innerHTML = '';
         app.innerHTML = '<mobile-settings-help-page></mobile-settings-help-page>';
+    }
+    else if (hash === '#PROF'){
+        audioService.stopInGameTheme();
+        audioService.playMainTheme();
+        console.log("Page profil du joueur activée");
+        app.innerHTML = '';
+        app.innerHTML = '<profile-page></profile-page>';
     }
     else {
         audioService.stopInGameTheme();
