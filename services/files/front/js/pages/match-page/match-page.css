@@ -100,7 +100,7 @@ html, body {
     bottom: 80px;
     left: 10px;
     right: 10px;
-    width: auto; /* Empêche le chat de déborder à cause du width: 100% hérité */
+    width: auto;
     height: 30vh;
     max-height: 260px;
     z-index: 1000;
@@ -116,8 +116,7 @@ html, body {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    padding: 10vh 8px 8px 8px; /* Plus de padding en haut */
-    gap: 6px;
+    padding: 18vh 8px 8px 8px;
     box-sizing: border-box;
     justify-content: flex-start;
     align-items: center;
@@ -132,6 +131,7 @@ html, body {
 }
 
 .is-android #pl1 {
+    margin-bottom: 2vh;
     order: 1;
     width: 100%;
     display: flex;
@@ -139,6 +139,7 @@ html, body {
 }
 
 .is-android #pl2 {
+    margin-top: 2vh;
     order: 3;
     width: 100%;
     display: flex;
