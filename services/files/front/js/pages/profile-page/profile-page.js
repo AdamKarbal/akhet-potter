@@ -6,6 +6,7 @@ import { NavbarComponent} from "../../components/navbar-component/navbar-compone
 export class ProfilePage extends HTMLElement {
     constructor() {
         super();
+        this.friends = [];
         this.RANK_MAPPER = {
             "Non classé" : 'assets/webp/unranked.webp',
             "1ère année" : 'assets/annee1.webp',
@@ -39,7 +40,83 @@ export class ProfilePage extends HTMLElement {
             console.error('[Profile] ERREUR:', error);
         }
 
+        try{
+            const token = await AuthService.getValidToken();
+            if(token){
+                const resp = await fetch(API_URL + "/api/friends", {
+                    headers : {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
+                if(resp.ok){
+                    this.friends = await resp.json();
+                    console.log(this.friends);
+                    await this.loadFriendsData();
+                }
+            }
+            else{
+                console.error('Could not get token');
+            }
+        }
+        catch(error){
+            console.error('[Profile] FRIENDS LIST:', error);
+        }
+
+
+    }
+
+    async loadFriendsData() {
+        try {
+            const token = await AuthService.getValidToken();
+            if (!token) return;
+
+            const friendUsernames = this.friends.map(f => f.username);
+
+            const onlineResp = await fetch(API_URL + "/api/game/onlineFriends", {
+                method: 'POST',
+                body: JSON.stringify({friendUsernames}),
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const onlineUsernames = await onlineResp.json();
+            console.log("onlineUsernames : ", onlineUsernames);
+
+            this.friends = this.friends.map(friend => ({
+                ...friend,
+                online: onlineUsernames.find(s => s.username === friend.username).online ?? false
+            }));
+
+            this.fillFriendsList();
+
+        } catch (error) {
+            console.error('[Profile] Erreur synchronisation amis:', error);
+        }
+    }
+
+    fillFriendsList() {
+        const listContainer = this.querySelector('.friends-list');
+        if (!listContainer) return;
+
+        listContainer.innerHTML = '';
+
+        this.friends.forEach(friend => {
+            const friendItem = document.createElement('div');
+            friendItem.className = 'friend-item';
+
+            const statusClass = friend.online ? 'online' : 'offline';
+
+            friendItem.innerHTML = `
+                <span class="status-diode ${statusClass}"></span>
+                <img src="assets/goodplayer.webp" alt="Avatar">
+                <p>${friend.username}</p>
+            `;
+
+            listContainer.appendChild(friendItem);
+        });
     }
 
     async retrievePlayerInfo(){
@@ -65,8 +142,6 @@ export class ProfilePage extends HTMLElement {
                 console.log("user", u);
 
                 if (!u) {
-                    rankSection.innerHTML = '';
-                    this.applyDisconnectedState();
                     localStorage.clear();
                     return;
                 }

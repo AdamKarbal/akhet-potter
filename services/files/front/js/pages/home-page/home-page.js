@@ -77,6 +77,7 @@ export class HomePage extends HTMLElement{
                     const token = localStorage.getItem('token');
                     if(!token) { window.location.hash = 'LGN'; return; }
                     localStorage.setItem('matchMode', 'ranked');
+                    console.log("on cherhce uen game");
                     socket.emit("find-game");
                 };
             }
