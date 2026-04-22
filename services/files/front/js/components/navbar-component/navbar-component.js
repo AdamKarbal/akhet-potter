@@ -4,7 +4,17 @@ import {API_URL} from "../../../config.js";
 export class NavbarComponent extends HTMLElement {
     constructor() {
         super();
+        this.selectedSection = null;
     }
+
+    static HASH_TO_BTN = {
+        'SOC':    '#social-btn',
+        'REQ':    '#request-btn',
+        'SUCCES': '#achievement-btn',
+        'HELP':   '#help',
+        'SETTINGS': '#reglages',
+        '':       '#play-btn',
+    };
 
     async connectedCallback() {
         const htmlUrl = new URL('./navbar-component.html', import.meta.url);
@@ -18,6 +28,10 @@ export class NavbarComponent extends HTMLElement {
         `;
 
         this.setupEventListeners();
+
+        this._onHashChange = () => this.updateActiveBtn();
+        window.addEventListener('hashchange', this._onHashChange);
+        this.updateActiveBtn();
     }
 
     setupEventListeners() {
@@ -95,6 +109,23 @@ export class NavbarComponent extends HTMLElement {
                 }
             });
         }
+    }
+
+    updateActiveBtn() {
+        const hash = window.location.hash.replace('#', '');
+        const targetId = NavbarComponent.HASH_TO_BTN[hash] ?? null;
+
+        const allBtns = this.querySelectorAll('#play-btn, #social-btn, #request-btn, #achievement-btn, #help, #reglages, #btn-globalchat');
+        allBtns.forEach(btn => btn.classList.remove('active'));
+
+        if (targetId) {
+            const activeBtn = this.querySelector(targetId);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener('hashchange', this._onHashChange);
     }
 }
 
