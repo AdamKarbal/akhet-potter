@@ -19,6 +19,56 @@
     color: #e0d2b4;
 }
 
+.is-android #global-chat-window {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 90vh;
+    background-color: rgba(20, 15, 10, 0.95);
+    border: 2px double #c5a059;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #d4af37, inset 0 0 20px rgba(212, 175, 55, 0.3);
+    z-index: 1000;
+    flex-direction: column;
+    font-family: 'Georgia', serif;
+    color: #e0d2b4;
+}
+
+.is-android #chat-logo {
+    width: auto;
+    height: 50px;
+}
+
+#chat-logo{
+    width: 20px;
+    vertical-align: middle;
+}
+
+.is-android .msg {
+    font-size: 1.2em;
+}
+
+.is-android .close-btn {
+    font-size: 1.8em;
+}
+
+.is-android #chat-title {
+    font-size: 1.1em;
+}
+
+.is-android #header {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+.is-android #global-input, .is-android #global-send {
+    font-size: 1em;
+}
+
 .chat-header {
     padding: 10px;
     border-bottom: 1px solid #c5a059;
@@ -84,3 +134,4 @@
     margin-left: 5px;
     border-radius: 4px;
 }
+
