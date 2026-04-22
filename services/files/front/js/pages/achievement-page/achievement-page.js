@@ -1,6 +1,7 @@
 import '../../components/navbar-component/navbar-component.js';
 import '../../components/achievement-item/achievement-item.js';
 import { API_URL } from "../../../config.js";
+import {AuthService} from "../../services/AuthService.js";
 
 export class AchievementPage extends HTMLElement {
     constructor() {
@@ -26,7 +27,7 @@ export class AchievementPage extends HTMLElement {
             this.setupEventListeners();
             this.loadAchievements();
             const usernameSpan = this.querySelector('#username');
-            const token = localStorage.getItem('token');
+            const token = await AuthService.getValidToken();
             if (token && localStorage.getItem('username')) {
                 usernameSpan.innerText = localStorage.getItem('username');
             }
