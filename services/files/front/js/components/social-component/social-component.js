@@ -11,6 +11,12 @@ export class SOCIALComponent extends HTMLElement {
         this._socketListeners = [];
     }
 
+    RANK_SHORT = {
+        "1ère année": "1A", "2ème année": "2A", "3ème année": "3A",
+        "4ème année": "4A", "5ème année": "5A", "6ème année": "6A",
+        "7ème année": "7A", "Non classé": "?"
+    };
+
     async connectedCallback() {
         const htmlUrl = new URL('./social-component.html', import.meta.url);
         const cssUrl = new URL('./social-component.css', import.meta.url);
@@ -106,7 +112,8 @@ export class SOCIALComponent extends HTMLElement {
 
                 div.innerHTML = `
                     <span class="username">${user.username}</span>
-                    <span class="rank"><player-rank></player-rank></span>
+                    <span class="rank-img"><player-rank></player-rank></span>
+                    <span class="rank-short">${this.RANK_SHORT[user.rank] ?? "?"}</span>
                     ${isFriend ? '' : '<button class="add-btn">+ Ajouter</button>'}
                 `;
 
@@ -192,11 +199,12 @@ export class SOCIALComponent extends HTMLElement {
             const div = document.createElement('div');
             div.className = 'friend-item';
             div.innerHTML = `
-                <span class="rank"><player-rank></player-rank></span>
-                <span class="username">${friend.username}</span>
-                <button id="friendlyBtn">Défier</button>
-                <button class="remove-btn">Retirer</button>
-            `;
+                    <span class="username">${friend.username}</span>
+                    <span class="rank-img"><player-rank></player-rank></span>
+                    <span class="rank-short"></span>
+                    <button id="friendlyBtn">Défier</button>
+                    <button class="remove-btn">Retirer</button>
+                `;
             const friendlyBtn = div.querySelector('#friendlyBtn');
             friendlyBtn.addEventListener('click', () => {
                 friendlyBtn.innerHTML = '...';
@@ -228,7 +236,9 @@ export class SOCIALComponent extends HTMLElement {
             container.appendChild(div);
 
             const rank = div.querySelector('player-rank');
-            if (rank && typeof rank.setPlayerInfo === 'function') rank.setPlayerInfo(friend);
+            if (rank && typeof rank.setPlayerInfo === 'function') {
+                rank.setPlayerInfo(friend);
+                div.querySelector('.rank-short').innerText = this.RANK_SHORT[friend.rank] ?? "?";}
         });
     }
 
@@ -268,11 +278,12 @@ export class SOCIALComponent extends HTMLElement {
             const div = document.createElement('div');
             div.className = 'search-item';
             div.innerHTML = `
-                <span class="rank"><player-rank></player-rank></span>
-                <span class="username">${user.username}</span>
-                <button class="accept-btn">Accepter</button>
-                <button class="deny-btn">Refuser</button>
-            `;
+                    <span class="username">${user.username}</span>
+                    <span class="rank-img"><player-rank></player-rank></span>
+                    <span class="rank-short">${this.RANK_SHORT[user.rank] ?? "?"}</span>
+                    <button class="accept-btn">Accepter</button>
+                    <button class="deny-btn">Refuser</button>
+                `;
 
             const rank = div.querySelector('player-rank');
             if (rank && typeof rank.setPlayerInfo === 'function') rank.setPlayerInfo(user);
