@@ -2,6 +2,7 @@ import "../setting-component/setting-component.js";
 import { API_URL } from "../../../config.js";
 import { AuthService } from "../../services/AuthService.js";
 import { audioService } from "../../services/AudioService.js";
+import { HapticsService } from "../../services/HapticsService.js";
 
 export class SettingsListComponent extends HTMLElement {
   constructor() {
@@ -20,6 +21,7 @@ export class SettingsListComponent extends HTMLElement {
     `;
 
     this.initializeMusicSetting();
+    this.initializeVibrationSetting();
     await this.renderLogoutAction();
   }
 
@@ -33,6 +35,18 @@ export class SettingsListComponent extends HTMLElement {
     musicSetting.onValueChange = ({ type, value }) => {
       if (type !== "volume") return;
       audioService.setMusicVolume(value / 100);
+    };
+  }
+
+  initializeVibrationSetting() {
+    const vibrationSetting = this.querySelector("#vibrationSetting");
+    if (!vibrationSetting) return;
+
+    vibrationSetting.setValue(HapticsService.isEnabled());
+
+    vibrationSetting.onValueChange = ({ type, value }) => {
+      if (type !== "toggle") return;
+      HapticsService.setEnabled(value);
     };
   }
 
