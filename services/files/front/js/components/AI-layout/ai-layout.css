@@ -1,56 +1,9 @@
 .layout {
     display: flex;
     flex-direction: row;
-    justify-content: center;
-    align-items: center;
     gap: 1rem;
-    height: 75%;
-    margin-top: 2vh;
-}
-
-.separator {
-    width: 2px;
-    height: 40px;
-    background: linear-gradient(to bottom, transparent, #c5a059, transparent);
-}
-
-.is-android .layout {
-    width: 100%;
-    flex-wrap: nowrap;
     justify-content: center;
     align-items: center;
-    gap: 4px;
-    padding: 0;
-    margin-top: 0;
-}
-
-/* enlever séparation */
-.is-android .separator {
-    display: none;
-}
-
-/* réduire tailles */
-.is-android ai-info {
-    font-size: 0.9em;
-}
-
-.is-android .inventory {
-    flex-shrink: 1;
-    min-width: 0;
-    overflow: hidden;
-}
-
-.is-android player-inventory {
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-}
-
-.is-android .pyramid-icon {
-    width: 18px;
-}
-
-.is-android .inventory-container {
-    padding: 2px 4px;
-    gap: 2px;
+    margin-top: 2vh;
+    height: 75%;
 }
