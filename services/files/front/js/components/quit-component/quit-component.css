@@ -11,44 +11,53 @@ button {
     outline: none;
 }
 
-button > img {
+.desktop-quit-img {
     height: auto;
     width: 160px;
     filter: sepia(0.8) hue-rotate(-50deg) saturate(2.25);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-button:hover > img {
+button:hover > .desktop-quit-img {
     filter: sepia(0.3) hue-rotate(-50deg) saturate(3) drop-shadow(0 0 12px rgba(255, 50, 50, 0.6));
     transform: scale(1.1) rotate(-3deg);
 }
 
-button:active > img {
+button:active > .desktop-quit-img {
     transform: scale(0.9);
     filter: sepia(0.8) hue-rotate(-50deg) saturate(2) brightness(0.8);
 }
 
-.is-android button > img {
-    width: 40px;
+.mobile-quit-text {
+    display: none;
 }
 
-/* BOUTON FULL MOBILE */
+.is-android .desktop-quit-img {
+    display: none;
+}
+
+/* ...et on affiche le texte mobile */
+.is-android .mobile-quit-text {
+    display: block;
+    color: #ffcccc;
+    font-family: 'Agency FB', sans-serif;
+    font-size: 1.3em;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
 .is-android #leave-btn {
-    width: 100%;
-    height: 100%;
+    padding: 4px 10px;
 
     background: linear-gradient(145deg, #7a0000, #3a0000);
     border: 2px solid #ff4d4d;
     border-radius: 12px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
 }
 
-/* effet press */
 .is-android #leave-btn:active {
     transform: scale(0.9);
     box-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
