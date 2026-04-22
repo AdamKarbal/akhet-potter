@@ -2,6 +2,7 @@ import { PlayerRank } from "../../components/rank/userRank.js";
 import { NavbarComponent } from "../../components/navbar-component/navbar-component.js";
 import {RequestService} from "../../services/RequestService.js";
 import {AuthService} from "../../services/AuthService.js";
+import {API_URL} from "../../../config.js";
 
 export class RequestComponent extends HTMLElement {
     constructor() {
@@ -40,7 +41,7 @@ export class RequestComponent extends HTMLElement {
         const token = await AuthService.getValidToken();
         console.log("token : ", token);
         try {
-            const response = await fetch(`/api/requests`, {
+            const response = await fetch(API_URL + `/api/requests`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`

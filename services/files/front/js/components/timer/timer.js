@@ -50,7 +50,7 @@ export class Timer extends HTMLElement {
         if (timerContainer && textValue) {
             timerContainer.classList.add('inactive');
             textValue.classList.remove('urgent');
-            textValue.innerText = "00:--";
+            textValue.innerText = "00:00";
         }
     }
 

@@ -3,6 +3,8 @@
  * (c) 2014-2024 Guillermo Rauch
  * Released under the MIT License.
  */
+import {connectSocket} from "./socket";
+
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -2208,7 +2210,7 @@
       key: "onDrain",
       value: function onDrain() {
         this.writeBuffer.splice(0, this.prevBufferLen);
-        // setting prevBufferLen = 0 is very important
+        // setting-component prevBufferLen = 0 is very important
         // for example, when upgrading, upgrade packet is sent over,
         // and a nonzero prevBufferLen could cause problems on `drain`
         this.prevBufferLen = 0;
@@ -4192,7 +4194,7 @@
           socket = new Socket(this, nsp, opts);
           this.nsps[nsp] = socket;
         } else if (this._autoConnect && !socket.active) {
-          socket.connect();
+          connectSocket();
         }
         return socket;
       }

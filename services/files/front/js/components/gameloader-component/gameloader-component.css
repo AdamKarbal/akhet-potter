@@ -75,3 +75,25 @@ h2 {
     from { width: 0%; }
     to { width: 100%; }
 }
+
+:host-context(.is-android) .modal {
+    min-width: unset;
+    width: 82vw;
+    padding: 28px 20px;
+    box-sizing: border-box;
+}
+
+:host-context(.is-android) h2 {
+    font-size: 1.4em;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+}
+
+:host-context(.is-android) .message {
+    font-size: 1em;
+    margin-bottom: 20px;
+}
+
+:host-context(.is-android) .progress-container {
+    height: 10px;
+}

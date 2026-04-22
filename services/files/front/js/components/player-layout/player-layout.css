@@ -12,3 +12,73 @@
     height: 40px;
     background: linear-gradient(to bottom, transparent, #c5a059, transparent);
 }
+
+.is-android .layout {
+    width: 100%;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+}
+/* enlever séparation */
+.is-android .separator {
+    display: none;
+}
+
+/* réduire tailles */
+.is-android player-info {
+    font-size: 0.9em;
+}
+
+/* cacher texte rank */
+.is-android .rank-text {
+    display: none;
+}
+
+/* cacher "Vifs d'or" */
+.is-android .elo-text {
+    display: none;
+}
+
+/* icônes */
+.is-android #userRankImg {
+    width: 28px;
+}
+
+.is-android #userVOImg {
+    width: 18px;
+}
+
+/* elo compact */
+.is-android .userElo {
+    font-size: 0.9em;
+    gap: 4px;
+}
+
+
+.is-android .count {
+    font-size: 1em;
+}
+
+.is-android .inventory {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.is-android player-inventory {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Réduire les icônes pyramides si besoin */
+.is-android .pyramid-icon {
+    width: 18px;
+}
+
+.is-android .inventory-container {
+    padding: 2px 4px;
+    gap: 2px;
+}

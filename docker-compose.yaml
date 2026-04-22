@@ -31,7 +31,9 @@ services:
       - /app/node_modules
 
   gateway:
-    build: ./services/gateway
+    build:
+        context: ./services
+        dockerfile: gateway/Dockerfile
     restart: always
     ports:
       - "8000:8000"

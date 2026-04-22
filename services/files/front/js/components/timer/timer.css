@@ -35,3 +35,9 @@
     opacity: 0.3;
     filter: grayscale(100%);
 }
+
+.value {
+    min-width: 70px;
+    text-align: left;
+    display: inline-block;
+}

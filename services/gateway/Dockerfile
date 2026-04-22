@@ -2,11 +2,12 @@ FROM node:18-slim
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY gateway/package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY gateway/. ./
+COPY helpers ./helpers
 
 # La gateway écoute sur 8000
 EXPOSE 8000

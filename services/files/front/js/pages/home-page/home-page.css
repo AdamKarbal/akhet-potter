@@ -18,13 +18,34 @@ body {
     height: 100vh;
 }
 
+.is-android .home-container {
+    display: grid;
+    grid-template: 90% 10% / 100%;
+    width: 100vw;
+    height: 100vh;
+}
+
 #nav { grid-column: 1; }
+
+.is-android #nav {
+    grid-row: 2;
+    justify-self: center;
+    align-self: center;
+}
 
 .main-section {
     grid-column: 2;
     display: grid;
     grid-template: 7vh 18vh 65vh 10vh / 100%;
 }     
+
+.is-android .main-section {
+    grid-row : 1;
+    grid-column: 1;
+
+    display: grid;
+    grid-template: 7vh 18vh 65vh 10vh / 100%;
+}
 
 .user-log{
     display: flex;
@@ -283,3 +304,5 @@ body {
     opacity: 0.75;
     font-style: oblique;
 }
+
+.is-android .nav{}

@@ -17,6 +17,9 @@ export class WaitlistComponent extends HTMLElement {
         `;
 
         this.shadowRoot.appendChild(template.content.cloneNode(true));
+        if (document.body.classList.contains('is-android')) {
+            this.shadowRoot.host.classList.add('is-android');
+        }
 
         this.init();
     }

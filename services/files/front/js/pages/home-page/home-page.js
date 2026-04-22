@@ -1,6 +1,7 @@
 import { audioService } from "../../services/AudioService.js";
 import { socket } from "../../socket.js";
 import { AuthService } from "../../services/AuthService.js";
+import {API_URL} from "../../../config.js";
 
 export class HomePage extends HTMLElement{
 
@@ -44,7 +45,7 @@ export class HomePage extends HTMLElement{
                 userSection.addEventListener("click", () => {
                     const token = localStorage.getItem('token');
                     const username = localStorage.getItem('username');
-                    window.location.hash = (token && username) ? 'SUCCES' : 'LGN';
+                    window.location.hash = (token && username) ? 'LGN' : 'LGN';
                 });
             }
 
@@ -53,7 +54,7 @@ export class HomePage extends HTMLElement{
                 btnLogout.addEventListener("click", async () => {
                     const token = localStorage.getItem('token');
                     try {
-                        const res = await fetch("/api/logout", {
+                        const res = await fetch(API_URL + "/api/logout", {
                             method: 'POST',
                             headers: { 'Authorization': `Bearer ${token}` }
                         });
@@ -146,10 +147,9 @@ export class HomePage extends HTMLElement{
         }
 
         try {
-            const response = await fetch(`/api/users/search?username=${user}&t=${Date.now()}`, {
+            const response = await fetch(API_URL + `/api/users/search?username=${user}&t=${Date.now()}`, {
                 headers : {
-                    'Authorization': `Bearer ${token}`,
-                    'Cache-Control': 'no-cache, no-store, must-revalidate'
+                    'Authorization': `Bearer ${token}`
                 }
             });
 

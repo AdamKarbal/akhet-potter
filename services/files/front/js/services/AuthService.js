@@ -1,3 +1,5 @@
+import {API_URL} from "../../config.js";
+
 export const AuthService = {
   async getValidToken(){
     const stored = localStorage.getItem('token');
@@ -19,7 +21,7 @@ export const AuthService = {
 
     // token expiré → tenter refresh via cookie (refresh token stocké côté serveur en cookie HttpOnly)
     try {
-      const resp = await fetch('/api/refresh', { method: 'POST', credentials: 'include' });
+      const resp = await fetch(API_URL + '/api/refresh', { method: 'POST', credentials: 'include' });
       if (!resp.ok) return null;
       const data = await resp.json();
       if (data?.accessToken) {

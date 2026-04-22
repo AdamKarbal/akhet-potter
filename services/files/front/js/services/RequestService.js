@@ -1,10 +1,11 @@
 import {AuthService} from "./AuthService.js";
+import {API_URL} from "../../config.js";
 
 export const RequestService = {
     async handleDecision(username, decision){
         const token = await AuthService.getValidToken();
         try{
-            const response = await fetch("/api/managereq", {
+            const response = await fetch(API_URL + "/api/managereq", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -24,7 +25,7 @@ export const RequestService = {
         const token = await AuthService.getValidToken();
 
         try {
-            const response = await fetch("/api/removefriend", {
+            const response = await fetch(API_URL + "/api/removefriend", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
