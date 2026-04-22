@@ -14,6 +14,7 @@ import {RequestService} from "./services/RequestService.js";
 import './pages/achievement-page/achievement-page.js';
 import './pages/profile-page/profile-page.js'
 import './pages/mobile-settings-help-page/mobile-settings-help-page.js';
+import { NotificationService } from './services/NotificationService.js';
 
 const configureAndroidStyles = async () => {
     try {
@@ -35,12 +36,20 @@ function initGlobalNotifications() {
     socket.on("NEW_FRIEND_REQ", (data) => {
         toast(data, "NEW_FRIEND_REQ");
         console.log(`Invitation d'ami reçue de ${data.from}`);
+        NotificationService.send(
+            "🤝 Nouvelle demande d'ami",
+            `${data.from} souhaite devenir votre allié !`
+        );
     });
 
 
     socket.on("NEW_FRIENDLY_MATCH", (data) => {
         toast(data, "NEW_FRIENDLY_MATCH");
         console.log(`Invitation de match amical reçue de ${data.from}`);
+        NotificationService.send(
+            "⚡ Défi en duel !",
+            `${data.from} vous invite pour un match amical !`
+        );
     });
 
     socket.on("match-found", (matchInfo) => {
@@ -273,6 +282,8 @@ function toast(data, event) {
     }, 60000);
 }
 initGlobalNotifications();
+NotificationService.requestPermission();
+NotificationService.initListeners();
 
 function updateView() {
     const app = document.getElementById('app');
