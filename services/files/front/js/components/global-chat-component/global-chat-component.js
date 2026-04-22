@@ -21,6 +21,11 @@ export class GlobalChatComponent extends HTMLElement {
 
         this.initSocket();
         this.setupEventListeners();
+
+        if (window.visualViewport) {
+            this._onViewportResize = () => this.adjustForKeyboard();
+            window.visualViewport.addEventListener('resize', this._onViewportResize);
+        }
     }
 
     initSocket() {
@@ -90,6 +95,22 @@ export class GlobalChatComponent extends HTMLElement {
         if(this.socket) {
             this.socket.disconnect();
         }
+        if (window.visualViewport && this._onViewportResize) {
+            window.visualViewport.removeEventListener('resize', this._onViewportResize);
+        }
+    }
+
+    adjustForKeyboard() {
+        const isMobile = document.body.classList.contains('is-android');
+        if (!isMobile) return;
+
+        const chatWindow = this.querySelector('#global-chat-window');
+        if (!chatWindow || chatWindow.style.display === 'none') return;
+
+        chatWindow.style.height = `${window.visualViewport.height}px`;
+
+        const history = chatWindow.querySelector('.chat-history');
+        if (history) history.scrollTop = history.scrollHeight;
     }
 }
 
