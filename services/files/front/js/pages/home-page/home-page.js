@@ -1,5 +1,5 @@
 import { audioService } from "../../services/AudioService.js";
-import { socket } from "../../socket.js";
+import {connectSocket, socket} from "../../socket.js";
 import { AuthService } from "../../services/AuthService.js";
 import {API_URL} from "../../../config.js";
 import {RankProgressBar} from "../../components/progression-bar/progression-bar.js";
@@ -169,9 +169,16 @@ export class HomePage extends HTMLElement{
                 };
 
                 button.addEventListener("click", async () => {
-                    if(button.innerText === "SE CONNECTER") window.location.hash = 'LGN';
-                    else window.location.hash = this.gameMode;
-                })
+                    if (button.innerText === "SE CONNECTER") {
+                        window.location.hash = 'LGN';
+                    } else if (this.gameMode === 'JCJ') {
+                        localStorage.setItem('matchMode', 'ranked');
+                        await connectSocket();
+                        socket.emit("find-game");
+                    } else {
+                        window.location.hash = this.gameMode;
+                    }
+                });
             }
 
             audioService.playMainTheme();
