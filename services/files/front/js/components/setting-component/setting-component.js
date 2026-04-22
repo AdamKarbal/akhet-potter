@@ -60,32 +60,42 @@ class SettingComponent extends HTMLElement {
     label.textContent = text;
   }
 
-  _renderControl() {
-    const type = this.getAttribute("type") || "toggle";
-    const container = this.querySelector(".setting-control");
-    if (!container) return;
-    // INFO: Modifier ici pour des composants personnalisés
-    if (type === "volume") {
-      container.innerHTML = `<input type="range" min="0" max="100" value="50" data-role="control">`;
-    } else {
-      // toggle par défaut
-      container.innerHTML = `<input type="checkbox" data-role="control">`;
-    }
-  }
+   _renderControl() {
+     const type = this.getAttribute("type") || "toggle";
+     const container = this.querySelector(".setting-control");
+     if (!container) return;
+     // INFO: Modifier ici pour des composants personnalisés
+     if (type === "volume") {
+       container.innerHTML = `<span class="volume-value">50</span><input type="range" min="0" max="100" value="50" data-role="control">`;
+     } else {
+       // toggle par défaut
+       container.innerHTML = `<input type="checkbox" data-role="control">`;
+     }
+   }
 
-  _attachListeners() {
-    const control = this.querySelector('[data-role="control"]');
-    if (!control) return;
+   _attachListeners() {
+     const control = this.querySelector('[data-role="control"]');
+     if (!control) return;
 
-    control.removeEventListener("change", this._boundHandleChange);
-    control.removeEventListener("input", this._boundHandleChange);
+     control.removeEventListener("change", this._boundHandleChange);
+     control.removeEventListener("input", this._boundHandleChange);
 
-    control.addEventListener("change", this._boundHandleChange);
-    control.addEventListener("input", this._boundHandleChange);
+     control.addEventListener("change", this._boundHandleChange);
+     control.addEventListener("input", this._boundHandleChange);
 
-    // Si plus tard c'est un composant custom, il peut dispatcher "setting-change"
-    control.addEventListener("setting-change", this._boundHandleChange);
-  }
+     // Update value display for range input
+     if (control.type === "range") {
+       control.addEventListener("input", () => {
+         const valueDisplay = this.querySelector(".volume-value");
+         if (valueDisplay) {
+           valueDisplay.textContent = control.value;
+         }
+       });
+     }
+
+     // Si plus tard c'est un composant custom, il peut dispatcher "setting-change"
+     control.addEventListener("setting-change", this._boundHandleChange);
+   }
 
   _handleChange(event) {
     const control = event.currentTarget;

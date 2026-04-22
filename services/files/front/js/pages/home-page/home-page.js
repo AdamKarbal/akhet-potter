@@ -2,11 +2,12 @@ import { audioService } from "../../services/AudioService.js";
 import { socket } from "../../socket.js";
 import { AuthService } from "../../services/AuthService.js";
 import {API_URL} from "../../../config.js";
+import {RankProgressBar} from "../../components/progression-bar/progression-bar.js";
 
 export class HomePage extends HTMLElement{
-
     constructor() {
         super();
+        this.gameMode = null;
     }
 
     RANK_MAPPER = {
@@ -76,6 +77,7 @@ export class HomePage extends HTMLElement{
                     const token = localStorage.getItem('token');
                     if(!token) { window.location.hash = 'LGN'; return; }
                     localStorage.setItem('matchMode', 'ranked');
+                    console.log("on cherhce uen game");
                     socket.emit("find-game");
                 };
             }
@@ -83,6 +85,93 @@ export class HomePage extends HTMLElement{
             const btnJouerJco = this.querySelector("#btn-jouer-jco");
             if (btnJouerJco) {
                 btnJouerJco.onclick = () => { window.location.hash = 'JCO'; };
+            }
+
+            if(document.body.classList.contains('is-android')) {
+                const localsec = this.querySelector("#local");
+                const jcjsec = this.querySelector("#jcj");
+                const jcosec = this.querySelector("#jco");
+                const button = document.createElement("button");
+                button.classList.add('play-btn');
+                button.innerText = `Jouer`;
+                this.querySelector(".main-section").appendChild(button);
+
+                localsec.addEventListener("click", async () => {
+                    animateText('local');
+                    button.style.filter = "grayscale(100%)";
+                    button.innerText = `JOUER`;
+                    button.disabled = true;
+                    this.gameMode = 'LOC';
+                    localsec.classList.add('selected');
+                    jcjsec.classList.remove('selected');
+                    jcosec.classList.remove('selected');
+                });
+                jcjsec.addEventListener("click", async () => {
+                    this.gameMode = 'JCJ';
+                    animateText('jcj');
+                    if(!await AuthService.getValidToken()){
+                        button.style.filter = "none";
+                        button.disabled = false;
+                        button.innerText = `SE CONNECTER`;
+                    }
+                    localsec.classList.remove('selected');
+                    jcjsec.classList.add('selected');
+                    jcosec.classList.remove('selected');
+                });
+                jcosec.addEventListener("click", async () => {
+                    button.innerText = `JOUER`;
+                    animateText('jco');
+                    button.style.filter = "none";
+                    button.disabled = false;
+                    this.gameMode = 'JCO';
+                    localsec.classList.remove('selected');
+                    jcjsec.classList.remove('selected');
+                    jcosec.classList.add('selected');
+                });
+
+                const userSection = this.querySelector(".user-rank");
+                if (userSection) {
+                    userSection.addEventListener("click", async () => {
+                        if(await AuthService.getValidToken()){
+                           window.location.hash = 'PROF';
+                        }
+                        else{
+                            window.location.hash = 'LGN';
+                        }
+                    })
+                }
+
+                const descriptions = {
+                    local: "Entraînez-vous localement sur votre appareil. Parfait pour tester de nouvelles stratégies de lancer sans pression.",
+                    jcj: "Affrontez des sorciers du monde entier en temps réel. Grimpez dans le classement pour atteindre la 7ème année !",
+                    jco: "Défiez l'Intelligence Artificielle. Un adversaire redoutable qui ne connaît pas la fatigue ni la pitié."
+                };
+
+                let typingInterval = null;
+
+                const animateText = (id) => {
+                    const descElement = this.querySelector('.game-mode-desc-mobile');
+                    if (!descElement) return;
+
+                    const text = descriptions[id] || "";
+                    descElement.textContent = "";
+                    clearInterval(typingInterval);
+
+                    let index = 0;
+                    typingInterval = setInterval(() => {
+                        if (index < text.length) {
+                            descElement.textContent += text.charAt(index);
+                            index++;
+                        } else {
+                            clearInterval(typingInterval);
+                        }
+                    }, 10);
+                };
+
+                button.addEventListener("click", async () => {
+                    if(button.innerText === "SE CONNECTER") window.location.hash = 'LGN';
+                    else window.location.hash = this.gameMode;
+                })
             }
 
             audioService.playMainTheme();
@@ -185,37 +274,30 @@ export class HomePage extends HTMLElement{
 
         const usernameDiv = document.createElement('div');
         usernameDiv.innerHTML = `
-                    <img style="width:20%" src="assets/goodplayer.webp">
-                    <span>${ username ? username : "Invité"}</span>`;
+                    <img class="payloadimg" src="assets/goodplayer.webp">
+                    <span class="payloadtext">${ username ? username : "Invité"}</span>`;
         usernameDiv.classList.add('username-card');
         section.appendChild(usernameDiv);
 
         const rankDiv = document.createElement('div');
         rankDiv.classList.add('rank');
         rankDiv.innerHTML = `
-                    <img style="width:20%" src="${imgPath}">
-                    <span>${rank ? rank : "Non classé"}</span>`;
+                    <img class="payloadimg" src="${imgPath}">
+                    <span class="payloadtext">${rank ? rank : "Non classé"}</span>`;
         if(!rank) rankDiv.classList.add('unavailable');
         section.appendChild(rankDiv);
 
         const eloDiv = document.createElement('div');
         eloDiv.innerHTML = `
-                    <img style="width:25%" src="assets/vifdor-1.webp">
-                    <span>${elo ? elo : "---"}</span>`;
+                    <img class="payloadimg" src="assets/vifdor-1.webp">
+                    <span class="payloadtext">${elo ? elo : "---"}</span>`;
         eloDiv.classList.add('elo');
         section.appendChild(eloDiv);
 
-        const progDiv = document.createElement('div');
-        progDiv.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <img style="width:10%" src="${rank ? imgPath : unkProg}">
-                        <div class="progress-bg">
-                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
-                        </div>
-                        <img style="width:10%" src="${rank? nextRankImg : unkProg}">
-                    </div>`;
-        progDiv.classList.add('prog');
-        section.appendChild(progDiv);
+        const progBar = document.createElement('progression-bar');
+        section.appendChild(progBar);
+
+        progBar.updateProgress(rank, elo);
 
         if(rank && elo && username){
             this.applyConnectedState(username);

@@ -4,31 +4,82 @@ import {AIGameManager} from "./gameservice/Logic/AIGameManager.js";
 import {GameManager} from "./gameservice/Logic/GameManager.js";
 import {PLAYER} from "./gameservice/Model/model.js";
 import { unlockAchievement } from "./utils.js";
+import http from 'http';
 
 const ELO_KEY = process.env.ELO_KEY || "LE_SECRET_DES_SORCIERS_123"; // A CHANGER APRES LA POUR APS AVOIR DE PB
-const io = new Server(8003, { cors: { origin: "*"}});
-const pvpManager = new GameManager(io);
 const aiManager = new AIGameManager();
 const SECRET_KEY = process.env.JWT_SECRET;
 const waitingQueue = [];
 const connectedUsers = new Map();
+
+const HUMAN_TURN_ANIMATION_DELAY_MS = 1200;
+const AI_TURN_ANIMATION_DELAY_MS = 650;
+const HUMAN_RECONNECT_TIMEOUT_MS = 30_000;
+
+const gameModes = new Map();
+const reconnectionTimers = new Map();
+const RECON_DEBUG = true;
 
 const GAME_MODE = {
     PVP: "PVP",
     AI: "AI"
 };
 
-const HUMAN_TURN_ANIMATION_DELAY_MS = 1200;
-const AI_TURN_ANIMATION_DELAY_MS = 650;
-// Temps (ms) durant lequel un joueur déconnecté peut se reconnecter avant forfait
-const HUMAN_RECONNECT_TIMEOUT_MS = 30_000;
+const server = http.createServer(async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-// gameId -> GAME_MODE.PVP | GAME_MODE.AI
-const gameModes = new Map();
-// clé: `${gameId}_${username}` -> { timeoutId, originalSocketId }
-const reconnectionTimers = new Map();
-// debug toggle pour reconnexions
-const RECON_DEBUG = true;
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        res.end();
+        return;
+    }
+
+    if (req.method === 'POST' && req.url === '/onlineFriends') {
+        let body = '';
+
+        req.on('data', chunk => { body += chunk.toString(); });
+
+        req.on('end', () => {
+            try {
+                const data = JSON.parse(body);
+                const { friendUsernames } = data;
+
+                if (!friendUsernames || !Array.isArray(friendUsernames)) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: "Invalid data" }));
+                    return;
+                }
+
+                console.log(`Friends usernames : ${friendUsernames}`);
+                console.log('Connected users :', Object.fromEntries(connectedUsers));
+
+                const statuses = friendUsernames.map(username => ({
+                    username: username,
+                    online: connectedUsers.has(username)
+                }));
+
+                console.log(`COTE BACK : ${statuses}`);
+
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(statuses));
+            } catch (e) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: "Malformed JSON" }));
+            }
+        });
+    } else {
+        res.writeHead(404);
+        res.end();
+    }
+});
+
+const io = new Server(server, { cors: { origin: "*" } });const pvpManager = new GameManager(io);
+
+function getConnectedUsers() {
+    return Array.from(connectedUsers.keys());
+}
 
 async function handleEloIfNeeded(gameId, game, winnerPlayer) {
     try {
@@ -74,6 +125,7 @@ async function eloUpdate(gameId, winnerUsername, looserUsername) {
         console.error("Erreur de communication avec le service d'elo :", error);
     }
 }
+
 function getManagerByMode(mode) {
     return mode === GAME_MODE.AI ? aiManager : pvpManager;
 }
@@ -84,14 +136,11 @@ function getManagerForGame(gameId) {
         return {manager: getManagerByMode(mode), mode};
     }
 
-    // Fallback défensif pour parties existantes sans mode enregistré.
     if (pvpManager.games.has(gameId)) return {manager: pvpManager, mode: GAME_MODE.PVP};
     if (aiManager.games.has(gameId)) return {manager: aiManager, mode: GAME_MODE.AI};
     return {manager: null, mode: null};
 }
 
-// Retourne l'état du moteur en s'assurant que remainingTurnMs reflète
-// la véritable durée restante (qu'un timer soit actif ou stoppé).
 function engineStateWithRemaining(engine) {
     if (!engine) return null;
     const state = engine.getState();
@@ -172,7 +221,6 @@ async function maybePlayAiTurn(gameId) {
     }
 
     if (aiResult.isProcessingTurn) {
-        // Important: on émet d'abord l'état de tir IA pour que le front puisse rendre le laser.
         io.to(gameId).emit("game-update", aiResult);
         setTimeout(() => {
             finalizeAndEmit(gameId, aiManager);
@@ -206,12 +254,10 @@ io.use((socket, next) => {
 });
 
 
-
 io.on("connection", (socket) => {
     console.log(`Joueur authentifié connecté : ${socket.data.username} (id:${socket.id})`);
     connectedUsers.set(socket.data.username, socket.id);
-
-    // Tentative d'attacher immédiatement la socket à une partie existante si on était en phase de reconnexion
+    console.log("Connected users:", Object.fromEntries(connectedUsers));
     try {
         const username = socket.data.username;
         const managersByMode = [
@@ -831,6 +877,8 @@ io.on("connection", (socket) => {
             }
         }
     });
+});
 
-
+server.listen(8003, () => {
+    console.log("Serveur (REST + Sockets) lancé sur le port 8003");
 });

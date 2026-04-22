@@ -26,26 +26,33 @@ box-sizing: border-box; /* Évite que les bordures agrandissent les éléments *
     background-repeat: no-repeat;
 }
 
-.main-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.is-android .settings-container {
+    grid-template: 9fr 1fr / 1fr;
 }
 
-.settings-card {
-    background-color: rgba(20, 15, 10, 0.9);
-    border: 2px double #c5a059;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    padding: 40px 80px;
-    text-align: center;
-    color: #FFD700;
+.is-android #nav {
+    grid-row: 2;
+    align-self: center;
+}
+
+.is-android .main-content {
+    grid-row: 1;
+}
+.main-content {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    gap: 5vh;
+    padding: 5%;
 }
 
 h1 {
     font-family: 'HarryPotter', sans-serif;
     font-size: 4em;
     margin: 0;
+    text-align: center;
+    color: #FFD700;
 }
 
 .info {
@@ -55,3 +62,11 @@ h1 {
     letter-spacing: 2px;
     text-transform: uppercase;
 }
+
+.settings-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1em;
+}
+
