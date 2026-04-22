@@ -75,7 +75,7 @@ export class NavbarComponent extends HTMLElement {
         const helpBtn = this.querySelector('#help');
         if (helpBtn) {
             helpBtn.addEventListener('click', () => {
-                window.location.hash = 'HELP';
+                window.location.hash = 'MSHP';
             });
         }
 
