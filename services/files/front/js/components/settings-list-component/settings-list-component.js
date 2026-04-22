@@ -1,5 +1,7 @@
+import "../setting-component/setting-component.js";
 import { API_URL } from "../../../config.js";
 import { AuthService } from "../../services/AuthService.js";
+import { audioService } from "../../services/AudioService.js";
 
 export class SettingsListComponent extends HTMLElement {
   constructor() {
@@ -17,7 +19,21 @@ export class SettingsListComponent extends HTMLElement {
       ${html}
     `;
 
+    this.initializeMusicSetting();
     await this.renderLogoutAction();
+  }
+
+  initializeMusicSetting() {
+    const musicSetting = this.querySelector("#musicSetting");
+    if (!musicSetting) return;
+
+    const currentVolume = Math.round(audioService.getMusicVolume() * 100);
+    musicSetting.setValue(currentVolume);
+
+    musicSetting.onValueChange = ({ type, value }) => {
+      if (type !== "volume") return;
+      audioService.setMusicVolume(value / 100);
+    };
   }
 
   async renderLogoutAction() {
