@@ -225,29 +225,74 @@ body {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    justify-content: space-between !important;
+    justify-content: flex-start !important;
     background: rgba(20, 15, 10, 0.8) !important;
     border: 1px solid rgba(197, 160, 89, 0.5) !important;
     border-radius: 12px !important;
-    gap: clamp(6px, 2.5vw, 12px) !important;
+    gap: clamp(3px, 1vw, 5px) !important;
     min-width: 0 !important;
-}
-
-.is-android .friend-item .rank,
-.is-android .search-item .rank {
-    order: 1;
-    flex-shrink: 0;
 }
 
 .is-android .friend-item .username,
 .is-android .search-item .username {
-    order: 2;
+    order: 1;
     flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: clamp(1em, 4vw, 1.3em) !important;
+    font-size: clamp(0.95em, 3.8vw, 1.2em) !important;
+}
+
+.is-android .friend-item .rank-img,
+.is-android .search-item .rank-img {
+    order: 3;
+    flex-shrink: 0;
+}
+
+.is-android .friend-item .rank-short,
+.is-android .search-item .rank-short {
+    order: 2;
+    flex-shrink: 0;
+    font-family: 'Agency FB', sans-serif;
+    font-size: clamp(0.85em, 3.5vw, 1em);
+    color: #ffd700;
+    white-space: nowrap;
+}
+
+.is-android .friend-item #friendlyBtn,
+.is-android .add-btn,
+.is-android .accept-btn {
+    order: 5;
+    flex-shrink: 0;
+    margin-left: auto;
+    background: linear-gradient(135deg, #6b4c1e, #3d2a0e);
+    border: 1px solid #c5a059;
+    color: #ffd700;
+    padding: clamp(3px, 1vw, 5px) clamp(5px, 2vw, 9px); /* réduit */
+    font-family: 'Agency FB';
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: clamp(0.7em, 2.5vw, 0.85em); /* réduit */
+    font-weight: bold;
+    letter-spacing: 0.5px; /* réduit */
+    transition: all 0.2s;
+}
+
+.is-android .friend-item .remove-btn,
+.is-android .deny-btn {
+    order: 6;
+    flex-shrink: 0;
+    background: rgba(40, 25, 10, 0.6);
+    border: 1px solid #4a3520;
+    color: #8a6d3b;
+    padding: clamp(3px, 1vw, 5px) clamp(5px, 2vw, 9px); /* réduit */
+    font-family: 'Agency FB';
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: clamp(0.7em, 2.5vw, 0.85em); /* réduit */
+    font-weight: bold;
+    transition: all 0.2s;
 }
 
 /* Boutons mobiles — actions positives */
@@ -333,4 +378,32 @@ body {
     width: clamp(22px, 6vw, 34px) !important;
     height: auto !important;
     margin-left: 0 !important;
+}
+
+/* Titres sections */
+.is-android .section-header span:first-child {
+    font-size: clamp(1.3em, 5.2vw, 1.7em);
+}
+
+/* Compteurs */
+.is-android .count {
+    font-size: clamp(0.9em, 3.5vw, 1.2em);
+}
+
+/* Titre "Social" */
+.is-android #social-title {
+    font-size: clamp(2.7em, 10vw, 3em);
+}
+
+/* Label recherche */
+.is-android .searchbar-container input::placeholder {
+    font-size: clamp(1.3em, 4.2vw, 1.5em);
+}
+
+/* Messages vides (Aucune demande, Aucun ami...) */
+.is-android .section-content .username {
+    font-size: clamp(1.4em, 4.8vw, 1.8em) !important;
+    padding: 1rem 0;
+    text-align: center;
+    width: 100%;
 }
