@@ -114,3 +114,36 @@ button {
     from { width: 0%; }
     to { width: 100%; }
 }
+
+:host-context(.is-android) {
+    width: 80vw;
+    padding: 1.2rem 1.4rem;
+    gap: 1.5vh;
+    margin: 0 10px;
+}
+
+:host-context(.is-android) p {
+    font-size: 1em;
+    letter-spacing: 0.5px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+:host-context(.is-android) .progress-container {
+    width: 120px;
+}
+
+:host-context(.is-android) .choice-section {
+    gap: 12px;
+    margin-top: 4px;
+}
+
+:host-context(.is-android) button {
+    font-size: 0.9em;
+    padding: 8px 14px;
+}
+
+:host-context(.is-android) #revenge-req-counter {
+    margin-top: 6px;
+    font-size: 0.9em;
+}

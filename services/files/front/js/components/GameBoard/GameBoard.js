@@ -72,9 +72,9 @@ export class GameBoard extends HTMLElement {
 
     stopSocketListeners() {
         if (this.socket) {
-            this.socket.off("init-state", this.handleInitState);
-            this.socket.off("game-update", this.handleGameUpdate);
-            console.log("Écoutes socket du GameBoard arrêtées.");
+            this.socket.off("init-state", this.handleGameState);
+            this.socket.off("game-update", this.handleGameState);
+            console.log("Écoutes socket du GameBoard arrêtées proprement.");
         }
     }
 }

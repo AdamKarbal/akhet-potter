@@ -42,7 +42,6 @@ function initGlobalNotifications() {
     });
 
     socket.on("match-found", (matchInfo) => {
-        socket.off("waiting-for-opponent");
         removeWaitlist();
         console.log("Match trouvé !", matchInfo);
         localStorage.setItem('matchMode', matchInfo.isFriendly ? 'friendly' : 'ranked');
@@ -62,12 +61,15 @@ function initGlobalNotifications() {
     });
 
     socket.on("waiting-for-opponent", () => {
-        const waitlistPopup = document.createElement('waitlist-component');
-        waitlistPopup.addEventListener('cancel-search', () => {
-            socket.emit("queue-out");
-            console.log("Recherche annulée par l'utilisateur");
-        });
-        document.body.appendChild(waitlistPopup);
+        // Prevent adding multiple waitlist popups if one already exists
+        if (!document.querySelector('waitlist-component')) {
+            const waitlistPopup = document.createElement('waitlist-component');
+            waitlistPopup.addEventListener('cancel-search', () => {
+                socket.emit("queue-out");
+                console.log("Recherche annulée par l'utilisateur");
+            });
+            document.body.appendChild(waitlistPopup);
+        }
     });
 }
 
@@ -81,6 +83,7 @@ function removeWaitlist() {
 function warningToast(data) {
     const toast = document.createElement('div');
     toast.className = 'toast-warning-centered';
+    const isMobile = document.body.classList.contains('is-android');
 
     toast.style.cssText = `
         position: fixed;
@@ -90,30 +93,30 @@ function warningToast(data) {
         background: #1a0f05;
         border: 3px double #c5a059;
         color: #fff8dc;
-        padding: 30px;
+        padding: ${isMobile ? '20px 18px' : '30px'};
         border-radius: 12px;
         z-index: 10002;
         font-family: 'Agency FB', sans-serif;
         box-shadow: 0 0 50px rgba(0,0,0,0.9), 0 0 20px rgba(197, 160, 89, 0.3);
         text-align: center;
-        min-width: 300px;
+        ${isMobile ? 'width: 80vw; box-sizing: border-box;' : 'min-width: 300px;'}
         opacity: 0;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     `;
 
     toast.innerHTML = `
-        <div style="font-size: 2em; color: #d4af37; margin-bottom: 10px;">⚡</div>
-        <div style="font-size: 1.4em; margin-bottom: 20px; letter-spacing: 1px;">
+        <div style="font-size: ${isMobile ? '1.4em' : '2em'}; color: #d4af37; margin-bottom: 10px;">⚡</div>
+        <div style="font-size: ${isMobile ? '0.95em' : '1.4em'}; margin-bottom: ${isMobile ? '16px' : '20px'}; letter-spacing: 1px; line-height: 1.4;">
             ${data.message}
         </div>
         <button id="close-warning" style="
             background: #c5a059;
             color: #1a0f05;
             border: none;
-            padding: 8px 25px;
+            padding: ${isMobile ? '8px 20px' : '8px 25px'};
             font-family: 'Agency FB', sans-serif;
             font-weight: bold;
-            font-size: 1.1em;
+            font-size: ${isMobile ? '0.95em' : '1.1em'};
             border-radius: 4px;
             cursor: pointer;
             transition: transform 0.2s;
