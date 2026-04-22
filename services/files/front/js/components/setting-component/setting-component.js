@@ -4,6 +4,7 @@ class SettingComponent extends HTMLElement {
     this.onValueChange = null;
     this._boundHandleChange = this._handleChange.bind(this);
     this._fallbackText = "";
+    this._value = null;
   }
 
   static get observedAttributes() {
@@ -66,7 +67,8 @@ class SettingComponent extends HTMLElement {
      if (!container) return;
      // INFO: Modifier ici pour des composants personnalisés
      if (type === "volume") {
-       container.innerHTML = `<span class="volume-value">50</span><input type="range" min="0" max="100" value="50" data-role="control">`;
+       const currentValue = this._value ?? 50;
+       container.innerHTML = `<span class="volume-value">${currentValue}</span><input type="range" min="0" max="100" value="${currentValue}" data-role="control">`;
      } else {
        // toggle par défaut
        container.innerHTML = `<input type="checkbox" data-role="control">`;
@@ -122,6 +124,23 @@ class SettingComponent extends HTMLElement {
       detail: { type, value },
       bubbles: true
     }));
+  }
+
+  setValue(value) {
+    this._value = value;
+
+    const control = this.querySelector('[data-role="control"]');
+    if (!control) return;
+
+    if (control.type === "range") {
+      control.value = value;
+      const valueDisplay = this.querySelector(".volume-value");
+      if (valueDisplay) {
+        valueDisplay.textContent = value;
+      }
+    } else if (control.type === "checkbox") {
+      control.checked = Boolean(value);
+    }
   }
 }
 customElements.define("setting-component", SettingComponent);

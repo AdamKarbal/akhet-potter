@@ -1,5 +1,4 @@
 import "../../components/navbar-component/navbar-component.js";
-import "../../components/setting-component/setting-component.js";
 import "../../components/settings-list-component/settings-list-component.js";
 
 export class SettingsPage extends HTMLElement {
@@ -22,17 +21,6 @@ export class SettingsPage extends HTMLElement {
                 <link rel="stylesheet" href="${cssUrl.href}">
                 ${html}
             `;
-
-            const setting = this.querySelector("#musicSetting");
-            if (!setting) return;
-
-            setting.onValueChange = ({ type, value }) => {
-                console.log("Callback:", type, value);
-            };
-
-            setting.addEventListener("setting-change", (e) => {
-                console.log("Event:", e.detail.type, e.detail.value);
-            });
         } catch (error) {
             console.error("Failed to load settings page resources:", error);
         }

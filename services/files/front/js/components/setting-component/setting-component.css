@@ -64,6 +64,10 @@
     cursor: pointer;
 }
 
+.is-android .setting-control input[type="range"] {
+    width: clamp(70px, 20vw, 120px);
+}
+
 .setting-control input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -152,7 +156,7 @@
     }
 
     .setting-control input[type="range"] {
-        width: 120px;
+        width: clamp(70px, 20vw, 110px);
     }
 }
 
