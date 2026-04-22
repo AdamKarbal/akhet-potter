@@ -88,15 +88,46 @@ body {
     color: transparent;
 }
 
-.add-btn, .remove-btn, #friendlyBtn {
-    background: rgba(40, 30, 20, 0.6);
+/* ===== BOUTONS DESKTOP ===== */
+
+.add-btn, #friendlyBtn {
+    background: linear-gradient(135deg, #6b4c1e, #3d2a0e);
     border: 1px solid #c5a059;
-    color: #c5a059;
+    color: #ffd700;
     font-family: 'Agency FB', sans-serif;
     cursor: pointer;
     border-radius: 5px;
     padding: 6px 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: all 0.2s;
 }
+
+.add-btn:hover, #friendlyBtn:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 10px rgba(197, 160, 89, 0.4);
+}
+
+.remove-btn {
+    background: rgba(40, 25, 10, 0.6);
+    border: 1px solid #4a3520;
+    color: #8a6d3b;
+    font-family: 'Agency FB', sans-serif;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 6px 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+}
+
+.remove-btn:hover {
+    background: rgba(60, 35, 15, 0.8);
+    color: #c5a059;
+    border-color: #6b4c1e;
+}
+
+/* ===== MOBILE ===== */
 
 .is-android .pc-only { display: none !important; }
 .is-android .mobile-only { display: flex !important; }
@@ -219,45 +250,51 @@ body {
     font-size: clamp(1em, 4vw, 1.3em) !important;
 }
 
+/* Boutons mobiles — actions positives */
 .is-android .friend-item #friendlyBtn,
-.is-android .friend-item .remove-btn {
+.is-android .add-btn,
+.is-android .accept-btn {
     order: 3;
     flex-shrink: 0;
-    background: rgba(40, 30, 20, 0.6);
+    background: linear-gradient(135deg, #6b4c1e, #3d2a0e);
     border: 1px solid #c5a059;
-    color: #c5a059;
+    color: #ffd700;
     padding: clamp(4px, 1.5vw, 7px) clamp(8px, 3vw, 14px);
     font-family: 'Agency FB';
     border-radius: 10px;
     cursor: pointer;
     font-size: clamp(0.8em, 3vw, 0.95em);
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: all 0.2s;
 }
 
 .is-android .friend-item #friendlyBtn {
     margin-right: clamp(4px, 1.5vw, 8px);
 }
 
-.is-android .accept-btn,
-.is-android .deny-btn,
-.is-android .add-btn {
+.is-android .accept-btn {
+    margin-right: clamp(4px, 1.5vw, 8px);
+}
+
+/* Boutons mobiles — actions négatives */
+.is-android .friend-item .remove-btn,
+.is-android .deny-btn {
     order: 3;
     flex-shrink: 0;
-    background: rgba(40, 30, 20, 0.6);
-    border: 1px solid #c5a059;
-    color: #c5a059;
+    background: rgba(40, 25, 10, 0.6);
+    border: 1px solid #4a3520;
+    color: #8a6d3b;
     padding: clamp(4px, 1.5vw, 7px) clamp(8px, 3vw, 14px);
     font-family: 'Agency FB';
     border-radius: 10px;
     cursor: pointer;
     font-size: clamp(0.8em, 3vw, 0.95em);
-}
-
-.is-android .accept-btn {
-    margin-right: clamp(4px, 1.5vw, 8px);
+    font-weight: bold;
+    transition: all 0.2s;
 }
 
 .is-android .hidden-mobile { display: none !important; }
-
 
 .is-android player-rank .rank-text,
 .is-android player-rank .elo-text {
