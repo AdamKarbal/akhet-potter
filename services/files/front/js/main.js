@@ -410,57 +410,6 @@ async function replayPendingFriendRequestToasts() {
     }
 }
 
-async function bootstrapRealtimeConnection() {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-        disconnectSocket();
-        return;
-    }
-
-    try {
-        await connectSocket();
-    } catch (error) {
-        console.error("Impossible d'initialiser la socket temps réel :", error);
-    }
-}
-
-async function replayPendingFriendRequestToasts() {
-    const token = await AuthService.getValidToken();
-    if (!token) return;
-
-    try {
-        const response = await fetch(API_URL + `/api/requests`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) return;
-
-        const requests = await response.json();
-        const seen = getSeenFriendRequestSenders();
-        const pendingSenders = new Set(
-            requests.map((requestUser) => requestUser.username).filter(Boolean)
-        );
-
-        requests.forEach((requestUser) => {
-            const sender = requestUser.username;
-            if (!sender || seen.has(sender)) return;
-
-            toast({
-                from: sender,
-                message: `Nouvelle demande d'ami de ${sender} !`
-            }, "NEW_FRIEND_REQ");
-
-            seen.add(sender);
-        });
-
-        const filteredSeen = new Set([...seen].filter((sender) => pendingSenders.has(sender)));
-        setSeenFriendRequestSenders(filteredSeen);
-    } catch (error) {
-        console.error("Impossible de rejouer les demandes d'ami en attente :", error);
-    }
-}
-
 function updateView() {
     const app = document.getElementById('app');
     const hash = window.location.hash;
