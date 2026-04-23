@@ -54,7 +54,8 @@ function setupSockets(io) {
             console.log(`[SOCIAL] Demande d'ami de ${username} vers ${data.to}`);
             // Emettre vers la room personnelle du destinataire
             socket.to(`user_${data.to}`).emit('NEW_FRIEND_REQ', {
-                from: username
+                from: username,
+                message: `Nouvelle demande d'ami de ${username} !`
             });
         });
 

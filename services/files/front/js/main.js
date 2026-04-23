@@ -6,15 +6,17 @@ import './pages/request-page/request-component.js'
 import './pages/home-page/home-page.js'
 import './pages/help-page/help-page.js'
 import './pages/settings-page/settings-page.js'
-import { socket } from "./socket.js";
+import { connectSocket, disconnectSocket, socket } from "./socket.js";
 import {audioService} from "./services/AudioService.js";
 import {WaitlistComponent} from "./components/waitlist-component/waitlist-component.js";
 import './components/gameloader-component/gameloader-component.js'
 import {RequestService} from "./services/RequestService.js";
+import { AuthService } from "./services/AuthService.js";
 import './pages/achievement-page/achievement-page.js';
 import './pages/profile-page/profile-page.js'
 import './pages/mobile-settings-help-page/mobile-settings-help-page.js';
 import { HapticsService } from "./services/HapticsService.js";
+import { API_URL } from "../config.js";
 import { NotificationService } from './services/NotificationService.js';
 
 const configureAndroidStyles = async () => {
@@ -49,6 +51,7 @@ async function lockOrientation() {
 
 function initGlobalNotifications() {
     socket.on("NEW_FRIEND_REQ", (data) => {
+        markFriendRequestToastSeen(data.from);
         toast(data, "NEW_FRIEND_REQ");
         console.log(`Invitation d'ami reçue de ${data.from}`);
         NotificationService.send(
@@ -106,6 +109,30 @@ function removeWaitlist() {
     if (waitlist) {
         waitlist.remove();
     }
+}
+
+function getSeenFriendRequestSendersKey() {
+    const username = localStorage.getItem('username') || 'anonymous';
+    return `seenFriendReqToasts:${username}`;
+}
+
+function getSeenFriendRequestSenders() {
+    try {
+        return new Set(JSON.parse(localStorage.getItem(getSeenFriendRequestSendersKey()) || '[]'));
+    } catch (_) {
+        return new Set();
+    }
+}
+
+function setSeenFriendRequestSenders(seen) {
+    localStorage.setItem(getSeenFriendRequestSendersKey(), JSON.stringify([...seen]));
+}
+
+function markFriendRequestToastSeen(sender) {
+    if (!sender) return;
+    const seen = getSeenFriendRequestSenders();
+    seen.add(sender);
+    setSeenFriendRequestSenders(seen);
 }
 
 function warningToast(data) {
@@ -320,15 +347,68 @@ function toast(data, event) {
         setTimeout(() => toastEl.remove(), 2000);
     };
 
+    const autoCloseDelay = event === 'NEW_FRIEND_REQ' ? 5000 : 60000;
+
     setTimeout(() => {
         toastEl.style.opacity = '0';
         toastEl.style.transition = '0.5s';
         setTimeout(() => toastEl.remove(), 500);
-    }, 60000);
+    }, autoCloseDelay);
 }
 initGlobalNotifications();
 NotificationService.requestPermission();
 NotificationService.initListeners();
+
+async function bootstrapRealtimeConnection() {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        disconnectSocket();
+        return;
+    }
+
+    try {
+        await connectSocket();
+    } catch (error) {
+        console.error("Impossible d'initialiser la socket temps réel :", error);
+    }
+}
+
+async function replayPendingFriendRequestToasts() {
+    const token = await AuthService.getValidToken();
+    if (!token) return;
+
+    try {
+        const response = await fetch(API_URL + `/api/requests`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) return;
+
+        const requests = await response.json();
+        const seen = getSeenFriendRequestSenders();
+        const pendingSenders = new Set(
+            requests.map((requestUser) => requestUser.username).filter(Boolean)
+        );
+
+        requests.forEach((requestUser) => {
+            const sender = requestUser.username;
+            if (!sender || seen.has(sender)) return;
+
+            toast({
+                from: sender,
+                message: `Nouvelle demande d'ami de ${sender} !`
+            }, "NEW_FRIEND_REQ");
+
+            seen.add(sender);
+        });
+
+        const filteredSeen = new Set([...seen].filter((sender) => pendingSenders.has(sender)));
+        setSeenFriendRequestSenders(filteredSeen);
+    } catch (error) {
+        console.error("Impossible de rejouer les demandes d'ami en attente :", error);
+    }
+}
 
 function updateView() {
     const app = document.getElementById('app');
@@ -440,7 +520,9 @@ async function handleSplashScreen() {
     }
 }
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+    await bootstrapRealtimeConnection();
+    await replayPendingFriendRequestToasts();
     updateView();
     handleSplashScreen();
     lockOrientation();

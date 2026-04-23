@@ -256,7 +256,9 @@ io.use((socket, next) => {
 
 io.on("connection", (socket) => {
     console.log(`Joueur authentifié connecté : ${socket.data.username} (id:${socket.id})`);
-    connectedUsers.set(socket.data.username, socket.id);
+    if (socket.isAuthenticated) {
+        connectedUsers.set(socket.data.username, socket.id);
+    }
     console.log("Connected users:", Object.fromEntries(connectedUsers));
     try {
         const username = socket.data.username;
@@ -352,6 +354,9 @@ io.on("connection", (socket) => {
     });
 
     socket.on("SEND_FRIEND_REQ", (data) => {
+        if (!socket.isAuthenticated) {
+            return;
+        }
         const targetSocketId = connectedUsers.get(data.to);
         console.log(`Côté back : envoi d'une demande d'ami à ${data.to}`);
         console.log(`Username de l'envoyeur : ${socket.data.username}`);
