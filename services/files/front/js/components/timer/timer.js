@@ -17,9 +17,15 @@ export class Timer extends HTMLElement {
         `;
     }
 
-    startTimer() {
-        if (this.interval) return;
-        this.timeLeft = 20;
+    startTimer(durationMs, forceRestart = false) {
+        if (this.interval && !forceRestart) return;
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+        this.timeLeft = typeof durationMs === 'number' && durationMs > 0
+            ? Math.ceil(durationMs / 1000)
+            : 20;
         const tryStart = () => {
             const timerContainer = this.querySelector('#timer');
             if (timerContainer) {

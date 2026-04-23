@@ -6,8 +6,8 @@ import '../../components/GameBoard/GameBoard.js'
 import '../../components/AI-layout/ai-layout.js'
 import '../../components/quit-component/quit-component.js'
 import {API_URL} from "../../../config.js";
-import {audioService} from "../../services/AudioService.js";
-import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
+
+const SOCKET_IO_ESM_URL = "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
 export class JcOComponent extends HTMLElement{
     constructor() {
@@ -40,6 +40,11 @@ export class JcOComponent extends HTMLElement{
     }
 
     setupGame() {
+        this.setupGameAsync();
+    }
+
+    async setupGameAsync() {
+        const { io } = await import(SOCKET_IO_ESM_URL);
         const token = localStorage.getItem("token");
         this.socket = io(API_URL, {
             path: "/socket.io",
@@ -76,13 +81,18 @@ export class JcOComponent extends HTMLElement{
         this.socket.on("match-found", (matchInfo) => {
             this._gameId = matchInfo.gameId;
             this.socket.off("waiting-for-opponent");
+            const humanInfo = matchInfo.player1;
+            const aiInfo = {
+                ...(matchInfo.player2 || {}),
+                username: "Dumbledore"
+            };
             const pl1 = this.querySelector("#pl1");
             const pl2 = this.querySelector("#pl2");
             if (pl2 && typeof pl2.setPlayerInfo === "function") {
-                pl2.setPlayerInfo(matchInfo.player1);
+                pl2.setPlayerInfo(humanInfo);
             }
             if (pl1 && typeof pl1.setPlayerInfo === "function") {
-                pl1.setPlayerInfo(matchInfo.player2);
+                pl1.setPlayerInfo(aiInfo);
             }
 
             const gameBoard = this.querySelector("game-board");
@@ -137,9 +147,12 @@ export class JcOComponent extends HTMLElement{
                 if (this._gameEnded) return;
                 this._gameEnded = true;
                 const iWin = state && state.winner === 1;
+                const resultText = state && state.reason === 'timeout'
+                    ? (iWin ? 'Dumbledore a mis trop de temps.' : 'Tu as mis trop de temps.')
+                    : (iWin ? 'Tu as battu Dumbledore !' : 'Dumbledore a gagné cette manche.');
                 const toast = document.createElement('div');
                 toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a0f05;border:3px double #c5a059;color:#fff8dc;padding:26px;border-radius:12px;z-index:10002;font-family:\'Agency FB\',sans-serif;text-align:center;min-width:280px;';
-                toast.innerHTML = `<div style="font-size:1.7em;color:#d4af37;margin-bottom:8px;">${iWin ? 'VICTOIRE' : 'DEFAITE'}</div><div>${iWin ? 'Tu as battu l\'IA !' : 'L\'IA a gagné cette manche.'}</div>`;
+                toast.innerHTML = `<div style="font-size:1.7em;color:#d4af37;margin-bottom:8px;">${iWin ? 'VICTOIRE' : 'DEFAITE'}</div><div>${resultText}</div>`;
                 document.body.appendChild(toast);
                 setTimeout(() => {
                     if (document.body.contains(toast)) toast.remove();

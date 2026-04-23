@@ -113,11 +113,12 @@ export class HomePage extends HTMLElement{
 
             const btnJouerJcj = this.querySelector("#btn-jouer-jcj");
             if (btnJouerJcj) {
-                btnJouerJcj.onclick = () => {
-                    const token = localStorage.getItem('token');
+                btnJouerJcj.onclick = async () => {
+                    const token = await AuthService.getValidToken();
                     if(!token) { window.location.hash = 'LGN'; return; }
                     localStorage.setItem('matchMode', 'ranked');
                     console.log("on cherhce uen game");
+                    await connectSocket();
                     socket.emit("find-game");
                 };
             }
@@ -127,17 +128,37 @@ export class HomePage extends HTMLElement{
                 btnJouerJco.onclick = () => { window.location.hash = 'JCO'; };
             }
 
+            const btnJouerLocal = this.querySelector("#btn-jouer-local");
+            if (btnJouerLocal) {
+                btnJouerLocal.onclick = () => { window.location.hash = 'LOC'; };
+            }
+
             if(document.body.classList.contains('is-android')) {
                 const button = document.createElement("button");
                 button.classList.add('play-btn');
                 button.innerText = `Jouer`;
                 this.querySelector(".main-section").appendChild(button);
 
+                const applyMobilePlayButtonState = async () => {
+                    if (this.gameMode === 'JCJ' && !await AuthService.getValidToken()) {
+                        button.style.filter = "none";
+                        button.disabled = false;
+                        button.innerText = `SE CONNECTER`;
+                        return;
+                    }
+
+                    button.style.filter = "none";
+                    button.disabled = false;
+                    button.innerText = `JOUER`;
+                };
+
+                applyMobilePlayButtonState();
+
                 localsec.addEventListener("click", async () => {
                     animateText('local');
-                    button.style.filter = "grayscale(100%)";
+                    button.style.filter = "none";
                     button.innerText = `JOUER`;
-                    button.disabled = true;
+                    button.disabled = false;
                     this.gameMode = 'LOC';
                     localsec.classList.add('selected');
                     jcjsec.classList.remove('selected');
@@ -182,6 +203,10 @@ export class HomePage extends HTMLElement{
                     if (button.innerText === "SE CONNECTER") {
                         window.location.hash = 'LGN';
                     } else if (this.gameMode === 'JCJ') {
+                        if (!await AuthService.getValidToken()) {
+                            window.location.hash = 'LGN';
+                            return;
+                        }
                         localStorage.setItem('matchMode', 'ranked');
                         await connectSocket();
                         socket.emit("find-game");
@@ -215,6 +240,7 @@ export class HomePage extends HTMLElement{
         if (btnLogout) btnLogout.style.display = "flex";
         const btnJcj = this.querySelector("#btn-jouer-jcj");
         if (btnJcj) {
+            btnJcj.innerText = "Jouer";
             btnJcj.disabled = false;
             btnJcj.style.filter = '';
             btnJcj.style.pointerEvents = '';
@@ -233,9 +259,10 @@ export class HomePage extends HTMLElement{
         if (btnLogout) btnLogout.style.display = "none";
         const btnJcj = this.querySelector("#btn-jouer-jcj");
         if (btnJcj) {
-            btnJcj.disabled = true;
-            btnJcj.style.filter = 'grayscale(100%) opacity(0.5)';
-            btnJcj.style.pointerEvents = 'none';
+            btnJcj.innerText = "Se connecter";
+            btnJcj.disabled = false;
+            btnJcj.style.filter = '';
+            btnJcj.style.pointerEvents = '';
         }
     }
 
