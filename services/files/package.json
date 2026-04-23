@@ -14,9 +14,9 @@
     "@capacitor/core": "^8.3.1",
     "@capacitor/device": "^8.0.2",
     "@capacitor/haptics": "^8.0.2",
+    "@capacitor/local-notifications": "^8.0.2",
     "@capacitor/screen-orientation": "^8.0.1",
     "@capacitor/splash-screen": "^8.0.1",
-    "@capacitor/local-notifications": "^8.0.2",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
