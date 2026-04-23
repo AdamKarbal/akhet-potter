@@ -7,6 +7,15 @@ export const NotificationService = {
             return;
         }
 
+        await LocalNotifications.createChannel({
+            id: 'duel-notifications',
+            name: 'Invitations de duel/amis',
+            description: 'Notifications pour les défis et demandes d amis',
+            importance: 5,
+            visibility: 1,
+            vibration: true
+        });
+
         const status = await LocalNotifications.requestPermissions();
         if (status.display !== 'granted') {
             console.warn("Permissions de notification refusées.");
@@ -20,7 +29,7 @@ export const NotificationService = {
                     title: title,
                     body: body,
                     id: id,
-                    channelId: "default",
+                    channelId: "duel-notifications",
                     schedule: { at: new Date(Date.now() + 500) },
                     actionTypeId: "GOTO_PAGE",
                     extra: null
