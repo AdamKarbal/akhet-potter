@@ -61,3 +61,74 @@ body {
     box-shadow: 0 0 15px #ffd700;
     transform: scale(1.05);
 }
+
+.is-android body {
+    overflow: hidden;
+}
+
+.is-android .container {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    min-height: 100vh;
+    padding: 16px 16px 0;
+    gap: 16px;
+    box-sizing: border-box;
+}
+
+.is-android #nav {
+    order: 2;
+    height: auto;
+    margin-top: auto;
+    flex-shrink: 0;
+}
+
+.is-android #board-preview {
+    display: none;
+}
+
+.is-android .placeholder-board {
+    width: min(72vw, 320px);
+    border-width: 8px;
+    box-shadow: 0 0 28px rgba(0,0,0,0.75);
+}
+
+.is-android #right-aside {
+    grid-column: auto;
+    width: 100%;
+    flex: 1;
+    justify-content: center;
+    gap: 1.1rem;
+    padding-bottom: 8px;
+}
+
+.is-android #right-aside > img {
+    width: min(78vw, 320px);
+    max-width: 320px !important;
+    height: auto;
+}
+
+.is-android #right-aside p {
+    margin: 0;
+    max-width: 26ch;
+    font-size: clamp(1rem, 4.2vw, 1.2rem);
+    line-height: 1.35;
+}
+
+.is-android .button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    align-items: center;
+}
+
+.is-android .button-group br {
+    display: none;
+}
+
+.is-android .btn-hp {
+    width: min(78vw, 320px);
+    padding: 13px 20px;
+    font-size: clamp(1rem, 4vw, 1.12rem);
+}

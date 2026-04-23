@@ -1,3 +1,9 @@
+import "../setting-component/setting-component.js";
+import { API_URL } from "../../../config.js";
+import { AuthService } from "../../services/AuthService.js";
+import { audioService } from "../../services/AudioService.js";
+import { HapticsService } from "../../services/HapticsService.js";
+
 export class SettingsListComponent extends HTMLElement {
   constructor() {
     super();
@@ -13,6 +19,80 @@ export class SettingsListComponent extends HTMLElement {
       <link rel="stylesheet" href="${cssUrl}">
       ${html}
     `;
+
+    this.initializeMusicSetting();
+    this.initializeVibrationSetting();
+    await this.renderLogoutAction();
+  }
+
+  initializeMusicSetting() {
+    const musicSetting = this.querySelector("#musicSetting");
+    if (!musicSetting) return;
+
+    const currentVolume = Math.round(audioService.getMusicVolume() * 100);
+    musicSetting.setValue(currentVolume);
+
+    musicSetting.onValueChange = ({ type, value }) => {
+      if (type !== "volume") return;
+      audioService.setMusicVolume(value / 100);
+    };
+  }
+
+  initializeVibrationSetting() {
+    const vibrationSetting = this.querySelector("#vibrationSetting");
+    if (!vibrationSetting) return;
+
+    vibrationSetting.setValue(HapticsService.isEnabled());
+
+    vibrationSetting.onValueChange = ({ type, value }) => {
+      if (type !== "toggle") return;
+      HapticsService.setEnabled(value);
+    };
+  }
+
+  async renderLogoutAction() {
+    const settingsList = this.querySelector(".settings-list");
+    if (!settingsList) return;
+
+    const token = await AuthService.getValidToken();
+    const username = localStorage.getItem("username");
+
+    if (!token || !username) return;
+
+    const logoutItem = document.createElement("button");
+    logoutItem.type = "button";
+    logoutItem.className = "logout-setting";
+    logoutItem.innerHTML = `
+      <img src="assets/webp/logout.webp" alt="Déconnexion">
+      <span>Se déconnecter</span>
+    `;
+
+    logoutItem.addEventListener("click", async () => {
+      try {
+        const response = await fetch(API_URL + "/api/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          localStorage.clear();
+          window.location.hash = "LGN";
+          window.location.reload();
+          return;
+        }
+      } catch (error) {
+        console.log("Erreur lors de la déconnexion:", error);
+      }
+
+      localStorage.clear();
+      window.location.hash = "LGN";
+      window.location.reload();
+    });
+
+    settingsList.appendChild(logoutItem);
   }
 }
 

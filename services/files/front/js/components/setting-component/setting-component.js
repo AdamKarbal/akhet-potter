@@ -4,16 +4,17 @@ class SettingComponent extends HTMLElement {
     this.onValueChange = null;
     this._boundHandleChange = this._handleChange.bind(this);
     this._fallbackText = "";
+    this._value = null;
   }
 
   static get observedAttributes() {
-    return ["type", "text", "img", "img-src", "img-alt"]; // "toggle" | "volume"
+    return ["type", "text", "img", "img-src", "img-alt"];
   }
 
   async connectedCallback() {
     this._fallbackText = this.textContent.trim();
-    const htmlUrl = new URL('./setting-component.html', import.meta.url);
-    const cssUrl = new URL('./setting-component.css', import.meta.url);
+    const htmlUrl = new URL("./setting-component.html", import.meta.url);
+    const cssUrl = new URL("./setting-component.css", import.meta.url);
     const response = await fetch(htmlUrl);
     const html = await response.text();
 
@@ -27,7 +28,7 @@ class SettingComponent extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    if (name === "type" && oldValue !== newValue && this.isConnected){
+    if (name === "type" && oldValue !== newValue && this.isConnected) {
       this._renderControl();
       this._attachListeners();
       return;
@@ -60,42 +61,41 @@ class SettingComponent extends HTMLElement {
     label.textContent = text;
   }
 
-   _renderControl() {
-     const type = this.getAttribute("type") || "toggle";
-     const container = this.querySelector(".setting-control");
-     if (!container) return;
-     // INFO: Modifier ici pour des composants personnalisés
-     if (type === "volume") {
-       container.innerHTML = `<span class="volume-value">50</span><input type="range" min="0" max="100" value="50" data-role="control">`;
-     } else {
-       // toggle par défaut
-       container.innerHTML = `<input type="checkbox" data-role="control">`;
-     }
-   }
+  _renderControl() {
+    const type = this.getAttribute("type") || "toggle";
+    const container = this.querySelector(".setting-control");
+    if (!container) return;
 
-   _attachListeners() {
-     const control = this.querySelector('[data-role="control"]');
-     if (!control) return;
+    if (type === "volume") {
+      const currentValue = this._value ?? 50;
+      container.innerHTML = `<span class="volume-value">${currentValue}</span><input type="range" min="0" max="100" value="${currentValue}" data-role="control">`;
+    } else {
+      const isChecked = Boolean(this._value);
+      container.innerHTML = `<input type="checkbox" data-role="control" ${isChecked ? "checked" : ""}>`;
+    }
+  }
 
-     control.removeEventListener("change", this._boundHandleChange);
-     control.removeEventListener("input", this._boundHandleChange);
+  _attachListeners() {
+    const control = this.querySelector("[data-role='control']");
+    if (!control) return;
 
-     control.addEventListener("change", this._boundHandleChange);
-     control.addEventListener("input", this._boundHandleChange);
+    control.removeEventListener("change", this._boundHandleChange);
+    control.removeEventListener("input", this._boundHandleChange);
 
-     // Update value display for range input
-     if (control.type === "range") {
-       control.addEventListener("input", () => {
-         const valueDisplay = this.querySelector(".volume-value");
-         if (valueDisplay) {
-           valueDisplay.textContent = control.value;
-         }
-       });
-     }
+    control.addEventListener("change", this._boundHandleChange);
+    control.addEventListener("input", this._boundHandleChange);
 
-     // Si plus tard c'est un composant custom, il peut dispatcher "setting-change"
-     control.addEventListener("setting-change", this._boundHandleChange);
-   }
+    if (control.type === "range") {
+      control.addEventListener("input", () => {
+        const valueDisplay = this.querySelector(".volume-value");
+        if (valueDisplay) {
+          valueDisplay.textContent = control.value;
+        }
+      });
+    }
+
+    control.addEventListener("setting-change", this._boundHandleChange);
+  }
 
   _handleChange(event) {
     const control = event.currentTarget;
@@ -112,16 +112,32 @@ class SettingComponent extends HTMLElement {
       value = control.value;
     }
 
-    // 1) callback JS directe
     if (typeof this.onValueChange === "function") {
       this.onValueChange({ type, value, sourceEvent: event });
     }
 
-    // 2) event DOM pour le parent
     this.dispatchEvent(new CustomEvent("setting-change", {
       detail: { type, value },
       bubbles: true
     }));
   }
+
+  setValue(value) {
+    this._value = value;
+
+    const control = this.querySelector("[data-role='control']");
+    if (!control) return;
+
+    if (control.type === "range") {
+      control.value = value;
+      const valueDisplay = this.querySelector(".volume-value");
+      if (valueDisplay) {
+        valueDisplay.textContent = value;
+      }
+    } else if (control.type === "checkbox") {
+      control.checked = Boolean(value);
+    }
+  }
 }
+
 customElements.define("setting-component", SettingComponent);

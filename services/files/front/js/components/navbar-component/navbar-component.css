@@ -115,7 +115,7 @@
 .is-android #social-btn img      { content: url('../../../assets/mobile-navbar/social.png'); }
 .is-android #btn-globalchat img  { content: url('../../../assets/mobile-navbar/globalchat.png'); }
 .is-android #achievement-btn img { content: url('../../../assets/mobile-navbar/achievement.png'); }
-.is-android #help img            { content: url('../../../assets/mobile-navbar/aide.png'); }
+.is-android #help img            { content: url('../../../assets/mobile-navbar/reglages.png'); }
 .is-android #request-btn img            { content: url('../../../assets/mobile-navbar/request.png'); }
 
 .is-android .navbar > div.active {

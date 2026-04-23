@@ -814,8 +814,9 @@ io.on("connection", (socket) => {
     socket.on("disconnect", async () => {
 
         console.log(`Joueur déconnecté : ${socket.data.username}`);
-        connectedUsers.delete(socket.data.username);
-
+        if (connectedUsers.get(socket.data.username) === socket.id) {
+            connectedUsers.delete(socket.data.username);
+        }
         const index = waitingQueue.findIndex(s => s.id === socket.id);
         if (index !== -1) waitingQueue.splice(index, 1);
 
