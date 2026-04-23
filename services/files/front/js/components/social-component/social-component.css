@@ -25,7 +25,8 @@ body.is-android {
 }
 
 #nav { grid-column: 1; }
-.mobile-only { display: none !important; }
+
+.mobile-only { display: none ; }
 
 #friendsSection {
     grid-column: 2;
@@ -44,6 +45,10 @@ body.is-android {
     gap: 1.5rem;
 }
 
+.is-android #searchSection {
+    display: none;
+}
+
 #friendTitle, .searchbar-label {
     font-family: 'HarryPotter', sans-serif;
     font-size: 2em;
@@ -53,6 +58,10 @@ body.is-android {
     color: transparent;
     filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
     margin-bottom: 0.5rem;
+}
+
+.is-android #friendTitle{
+    display: none;
 }
 
 .searchbar-container { display: flex; flex-direction: column; gap: 0.8rem; }
@@ -138,12 +147,12 @@ body.is-android {
 .rank-short { display: none; }
 
 
-.is-android .pc-only { display: none !important; }
-.is-android .mobile-only { display: flex !important; }
+.is-android .pc-only { display: none ; }
+.is-android .mobile-only { display: flex ; }
 
 .is-android .soc-container {
-    display: flex !important;
-    flex-direction: column !important;
+    display: flex;
+    flex-direction: column;
     width: 100vw;
     min-height: 100vh;
 }
@@ -151,12 +160,12 @@ body.is-android {
 .is-android #nav {
     order: 2;
     width: 100%;
-    height: 70px;
-    display: block !important;
+    display: block;
     flex-shrink: 0;
 }
 
 .is-android .main-content {
+    justify-self: flex-start;
     order: 1;
     flex: 1;
     overflow-y: auto;
@@ -238,20 +247,20 @@ body.is-android {
 
 .is-android .search-item,
 .is-android .friend-item {
-    width: calc(100% - clamp(12px, 4vw, 20px)) !important;
-    margin: clamp(5px, 1.5vw, 8px) clamp(6px, 2vw, 10px) !important;
-    padding: clamp(6px, 2vw, 10px) clamp(6px, 2vw, 10px) !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    background: rgba(20, 15, 10, 0.8) !important;
-    border: 1px solid rgba(197, 160, 89, 0.5) !important;
-    border-radius: 12px !important;
-    gap: clamp(3px, 1vw, 6px) !important;
-    min-width: 0 !important;
-    overflow: hidden !important;
+    width: calc(100% - clamp(12px, 4vw, 20px)) ;
+    margin: clamp(5px, 1.5vw, 8px) clamp(6px, 2vw, 10px) ;
+    padding: clamp(6px, 2vw, 10px) clamp(6px, 2vw, 10px) ;
+    box-sizing: border-box ;
+    display: flex ;
+    flex-direction: row ;
+    align-items: center ;
+    justify-content: flex-start ;
+    background: rgba(20, 15, 10, 0.8) ;
+    border: 1px solid rgba(197, 160, 89, 0.5) ;
+    border-radius: 12px ;
+    gap: clamp(3px, 1vw, 6px) ;
+    min-width: 0 ;
+    overflow: hidden ;
 }
 
 
@@ -260,14 +269,14 @@ body.is-android {
 .is-android player-rank,
 .is-android player-rank .rankContainer,
 .is-android player-rank .userRank {
-    display: contents !important;
+    display: contents ;
 }
 
 
 
 .is-android .friend-item .username,
 .is-android .search-item .username {
-    order: 1 !important;
+    order: 1 ;
     flex: 0 0 auto;
     min-width: 0;
     overflow: hidden;
@@ -275,19 +284,19 @@ body.is-android {
     white-space: nowrap;
     max-width: 22vw;
     font-family: 'HarryPotter', sans-serif;
-    font-size: clamp(0.9em, 3.5vw, 1.1em) !important;
+    font-size: clamp(0.9em, 3.5vw, 1.1em) ;
     padding-left: 2px;
 }
 
 .is-android player-rank #userRankImg {
-    order: 2 !important;
-    width: clamp(30px, 8vw, 40px) !important;
-    height: auto !important;
+    order: 2 ;
+    width: clamp(30px, 8vw, 40px) ;
+    height: auto ;
 }
 
 .is-android .rank-short {
-    display: inline !important;
-    order: 3 !important;
+    display: inline ;
+    order: 3 ;
     flex-shrink: 0;
     font-family: 'HarryPotter', sans-serif;
     font-size: clamp(0.9em, 3.5vw, 1.05em);
@@ -296,22 +305,22 @@ body.is-android {
 }
 
 .is-android player-rank .userElo {
-    order: 4 !important;
-    display: flex !important;
-    flex-direction: row-reverse !important;
-    align-items: center !important;
-    gap: 3px !important;
+    order: 4 ;
+    display: flex ;
+    flex-direction: row-reverse ;
+    align-items: center ;
+    gap: 3px ;
 }
 
 .is-android player-rank #userVOImg {
-    width: clamp(18px, 5vw, 24px) !important;
-    height: auto !important;
-    margin-left: 0 !important;
+    width: clamp(18px, 5vw, 24px) ;
+    height: auto ;
+    margin-left: 0 ;
 }
 
 .is-android player-rank .elo-number {
     font-family: 'HarryPotter', sans-serif;
-    font-size: clamp(0.95em, 3.8vw, 1.1em) !important;
+    font-size: clamp(0.95em, 3.8vw, 1.1em) ;
     background: linear-gradient(to bottom, #FFF8DC 0%, #FFD700 50%, #8B4513 100%);
     -webkit-background-clip: text;
     background-clip: text;
@@ -322,13 +331,13 @@ body.is-android {
 
 .is-android player-rank .rank-text,
 .is-android player-rank .elo-text {
-    display: none !important;
+    display: none ;
 }
 
 .is-android .friend-item #friendlyBtn,
 .is-android .add-btn,
 .is-android .accept-btn {
-    order: 5 !important;
+    order: 5 ;
     flex-shrink: 0;
     margin-left: auto;
     background: linear-gradient(135deg, #6b4c1e, #3d2a0e);
@@ -354,7 +363,7 @@ body.is-android {
 
 .is-android .friend-item .remove-btn,
 .is-android .deny-btn {
-    order: 6 !important;
+    order: 6 ;
     flex-shrink: 0;
     margin-left: 0;
     background: linear-gradient(135deg, #4a1010, #250505);
@@ -371,16 +380,16 @@ body.is-android {
 }
 
 .is-android .hidden-mobile {
-    max-height: 0 !important;
+    max-height: 0 ;
     opacity: 0;
     overflow: hidden;
     padding-top: 0;
     padding-bottom: 0;
 }
 .is-android player-rank #userVOImg {
-    width: clamp(22px, 6vw, 34px) !important;
-    height: auto !important;
-    margin-left: 0 !important;
+    width: clamp(22px, 6vw, 34px) ;
+    height: auto ;
+    margin-left: 0 ;
 }
 
 /* Titres sections */
@@ -396,10 +405,10 @@ body.is-android {
     transform: scale(1.05);
 }
 
-.is-android .hidden-mobile { display: none !important; }
+.is-android .hidden-mobile { display: none ; }
 
 .is-android .section-content .username {
-    font-size: clamp(1.4em, 4.8vw, 1.8em) !important;
+    font-size: clamp(1.4em, 4.8vw, 1.8em) ;
     padding: 1rem 0;
     text-align: center;
     width: 100%;

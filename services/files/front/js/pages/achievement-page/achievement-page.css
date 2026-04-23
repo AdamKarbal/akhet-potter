@@ -114,7 +114,6 @@ body.is-android {
 .is-android #nav {
     order: 2;
     width: 100% !important;
-    height: 70px !important;
     flex-shrink: 0;
     display: block !important;
     z-index: 100;

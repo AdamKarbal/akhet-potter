@@ -375,7 +375,8 @@ body.is-android {
     padding-left: 4vw;
     grid-row: 1;
     gap:5vw;
-    width: fit-content;
+    min-width: 80vw;
+    max-width: 90vw;
 }
 
 .rank, .username-card, .prog{
