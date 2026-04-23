@@ -5,6 +5,21 @@ body {
     color: white;
 }
 
+body.is-android,
+body.is-android *:not(input):not(textarea):not(select):not([contenteditable="true"]) {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body.is-android img,
+body.is-android svg,
+body.is-android video {
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
 /* Panneau du haut */
 .ui-panel {
     text-align: center;
