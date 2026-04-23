@@ -489,6 +489,7 @@ io.on("connection", (socket) => {
 
             const game = aiManager.games.get(matchInfo.gameId);
             if (game) {
+                game.engine.startTurnTimer();
                 socket.emit("init-state", engineStateWithRemaining(game.engine));
                 // Relancer le timer côté backend si c'est le tour du joueur reconnecté
                 unlockAchievement(socket.handshake.auth?.token, "play_ai");

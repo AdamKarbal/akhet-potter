@@ -516,7 +516,7 @@ async function replayPendingFriendRequestToasts() {
 async function updateView() {
     const app = document.getElementById('app');
     const hash = window.location.hash;
-    configureAndroidStyles();
+    await configureAndroidStyles();
     if (hash === '#JCJ') {
         console.log("Mode JcJ activé");
         audioService.stopMainTheme();

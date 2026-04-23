@@ -413,3 +413,33 @@ body.is-android {
     text-align: center;
     width: 100%;
 }
+
+@media (max-width: 767px) {
+    .pc-only {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: flex !important;
+    }
+
+    .soc-container {
+        display: flex;
+        flex-direction: column;
+        width: 100vw;
+        min-height: 100vh;
+    }
+
+    #nav {
+        order: 2;
+        width: 100%;
+        display: block;
+        flex-shrink: 0;
+    }
+
+    .main-content {
+        order: 1;
+        flex: 1;
+        width: 100%;
+    }
+}
