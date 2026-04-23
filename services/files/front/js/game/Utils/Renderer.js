@@ -211,7 +211,9 @@ export class Renderer {
             ctx.shadowColor = "black";
             ctx.shadowBlur = 4;
             ctx.fillText("↻", cx, cy);
-            this.drawCheckmarkButton(ctx, x, y);
+            if (!document.body.classList.contains('is-android')) {
+                this.drawCheckmarkButton(ctx, x, y);
+            }
             ctx.restore();
             return;
         }
@@ -231,7 +233,9 @@ export class Renderer {
             ctx.shadowColor = "black";
             ctx.shadowBlur = 4;
             ctx.fillText("↻", x + this.cellWidth / 2, y + this.cellHeight / 2);
-            this.drawCheckmarkButton(ctx, x, y);
+            if (!document.body.classList.contains('is-android')) {
+                this.drawCheckmarkButton(ctx, x, y);
+            }
             ctx.restore();
             return;
         }

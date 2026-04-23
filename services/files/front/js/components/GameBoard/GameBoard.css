@@ -1,9 +1,7 @@
 :host {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
+    display: block;
+    height: 75vh;
+    width: auto;
     padding: 5px;
     padding-bottom: 15px;
     box-sizing: border-box;
@@ -11,14 +9,11 @@
 
 .board-wrapper {
     position: relative;
-
-    height: 75vh;
-
+    height: 100%;
     width: auto;
-
     aspect-ratio: 1024 / 851;
-
     max-width: 90vw;
+    margin: 0 auto;
 
     border: 5px solid #4a3b2a;
     box-shadow: 0 0 20px rgba(0,0,0,0.8);
@@ -33,29 +28,51 @@ canvas {
     height: 100%;
 }
 
-/* Z-Index */
 #layer-board  { z-index: 1; }
 #layer-pieces { z-index: 2; }
 #layer-vfx    { z-index: 3; cursor: crosshair; }
 
 
-:host {
-    /* Le composant se comporte comme un bloc qui a une taille */
-    display: block;
-    /* C'est ICI qu'on définit la taille du jeu */
-    height: 75vh; /* 75% de la hauteur de l'écran */
-    width: auto;  /* La largeur s'adaptera au ratio */
+
+#mobile-validate-btn {
+    display: none;
 }
 
-.board-wrapper {
-    position: relative;
-    height: 100%; /* Remplit le host (75vh) */
-    width: auto;  /* Laisse le ratio décider */
-
-    /* Le ratio important (si tu veux un carré parfait, mets 1 / 1) */
-    aspect-ratio: 1024 / 851;
-
-    /* Ta bordure interne (optionnel) */
-    background-color: #000;
+:host-context(.is-android) #mobile-validate-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-family: 'Agency FB', sans-serif;
+    font-size: 1.2em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    z-index: 10000;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: linear-gradient(135deg, #6b4c1e, #3d2a0e);
+    color: #ffd700;
+    border: 2px solid #c5a059;
+    opacity: 0.6;
+    filter: grayscale(80%);
+    pointer-events: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
+:host-context(.is-android) #mobile-validate-btn.active {
+    opacity: 1;
+    filter: grayscale(0%);
+    pointer-events: auto;
+    border-color: #ffd700;
+    box-shadow: 0 0 15px #d4af37, inset 0 0 10px rgba(212, 175, 55, 0.4);
+    transform: scale(1.05);
+}
+
+:host-context(.is-android) #mobile-validate-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 5px #d4af37;
+}
