@@ -1,5 +1,6 @@
 import '../global-chat-component/global-chat-component.js'
 import {API_URL} from "../../../config.js";
+import { NotificationService } from "../../services/NotificationService.js";
 
 export class NavbarComponent extends HTMLElement {
     constructor() {
@@ -101,7 +102,7 @@ export class NavbarComponent extends HTMLElement {
 
                     if (response.ok) {
                         window.location.hash = 'LGN';
-                        localStorage.clear();
+                        NotificationService.clearLocalStoragePreservingSetting();
                         window.location.reload();
                     }
                 } catch (error) {

@@ -3,6 +3,7 @@ import { API_URL } from "../../../config.js";
 import { AuthService } from "../../services/AuthService.js";
 import { audioService } from "../../services/AudioService.js";
 import { HapticsService } from "../../services/HapticsService.js";
+import { NotificationService } from "../../services/NotificationService.js";
 
 export class SettingsListComponent extends HTMLElement {
   constructor() {
@@ -22,6 +23,7 @@ export class SettingsListComponent extends HTMLElement {
 
     this.initializeMusicSetting();
     this.initializeVibrationSetting();
+    this.initializeNotificationSetting();
     await this.renderLogoutAction();
   }
 
@@ -47,6 +49,19 @@ export class SettingsListComponent extends HTMLElement {
     vibrationSetting.onValueChange = ({ type, value }) => {
       if (type !== "toggle") return;
       HapticsService.setEnabled(value);
+    };
+  }
+
+  initializeNotificationSetting() {
+    const notifySetting = this.querySelector("#notifySetting");
+    if (!notifySetting) return;
+
+    notifySetting.setValue(NotificationService.isEnabled());
+
+    notifySetting.onValueChange = ({ type, value }) => {
+      if (type !== "toggle") return;
+      NotificationService.setEnabled(value);
+      if (value) NotificationService.requestPermission();
     };
   }
 
@@ -78,7 +93,7 @@ export class SettingsListComponent extends HTMLElement {
         });
 
         if (response.ok) {
-          localStorage.clear();
+          NotificationService.clearLocalStoragePreservingSetting();
           window.location.hash = "LGN";
           window.location.reload();
           return;
@@ -87,7 +102,7 @@ export class SettingsListComponent extends HTMLElement {
         console.log("Erreur lors de la déconnexion:", error);
       }
 
-      localStorage.clear();
+      NotificationService.clearLocalStoragePreservingSetting();
       window.location.hash = "LGN";
       window.location.reload();
     });

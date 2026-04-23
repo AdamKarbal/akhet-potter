@@ -2,6 +2,7 @@ import "../../components/navbar-component/navbar-component.js";
 import "../../components/progression-bar/progression-bar.js";
 import { API_URL } from "../../../config.js";
 import { AuthService } from "../../services/AuthService.js";
+import { NotificationService } from "../../services/NotificationService.js";
 
 export class MobileSettingsHelpPage extends HTMLElement {
   constructor() {
@@ -63,7 +64,7 @@ export class MobileSettingsHelpPage extends HTMLElement {
         const currentUser = users?.[0];
 
         if (!currentUser) {
-          localStorage.clear();
+          NotificationService.clearLocalStoragePreservingSetting();
           this.fillUserInfo();
           return;
         }

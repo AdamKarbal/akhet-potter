@@ -2,6 +2,7 @@ import {API_URL} from "../../../config.js";
 import { AuthService } from "../../services/AuthService.js";
 import { RankProgressBar} from "../../components/progression-bar/progression-bar.js";
 import { NavbarComponent} from "../../components/navbar-component/navbar-component.js";
+import { NotificationService } from "../../services/NotificationService.js";
 
 export class ProfilePage extends HTMLElement {
     constructor() {
@@ -142,7 +143,7 @@ export class ProfilePage extends HTMLElement {
                 console.log("user", u);
 
                 if (!u) {
-                    localStorage.clear();
+                    NotificationService.clearLocalStoragePreservingSetting();
                     return;
                 }
                 this.fillUserInfo(u.rank, u.elo, u.username);

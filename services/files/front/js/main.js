@@ -521,6 +521,7 @@ async function handleSplashScreen() {
 }
 
 window.addEventListener('load', async () => {
+    NotificationService.syncNativeSetting();
     await NotificationService.requestPermission();
     NotificationService.initListeners();
     await bootstrapRealtimeConnection();
