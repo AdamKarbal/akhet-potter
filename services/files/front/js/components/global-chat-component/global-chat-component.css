@@ -58,15 +58,19 @@
     font-size: 1.1em;
 }
 
-.is-android #header {
+#header {
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 10px;
+    margin: 0;
+    padding: 0;
 }
-.is-android #global-input, .is-android #global-send {
-    font-size: 1em;
+
+#chat-title {
+    margin: 0;
+    padding: 0;
 }
 
 .chat-header {
@@ -134,4 +138,3 @@
     margin-left: 5px;
     border-radius: 4px;
 }
-
