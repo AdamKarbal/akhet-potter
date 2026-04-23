@@ -11,6 +11,12 @@ body {
     margin: 0;
 }
 
+body.is-android {
+    background: url('/assets/background1v1.webp') no-repeat center center / cover;
+    min-height: 100vh;
+    margin: 0;
+}
+
 .soc-container {
     display: grid;
     grid-template-columns: 10% 45% 45%;

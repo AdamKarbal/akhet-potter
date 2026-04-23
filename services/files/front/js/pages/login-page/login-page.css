@@ -9,6 +9,12 @@ body {
     overflow: hidden;
 }
 
+body.is-android {
+    background: url('/assets/background1v1.webp') no-repeat center center / cover;
+    min-height: 100vh;
+    margin: 0;
+}
+
 .container {
     display: grid;
     grid-template-columns: 80px 1fr 1fr;

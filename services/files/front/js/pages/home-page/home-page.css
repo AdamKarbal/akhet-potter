@@ -5,11 +5,17 @@
 
 body {
     background-image: url("/assets/background1v1.webp");
-    background-size: 100% 100%;
+    background-size: cover;
     background-repeat: no-repeat;
     min-height: 100vh;
     margin: 0;
 }
+
+body.is-android {
+       background: url('/assets/background1v1.webp') no-repeat center center / cover;
+       min-height: 100vh;
+       margin: 0;
+   }
 
 .home-container {
     display: grid;
@@ -366,7 +372,10 @@ body {
 }
 
 .is-android .user-rank{
+    padding-left: 4vw;
     grid-row: 1;
+    gap:5vw;
+    width: fit-content;
 }
 
 .rank, .username-card, .prog{

@@ -11,6 +11,12 @@ body {
     margin: 0;
 }
 
+body.is-android {
+    background: url('/assets/background1v1.webp') no-repeat center center / cover;
+    min-height: 100vh;
+    margin: 0;
+}
+
 .is-android .profile-container {
     display: grid;
     grid-template-rows: 90% 10%;

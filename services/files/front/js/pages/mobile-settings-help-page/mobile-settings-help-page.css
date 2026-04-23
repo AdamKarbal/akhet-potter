@@ -26,6 +26,12 @@ html, body {
 }
 
 .is-android .mobile-settings-help-container {
+    background: url('/assets/background1v1.webp') no-repeat center center / cover;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.is-android .mobile-settings-help-container {
     grid-template: 9fr 1fr / 1fr;
 }
 
