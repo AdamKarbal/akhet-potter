@@ -32,8 +32,6 @@ canvas {
 #layer-pieces { z-index: 2; }
 #layer-vfx    { z-index: 3; cursor: crosshair; }
 
-
-
 #mobile-validate-btn {
     display: none;
 }
@@ -54,9 +52,9 @@ canvas {
     letter-spacing: 1px;
     z-index: 10000;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    background: linear-gradient(135deg, #6b4c1e, #3d2a0e);
-    color: #ffd700;
-    border: 2px solid #c5a059;
+    background: linear-gradient(135deg, #1e6b4c, #0e3d2a);
+    color: #e0f2f1;
+    border: 2px solid #1e6b4c;
     opacity: 0.6;
     filter: grayscale(80%);
     pointer-events: none;
@@ -67,12 +65,12 @@ canvas {
     opacity: 1;
     filter: grayscale(0%);
     pointer-events: auto;
-    border-color: #ffd700;
-    box-shadow: 0 0 15px #d4af37, inset 0 0 10px rgba(212, 175, 55, 0.4);
+    border-color: #26a69a;
+    box-shadow: 0 0 15px #26a69a, inset 0 0 10px rgba(38, 166, 154, 0.4);
     transform: scale(1.05);
 }
 
 :host-context(.is-android) #mobile-validate-btn:active {
     transform: scale(0.95);
-    box-shadow: 0 0 5px #d4af37;
+    box-shadow: 0 0 5px #26a69a;
 }
