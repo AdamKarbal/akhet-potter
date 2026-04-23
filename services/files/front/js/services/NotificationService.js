@@ -1,8 +1,12 @@
-const { LocalNotifications } = Capacitor.Plugins;
+const LocalNotifications = window.Capacitor?.Plugins?.LocalNotifications;
 
 export const NotificationService = {
-    // Demander les permissions au démarrage
     async requestPermission() {
+        if (!LocalNotifications) {
+            console.log("[Notifications] Désactivées (Mode Web)");
+            return;
+        }
+
         const status = await LocalNotifications.requestPermissions();
         if (status.display !== 'granted') {
             console.warn("Permissions de notification refusées.");
@@ -18,7 +22,6 @@ export const NotificationService = {
                     id: id,
                     channelId: "default",
                     schedule: { at: new Date(Date.now() + 500) },
-                    sound: 'beep.wav', // Assure-toi d'avoir ce fichier dans assets/res/raw sur Android
                     actionTypeId: "GOTO_PAGE",
                     extra: null
                 }
@@ -27,8 +30,8 @@ export const NotificationService = {
     },
 
     initListeners() {
+        if (!LocalNotifications) return;
         LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
-            // Logique de redirection si besoin
             console.log('Notification cliquée:', action.notification);
         });
     }
