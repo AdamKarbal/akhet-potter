@@ -18,19 +18,29 @@ class AudioService {
         this.setMusicVolume(initialVolume);
 
         document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState !== "visible") return;
-            if (this.isMainThemePlayed) this.playMainTheme();
-            if (this.isIngameThemePlayed) this.playInGameTheme();
+            if (document.visibilityState === "visible") {
+                this.resumeActiveThemes();
+            } else {
+                this.pauseAllThemes();
+            }
         });
 
         document.addEventListener("resume", () => {
-            if (this.isMainThemePlayed) this.playMainTheme();
-            if (this.isIngameThemePlayed) this.playInGameTheme();
+            this.resumeActiveThemes();
+        });
+        document.addEventListener("pause", () => this.pauseAllThemes());
+        window.addEventListener("pagehide", () => this.pauseAllThemes());
+        window.addEventListener("beforeunload", () => this.pauseAllThemes());
+        window.addEventListener("blur", () => {
+            if (this._isMobileApp()) this.pauseAllThemes();
+        });
+        window.addEventListener("focus", () => {
+            if (this._isMobileApp()) this.resumeActiveThemes();
         });
     }
 
     playMainTheme() {
-        if (!this.isMainThemePlayed) {
+        if (!this.isMainThemePlayed || this.mainTheme.paused) {
             this._playWithRetry(this.mainTheme);
         }
         this.isMainThemePlayed = true;
@@ -45,7 +55,7 @@ class AudioService {
     }
 
     playInGameTheme() {
-        if (!this.isIngameThemePlayed) {
+        if (!this.isIngameThemePlayed || this.inGameTheme.paused) {
             this._playWithRetry(this.inGameTheme);
         }
         this.isIngameThemePlayed = true;
@@ -76,6 +86,17 @@ class AudioService {
 
     getMusicVolume() {
         return this.mainTheme.volume;
+    }
+
+    pauseAllThemes() {
+        clearTimeout(this._retryTimeout);
+        this.mainTheme.pause();
+        this.inGameTheme.pause();
+    }
+
+    resumeActiveThemes() {
+        if (this.isMainThemePlayed) this._playWithRetry(this.mainTheme);
+        if (this.isIngameThemePlayed) this._playWithRetry(this.inGameTheme);
     }
 
     _isMobileApp() {

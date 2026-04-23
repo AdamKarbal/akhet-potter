@@ -1,5 +1,6 @@
 import './pages/match-page/match-page.js'
 import './pages/vsordi-page/vsordi-page.js'
+import './pages/local-page/local-page.js'
 import './pages/login-page/login-page.js'
 import './components/social-component/social-component.js'
 import './pages/request-page/request-component.js'
@@ -18,6 +19,108 @@ import './pages/mobile-settings-help-page/mobile-settings-help-page.js';
 import { HapticsService } from "./services/HapticsService.js";
 import { API_URL } from "../config.js";
 import { NotificationService } from './services/NotificationService.js';
+
+const originalFetch = window.fetch.bind(window);
+const localViewCache = new Map();
+
+function isCacheableViewRequest(resource, options = {}) {
+    const method = (options.method || "GET").toUpperCase();
+    if (method !== "GET") return false;
+
+    const url = new URL(typeof resource === "string" ? resource : resource.url, window.location.href);
+    if (url.origin !== window.location.origin) return false;
+    return url.pathname.endsWith(".html") || url.pathname.endsWith(".css");
+}
+
+window.fetch = async (resource, options = {}) => {
+    if (!isCacheableViewRequest(resource, options)) {
+        return originalFetch(resource, options);
+    }
+
+    const url = new URL(typeof resource === "string" ? resource : resource.url, window.location.href).href;
+    if (!localViewCache.has(url)) {
+        localViewCache.set(url, originalFetch(resource, options).then((response) => {
+            if (!response.ok) {
+                localViewCache.delete(url);
+            }
+            return response;
+        }));
+    }
+
+    const response = await localViewCache.get(url);
+    return response.clone();
+};
+
+const COMMON_VIEW_RESOURCES = [
+    "/js/components/navbar-component/navbar-component.html",
+    "/js/components/navbar-component/navbar-component.css",
+    "/js/components/quit-component/quit-component.html",
+    "/js/components/quit-component/quit-component.css",
+    "/js/components/player-layout/player-layout.html",
+    "/js/components/player-layout/player-layout.css",
+    "/js/components/timer/timer.html",
+    "/js/components/timer/timer.css",
+    "/js/components/userInfo/userInfo.html",
+    "/js/components/userInfo/userInfo.css",
+    "/js/components/rank/userRank.html",
+    "/js/components/rank/userRank.css",
+    "/js/components/player-inventory/player-inventory.html",
+    "/js/components/player-inventory/player-inventory.css"
+];
+
+const VIEW_RESOURCES = {
+    "#JCJ": ["/js/pages/match-page/match-page.html", "/js/pages/match-page/match-page.css", "/js/components/GameBoard/GameBoard.html", "/js/components/GameBoard/GameBoard.css", "/js/components/chat-component/chat-component.html", "/js/components/chat-component/chat-component.css"],
+    "#JCO": ["/js/pages/vsordi-page/vsordi-page.html", "/js/pages/vsordi-page/vsordi-page.css", "/js/components/GameBoard/GameBoard.html", "/js/components/GameBoard/GameBoard.css"],
+    "#LOC": ["/js/pages/local-page/local-page.html", "/js/pages/local-page/local-page.css", "/js/components/GameBoard/GameBoard.html", "/js/components/GameBoard/GameBoard.css"],
+    "#HELP": ["/js/pages/help-page/help-page.html", "/js/pages/help-page/help-page.css"],
+    "#SETTINGS": ["/js/pages/settings-page/settings-page.html", "/js/pages/settings-page/settings-page.css"],
+    "#SOC": ["/js/components/social-component/social-component.html", "/js/components/social-component/social-component.css"],
+    "#LGN": ["/js/pages/login-page/login-page.html", "/js/pages/login-page/login-page.css"],
+    "#REQ": ["/js/pages/request-page/request-page.html", "/js/pages/request-page/request-page.css"],
+    "#MSHP": ["/js/pages/mobile-settings-help-page/mobile-settings-help-page.html", "/js/pages/mobile-settings-help-page/mobile-settings-help-page.css"],
+    "#PROF": ["/js/pages/profile-page/profile-page.html", "/js/pages/profile-page/profile-page.css"],
+    "#SUCCES": ["/js/pages/achievement-page/achievement-page.html", "/js/pages/achievement-page/achievement-page.css"],
+    "": ["/js/pages/home-page/home-page.html", "/js/pages/home-page/home-page.css"]
+};
+
+async function preloadViewResources(hash) {
+    const resources = [...COMMON_VIEW_RESOURCES, ...(VIEW_RESOURCES[hash] || VIEW_RESOURCES[""])];
+    await Promise.allSettled(resources.map((path) => fetch(path)));
+}
+
+function getViewTransitionMask() {
+    let mask = document.getElementById("view-transition-mask");
+    if (!mask) {
+        mask = document.createElement("div");
+        mask.id = "view-transition-mask";
+        mask.setAttribute("aria-hidden", "true");
+        document.body.appendChild(mask);
+    }
+    return mask;
+}
+
+function waitForViewPaint() {
+    return new Promise((resolve) => {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                window.setTimeout(resolve, 140);
+            });
+        });
+    });
+}
+
+async function setView(app, markup, hash) {
+    const mask = getViewTransitionMask();
+    mask.classList.add("active");
+    app.classList.add("view-loading");
+    await preloadViewResources(hash);
+    app.innerHTML = markup;
+    await waitForViewPaint();
+    app.classList.remove("view-loading");
+    window.setTimeout(() => {
+        mask.classList.remove("active");
+    }, 60);
+}
 
 const configureAndroidStyles = async () => {
     try {
@@ -410,7 +513,7 @@ async function replayPendingFriendRequestToasts() {
     }
 }
 
-function updateView() {
+async function updateView() {
     const app = document.getElementById('app');
     const hash = window.location.hash;
     configureAndroidStyles();
@@ -418,19 +521,25 @@ function updateView() {
         console.log("Mode JcJ activé");
         audioService.stopMainTheme();
         audioService.playInGameTheme();
-        app.innerHTML = '';
-        app.innerHTML = '<match-page></match-page>';
+        await setView(app, '<match-page></match-page>', hash);
 
     }
     else if ( hash === '#SUCCES') {
-        app.innerHTML = '<achievement-page></achievement-page>';
+        await setView(app, '<achievement-page></achievement-page>', hash);
     }
     else if (hash === '#JCO') {
         audioService.stopMainTheme();
         audioService.playInGameTheme();
         console.log("Mode JcO activé");
-        app.innerHTML = '';
-        app.innerHTML = '<vsordi-page></vsordi-page>';
+        await setView(app, '<vsordi-page></vsordi-page>', hash);
+
+    }
+    else if (hash === '#LOC') {
+        audioService.stopMainTheme();
+        audioService.playInGameTheme();
+        disconnectSocket();
+        console.log("Mode local active");
+        await setView(app, '<local-page></local-page>', hash);
 
     }
 
@@ -438,57 +547,51 @@ function updateView() {
         audioService.stopInGameTheme();
         audioService.playMainTheme();
         console.log("Page aide activée");
-        app.innerHTML = '<help-page></help-page>';
+        await setView(app, '<help-page></help-page>', hash);
     }
 
     else if (hash === '#SETTINGS') {
         audioService.stopInGameTheme();
         audioService.playMainTheme();
-        app.innerHTML = '<settings-page></settings-page>';
+        await setView(app, '<settings-page></settings-page>', hash);
     }
 
     else if(hash === '#SOC'){
         audioService.stopInGameTheme();
         audioService.playMainTheme();
         console.log("Page sociale activée");
-        app.innerHTML = '';
-        app.innerHTML = '<social-component></social-component>';
+        await setView(app, '<social-component></social-component>', hash);
     }
     else if (hash === '#LGN') {
         audioService.stopInGameTheme();
         audioService.playMainTheme();
         console.log("Page login activé");
-        app.innerHTML = '';
-        app.innerHTML = '<login-page></login-page>';
+        await setView(app, '<login-page></login-page>', hash);
     }
     else if (hash === '#REQ') {
         audioService.stopInGameTheme();
         audioService.playMainTheme();
         console.log("Page demande d'amis activé");
-        app.innerHTML = '';
-        app.innerHTML = '<request-component></request-component>';
+        await setView(app, '<request-component></request-component>', hash);
     }
     else if (hash === '#MSHP') {
         audioService.stopInGameTheme();
         audioService.playMainTheme();
         console.log("Page mobile settings/help activé");
-        app.innerHTML = '';
-        app.innerHTML = '<mobile-settings-help-page></mobile-settings-help-page>';
+        await setView(app, '<mobile-settings-help-page></mobile-settings-help-page>', hash);
     }
     else if (hash === '#PROF'){
         audioService.stopInGameTheme();
         audioService.playMainTheme();
         console.log("Page profil du joueur activée");
-        app.innerHTML = '';
-        app.innerHTML = '<profile-page></profile-page>';
+        await setView(app, '<profile-page></profile-page>', hash);
     }
     else {
         audioService.stopInGameTheme();
         audioService.playMainTheme();
-        app.innerHTML = '';
-        app.innerHTML = `
+        await setView(app, `
             <home-page></home-page>
-        `;
+        `, "");
     }
 }
 

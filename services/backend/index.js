@@ -169,6 +169,27 @@ function finishTrackedGame(gameId) {
     gameModes.delete(gameId);
 }
 
+function attachTimeoutHandler(gameId, manager) {
+    const game = manager.games.get(gameId);
+    if (!game?.engine) return;
+
+    game.engine.onTimeoutCallback = (winner) => {
+        const state = engineStateWithRemaining(game.engine);
+        io.to(gameId).emit("game-update", state);
+        io.to(gameId).emit("game-over", {
+            ...state,
+            winner,
+            reason: "timeout",
+            message: winner === 1 ? "Dumbledore a mis trop de temps." : "Tu as mis trop de temps."
+        });
+
+        const {mode} = getManagerForGame(gameId);
+        if (mode === GAME_MODE.AI) {
+            finishTrackedGame(gameId);
+        }
+    };
+}
+
 function finalizeProcessingTurn(game) {
     if (!game?.engine) return null;
     game.engine.isProcessingTurn = false;
@@ -427,6 +448,7 @@ io.on("connection", (socket) => {
                 };
 
                 pvpManager.createGame(matchInfo.gameId, player1, player2, matchInfo.isFriendly);
+                attachTimeoutHandler(matchInfo.gameId, pvpManager);
                 player1.emit("match-found", matchInfo);
                 player2.emit("match-found", matchInfo);
                 const created = pvpManager.games.get(matchInfo.gameId);
@@ -452,7 +474,7 @@ io.on("connection", (socket) => {
                 rank: socket.data.rank
             },
             player2: {
-                username: "Bot",
+                username: "Dumbledore",
                 elo: 0,
                 rank: "N/A"
             }
@@ -461,6 +483,7 @@ io.on("connection", (socket) => {
         try {
             await aiManager.createGame(matchInfo.gameId, socket.id, null);
             gameModes.set(matchInfo.gameId, GAME_MODE.AI);
+            attachTimeoutHandler(matchInfo.gameId, aiManager);
             socket.join(matchInfo.gameId);
             socket.emit("match-found", matchInfo);
 

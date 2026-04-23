@@ -5,6 +5,46 @@ body {
     color: white;
 }
 
+#app {
+    min-height: 100vh;
+}
+
+#app.view-loading {
+    visibility: hidden;
+}
+
+#view-transition-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 999998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: url('assets/background1v1.webp') no-repeat center center / cover;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+}
+
+#view-transition-mask.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#view-transition-mask::before {
+    content: "";
+    width: min(42vw, 180px);
+    aspect-ratio: 1;
+    background: url('assets/logo.webp') no-repeat center center / contain;
+    filter: drop-shadow(0 0 18px rgba(255, 215, 0, 0.42));
+    animation: viewMaskPulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes viewMaskPulse {
+    from { transform: scale(0.98); opacity: 0.78; }
+    to { transform: scale(1.04); opacity: 1; }
+}
+
 @font-face {
     font-family: 'Agency FB';
     src: url('../assets/fonts/AGENCYR.TTF') format('truetype');
