@@ -94,6 +94,8 @@ export class SOCIALComponent extends HTMLElement {
     }
 
     displayResults(users) {
+        const isMobile = document.body.classList.contains('is-android');
+
         ['#searchResultsPC', '#searchResultsMobile'].forEach(sel => {
             const container = this.querySelector(sel);
             if (!container) return;
@@ -110,12 +112,20 @@ export class SOCIALComponent extends HTMLElement {
                 div.className = 'search-item';
                 const isFriend = this.friendList.some(f => f.username === user.username);
 
-                div.innerHTML = `
+                if (isMobile) {
+                    div.innerHTML = `
                     <span class="username">${user.username}</span>
-                    <span class="rank-img"><player-rank></player-rank></span>
+                    <span class="rank"><player-rank></player-rank></span>
                     <span class="rank-short">${this.RANK_SHORT[user.rank] ?? "?"}</span>
                     ${isFriend ? '' : '<button class="add-btn">+ Ajouter</button>'}
                 `;
+                } else {
+                    div.innerHTML = `
+                    <span class="username">${user.username}</span>
+                    <span class="rank"><player-rank></player-rank></span>
+                    ${isFriend ? '' : '<button class="add-btn">+ Ajouter</button>'}
+                `;
+                }
 
                 const btn = div.querySelector('.add-btn');
                 if (btn) btn.addEventListener('click', () => this.sendFriendRequest(user.username, btn));
@@ -186,35 +196,46 @@ export class SOCIALComponent extends HTMLElement {
     }
 
     renderFriends(friends, container) {
+        const isMobile = document.body.classList.contains('is-android');
         container.innerHTML = '';
 
         if (friends.length === 0) {
             container.innerHTML = `<div class="username" style="font-size:0.9em;opacity:0.5;text-align:center;padding:1rem;">
-                Aucun ami pour l'instant...
-            </div>`;
+            Aucun ami pour l'instant...
+        </div>`;
             return;
         }
 
         friends.forEach(friend => {
             const div = document.createElement('div');
             div.className = 'friend-item';
-            div.innerHTML = `
-                    <span class="username">${friend.username}</span>
-                    <span class="rank-img"><player-rank></player-rank></span>
-                    <span class="rank-short"></span>
-                    <button id="friendlyBtn">Défier</button>
-                    <button class="remove-btn">Retirer</button>
-                `;
+
+            if (isMobile) {
+                div.innerHTML = `
+                <span class="username">${friend.username}</span>
+                <span class="rank"><player-rank></player-rank></span>
+                <span class="rank-short">${this.RANK_SHORT[friend.rank] ?? "?"}</span>
+                <button id="friendlyBtn">Défier</button>
+                <button class="remove-btn">Retirer</button>
+            `;
+            } else {
+                div.innerHTML = `
+                <span class="username">${friend.username}</span>
+                <span class="rank"><player-rank></player-rank></span>
+                <button id="friendlyBtn">Défier</button>
+                <button class="remove-btn">Retirer</button>
+            `;
+            }
+
             const friendlyBtn = div.querySelector('#friendlyBtn');
             friendlyBtn.addEventListener('click', () => {
                 friendlyBtn.innerHTML = '...';
                 friendlyBtn.disabled = true;
                 socket.emit('invite-friendly', { to: friend.username });
-                socket.once('invitation-sent', () => {
-                    friendlyBtn.innerHTML = 'Défié !';
-                });
+                socket.once('invitation-sent', () => { friendlyBtn.innerHTML = 'Défié !'; });
                 localStorage.setItem('matchMode', 'friendly');
             });
+
             div.querySelector('.remove-btn').addEventListener('click', async () => {
                 const success = await RequestService.deleteFriend(friend.username);
                 if (success) {
@@ -224,21 +245,16 @@ export class SOCIALComponent extends HTMLElement {
                     const inputMobile = this.querySelector('#inputMobile');
                     const currentQuery = (inputPC?.value || inputMobile?.value || '').trim();
                     if (currentQuery.length >= 2) this.executeSearch(currentQuery);
-
                     window.dispatchEvent(new Event('friendlist-changed'));
                     const count = this.querySelector('#friendCount');
                     if (count) count.innerText = parseInt(count.innerText || '0') - 1;
-                } else {
-                    console.error('Erreur lors de la suppression d\'ami');
                 }
             });
 
             container.appendChild(div);
 
             const rank = div.querySelector('player-rank');
-            if (rank && typeof rank.setPlayerInfo === 'function') {
-                rank.setPlayerInfo(friend);
-                div.querySelector('.rank-short').innerText = this.RANK_SHORT[friend.rank] ?? "?";}
+            if (rank && typeof rank.setPlayerInfo === 'function') rank.setPlayerInfo(friend);
         });
     }
 
@@ -262,6 +278,7 @@ export class SOCIALComponent extends HTMLElement {
     }
 
     displayRequests(requests) {
+        const isMobile = document.body.classList.contains('is-android');
         const list = this.querySelector('#reqListMobile');
         if (!list) return;
 
@@ -269,21 +286,31 @@ export class SOCIALComponent extends HTMLElement {
 
         if (requests.length === 0) {
             list.innerHTML = `<div class="username" style="font-size:0.8em;text-align:center;width:100%;opacity:0.5;padding:0.8rem 0;">
-                Aucune demande
-            </div>`;
+            Aucune demande
+        </div>`;
             return;
         }
 
         requests.forEach(user => {
             const div = document.createElement('div');
             div.className = 'search-item';
-            div.innerHTML = `
-                    <span class="username">${user.username}</span>
-                    <span class="rank-img"><player-rank></player-rank></span>
-                    <span class="rank-short">${this.RANK_SHORT[user.rank] ?? "?"}</span>
-                    <button class="accept-btn">Accepter</button>
-                    <button class="deny-btn">Refuser</button>
-                `;
+
+            if (isMobile) {
+                div.innerHTML = `
+                <span class="username">${user.username}</span>
+                <span class="rank"><player-rank></player-rank></span>
+                <span class="rank-short">${this.RANK_SHORT[user.rank] ?? "?"}</span>
+                <button class="accept-btn">Accepter</button>
+                <button class="deny-btn">Refuser</button>
+            `;
+            } else {
+                div.innerHTML = `
+                <span class="username">${user.username}</span>
+                <span class="rank"><player-rank></player-rank></span>
+                <button class="accept-btn">Accepter</button>
+                <button class="deny-btn">Refuser</button>
+            `;
+            }
 
             const rank = div.querySelector('player-rank');
             if (rank && typeof rank.setPlayerInfo === 'function') rank.setPlayerInfo(user);

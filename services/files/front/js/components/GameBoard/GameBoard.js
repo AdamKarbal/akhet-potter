@@ -10,13 +10,12 @@ export class GameBoard extends HTMLElement {
         this.renderer = new Renderer(this);
         this.inputHandler = null;
         this.gameId = null;
+        this.pendingActionCoords = null;
 
         this.handleGameState = this.handleGameState.bind(this);
     }
 
     async connectedCallback(){
-
-        //Mise en pace du composant
         const htmlUrl = new URL('./GameBoard.html', import.meta.url);
         const htmlResponse = await fetch(htmlUrl);
         const htmlContent = await htmlResponse.text();
@@ -27,8 +26,19 @@ export class GameBoard extends HTMLElement {
         this.shadowRoot.appendChild(linkElem);
 
         console.log("Gameboard chargé (GameBoard.js)");
-
-        //Informe le match-page qu'il est prêt et qu'il peut recevoir de lui les données de game
+        this.mobileValidateBtn = this.shadowRoot.getElementById('mobile-validate-btn');
+        this.mobileValidateBtn.addEventListener('click', () => {
+            if (this.pendingActionCoords && this.socket && this.gameId) {
+                this.socket.emit('player-action', {
+                    x: this.pendingActionCoords.x,
+                    y: this.pendingActionCoords.y,
+                    relX: 0.9,
+                    relY: 0.9,
+                    gameId: this.gameId
+                });
+                this.mobileValidateBtn.classList.remove('active');
+            }
+        });
         requestAnimationFrame(async () => {
             await this.renderer.init();
             this.dispatchEvent(new CustomEvent('board-ready', {
@@ -47,6 +57,16 @@ export class GameBoard extends HTMLElement {
         }
         this.renderer.gameState = data;
         this.renderer.renderAll();
+        if (document.body.classList.contains('is-android') && this.mobileValidateBtn) {
+            const pending = data.pendingPlacement || data.pendingRotation;
+            if (pending) {
+                this.pendingActionCoords = { x: pending.x, y: pending.y };
+                this.mobileValidateBtn.classList.add('active');
+            } else {
+                this.pendingActionCoords = null;
+                this.mobileValidateBtn.classList.remove('active');
+            }
+        }
     }
 
     setupSocketListeners(){
