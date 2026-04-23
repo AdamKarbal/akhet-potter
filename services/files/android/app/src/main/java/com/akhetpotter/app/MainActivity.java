@@ -1,20 +1,133 @@
 package com.akhetpotter.app;
 
+import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+    private static final String PLAY_REMINDER_CHANNEL_ID = "play-reminders";
+    private static final int PLAY_REMINDER_NOTIFICATION_ID = 90001;
+    private static final int POST_NOTIFICATIONS_REQUEST_CODE = 42;
+    private static final long PLAY_REMINDER_INTERVAL_MS = 5_000L;
+
+    private final Handler playReminderHandler = new Handler(Looper.getMainLooper());
+    private boolean playReminderRunning = false;
+    private final Runnable playReminderRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!playReminderRunning) return;
+
+            showPlayReminderNotification();
+            playReminderHandler.postDelayed(this, PLAY_REMINDER_INTERVAL_MS);
+        }
+    };
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        createPlayReminderChannel();
+        requestNotificationPermissionIfNeeded();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        stopPlayReminders();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (!isFinishing()) {
+            startPlayReminders();
+        }
     }
 
     @Override
     public void onDestroy() {
+        stopPlayReminders();
         if (this.bridge != null && this.bridge.getWebView() != null) {
             this.bridge.getWebView().destroy();
         }
         super.onDestroy();
+    }
+
+    private void startPlayReminders() {
+        if (playReminderRunning) return;
+
+        playReminderRunning = true;
+        playReminderHandler.postDelayed(playReminderRunnable, PLAY_REMINDER_INTERVAL_MS);
+    }
+
+    private void stopPlayReminders() {
+        playReminderRunning = false;
+        playReminderHandler.removeCallbacks(playReminderRunnable);
+        NotificationManagerCompat.from(this).cancel(PLAY_REMINDER_NOTIFICATION_ID);
+    }
+
+    private void createPlayReminderChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+
+        NotificationChannel channel = new NotificationChannel(
+            PLAY_REMINDER_CHANNEL_ID,
+            "Rappels de jeu",
+            NotificationManager.IMPORTANCE_DEFAULT
+        );
+        channel.setDescription("Rappels pour revenir jouer a Akhet Potter");
+
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        if (notificationManager != null) {
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, POST_NOTIFICATIONS_REQUEST_CODE);
+    }
+
+    private void showPlayReminderNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+            && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, PLAY_REMINDER_CHANNEL_ID)
+            .setSmallIcon(getApplicationInfo().icon)
+            .setContentTitle("Akhet Potter t'attend")
+            .setContentText("Viens jouer une partie !")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent);
+
+        NotificationManagerCompat.from(this).notify(PLAY_REMINDER_NOTIFICATION_ID, builder.build());
     }
 }
