@@ -5,11 +5,13 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.webkit.JavascriptInterface;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -22,6 +24,8 @@ public class MainActivity extends BridgeActivity {
     private static final int PLAY_REMINDER_NOTIFICATION_ID = 90001;
     private static final int POST_NOTIFICATIONS_REQUEST_CODE = 42;
     private static final long PLAY_REMINDER_INTERVAL_MS = 5_000L;
+    private static final String NOTIFICATION_PREFS = "notification-settings";
+    private static final String NOTIFICATIONS_ENABLED_KEY = "notifications-enabled";
 
     private final Handler playReminderHandler = new Handler(Looper.getMainLooper());
     private boolean playReminderRunning = false;
@@ -38,6 +42,9 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (this.bridge != null && this.bridge.getWebView() != null) {
+            this.bridge.getWebView().addJavascriptInterface(new NotificationSettingsBridge(), "AndroidNotificationSettings");
+        }
         createPlayReminderChannel();
         requestNotificationPermissionIfNeeded();
     }
@@ -66,6 +73,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void startPlayReminders() {
+        if (!areNotificationsEnabled()) return;
         if (playReminderRunning) return;
 
         playReminderRunning = true;
@@ -95,6 +103,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void requestNotificationPermissionIfNeeded() {
+        if (!areNotificationsEnabled()) return;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
@@ -105,6 +114,11 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void showPlayReminderNotification() {
+        if (!areNotificationsEnabled()) {
+            stopPlayReminders();
+            return;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
             && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -129,5 +143,29 @@ public class MainActivity extends BridgeActivity {
             .setContentIntent(pendingIntent);
 
         NotificationManagerCompat.from(this).notify(PLAY_REMINDER_NOTIFICATION_ID, builder.build());
+    }
+
+    private boolean areNotificationsEnabled() {
+        return getSharedPreferences(NOTIFICATION_PREFS, MODE_PRIVATE)
+            .getBoolean(NOTIFICATIONS_ENABLED_KEY, true);
+    }
+
+    private void setNotificationsEnabled(boolean enabled) {
+        SharedPreferences.Editor editor = getSharedPreferences(NOTIFICATION_PREFS, MODE_PRIVATE).edit();
+        editor.putBoolean(NOTIFICATIONS_ENABLED_KEY, enabled);
+        editor.apply();
+
+        if (!enabled) {
+            stopPlayReminders();
+        } else {
+            requestNotificationPermissionIfNeeded();
+        }
+    }
+
+    private class NotificationSettingsBridge {
+        @JavascriptInterface
+        public void setNotificationsEnabled(boolean enabled) {
+            MainActivity.this.runOnUiThread(() -> MainActivity.this.setNotificationsEnabled(enabled));
+        }
     }
 }

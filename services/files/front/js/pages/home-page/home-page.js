@@ -3,6 +3,7 @@ import {connectSocket, disconnectSocket, socket} from "../../socket.js";
 import { AuthService } from "../../services/AuthService.js";
 import {API_URL} from "../../../config.js";
 import {RankProgressBar} from "../../components/progression-bar/progression-bar.js";
+import { NotificationService } from "../../services/NotificationService.js";
 
 export class HomePage extends HTMLElement{
     constructor() {
@@ -97,13 +98,13 @@ export class HomePage extends HTMLElement{
                         });
                         if(res){
                             disconnectSocket();
-                            localStorage.clear();
+                            NotificationService.clearLocalStoragePreservingSetting();
                             this.applyDisconnectedState();
                             this.fillUserInfo();
                         }
                     } catch (e) {}
                     disconnectSocket();
-                    localStorage.clear();
+                    NotificationService.clearLocalStoragePreservingSetting();
                     this.applyDisconnectedState();
                     this.fillUserInfo();
                 });
@@ -263,7 +264,7 @@ export class HomePage extends HTMLElement{
                 if (!u) {
                     rankSection.innerHTML = '';
                     this.applyDisconnectedState();
-                    localStorage.clear();
+                    NotificationService.clearLocalStoragePreservingSetting();
                     return;
                 }
                 this.fillUserInfo(u.rank, u.elo, u.username);
