@@ -73,6 +73,7 @@ export class HomePage extends HTMLElement{
             const jcjsec = this.querySelector("#jcj");
             const jcosec = this.querySelector("#jco");
 
+            this.gameMode = 'JCJ';
             localsec.classList.remove('selected');
             jcjsec.classList.add('selected');
             jcosec.classList.remove('selected');
