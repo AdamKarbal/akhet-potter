@@ -5,6 +5,13 @@ body {
     color: white;
 }
 
+@font-face {
+    font-family: 'Agency FB';
+    src: url('../assets/fonts/AGENCYR.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body.is-android,
 body.is-android *:not(input):not(textarea):not(select):not([contenteditable="true"]) {
     -webkit-user-select: none;
