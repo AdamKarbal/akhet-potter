@@ -226,6 +226,8 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     max-height: 45vh;
+    opacity: 1;
+    transition: max-height 0.28s ease-in-out, opacity 0.22s ease-in-out, padding 0.28s ease-in-out;
 }
 
 .is-android .search-item,
@@ -362,6 +364,23 @@ body {
     white-space: nowrap;
 }
 
+.is-android .hidden-mobile {
+    max-height: 0 !important;
+    opacity: 0;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+.is-android player-rank #userVOImg {
+    width: clamp(22px, 6vw, 34px) !important;
+    height: auto !important;
+    margin-left: 0 !important;
+}
+
+/* Titres sections */
+.is-android .section-header span:first-child {
+    font-size: clamp(1.3em, 5.2vw, 1.7em);
+}
 .is-android .friend-item .remove-btn:hover,
 .is-android .deny-btn:hover {
     background: linear-gradient(135deg, #661212, #3d0808);

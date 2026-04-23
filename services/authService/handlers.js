@@ -123,7 +123,9 @@ async function handleDecisionRequest(req, res) {
             result = await manager.denyFriendRequest(fromUser, toUser);
         }
         console.log("[handleDecisionRequest] Résultat de la décision :", result);
-        return sendResponse(res, result.status, { message: result.message });
+        return sendResponse(res, result.status, {
+            message: result.message || result.error
+        });
     }
     catch(e) {
         return sendResponse(res, 500, { error: "Erreur serveur" });
@@ -144,7 +146,9 @@ async function handleSendRequest(req, res) {
 
         console.log("[handeSendRequest] result: ", result);
 
-        return sendResponse(res, result.status, { message: result.message });
+        return sendResponse(res, result.status, {
+            message: result.message || result.error
+        });
     }
     catch(e) {
         return sendResponse(res, 500, { error: "Erreur lors de l'envoi de la demande d'amis." });
