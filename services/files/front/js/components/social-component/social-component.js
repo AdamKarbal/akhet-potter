@@ -94,6 +94,9 @@ export class SOCIALComponent extends HTMLElement {
     }
 
     displayResults(users) {
+        const isMobile = document.body.classList.contains('is-android');
+
+        const currentUsername = localStorage.getItem('username');
         ['#searchResultsPC', '#searchResultsMobile'].forEach(sel => {
             const container = this.querySelector(sel);
             if (!container) return;
@@ -109,12 +112,13 @@ export class SOCIALComponent extends HTMLElement {
                 const div = document.createElement('div');
                 div.className = 'search-item';
                 const isFriend = this.friendList.some(f => f.username === user.username);
+                const isCurrentUser = user.username === currentUsername;
 
                 div.innerHTML = `
                     <span class="username">${user.username}</span>
                     <span class="rank-img"><player-rank></player-rank></span>
                     <span class="rank-short">${this.RANK_SHORT[user.rank] ?? "?"}</span>
-                    ${isFriend ? '' : '<button class="add-btn">+ Ajouter</button>'}
+                    ${isFriend || isCurrentUser ? '' : '<button class="add-btn">+ Ajouter</button>'}
                 `;
 
                 const btn = div.querySelector('.add-btn');
@@ -148,8 +152,14 @@ export class SOCIALComponent extends HTMLElement {
                 socket.emit('SEND_FRIEND_REQ', { to: targetUser });
                 console.log('Notification de demande envoyée à :', targetUser);
             } else {
+                const errorData = await response.json().catch(() => null);
+                const message = errorData?.message || errorData?.error || 'Demande impossible';
+                console.warn('Erreur d\'envoi de demande :', message);
                 button.disabled = false;
-                button.innerText = '+ Ajouter';
+                button.innerText = message;
+                setTimeout(() => {
+                    if (button.isConnected) button.innerText = '+ Ajouter';
+                }, 1800);
             }
         } catch (error) {
             console.error('Erreur d\'envoi de demande :', error);

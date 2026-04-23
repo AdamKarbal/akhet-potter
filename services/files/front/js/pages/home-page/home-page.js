@@ -1,5 +1,5 @@
 import { audioService } from "../../services/AudioService.js";
-import {connectSocket, socket} from "../../socket.js";
+import {connectSocket, disconnectSocket, socket} from "../../socket.js";
 import { AuthService } from "../../services/AuthService.js";
 import {API_URL} from "../../../config.js";
 import {RankProgressBar} from "../../components/progression-bar/progression-bar.js";
@@ -96,11 +96,13 @@ export class HomePage extends HTMLElement{
                             headers: { 'Authorization': `Bearer ${token}` }
                         });
                         if(res){
+                            disconnectSocket();
                             localStorage.clear();
                             this.applyDisconnectedState();
                             this.fillUserInfo();
                         }
                     } catch (e) {}
+                    disconnectSocket();
                     localStorage.clear();
                     this.applyDisconnectedState();
                     this.fillUserInfo();

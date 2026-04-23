@@ -122,6 +122,8 @@
         if(existing) return {error : 'Déjà envoyé', status: 400 };
 
         const user = await users.findOne({username: fromUser});
+        const targetUser = await users.findOne({ username: toUser });
+        if (!targetUser) return { error: "Utilisateur introuvable.", status: 404 };
         if(user.friends && user.friends.includes(toUser)) return {error : 'Vous êtes déja amis.', status: 400 };
 
         await requests.insertOne({
