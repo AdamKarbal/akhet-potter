@@ -1,0 +1,267 @@
+import { Piece, PLAYER, PIECE_TYPE } from "../Model/model.js";
+import {Board} from "../Model/Board.js";
+import {HumanPlayer} from "../Player/HumanPlayer.js";
+import { Referee } from "./Referee.js";
+import { LaserPhysics } from "./LaserPhysics.js";
+import {Cell, Exchange, Move, Place, Rotate, ROTATION_TYPES} from "../Model/Action.js";
+
+function toServerOrientation(orientation) {
+    switch(orientation) {
+        case 0: return 0;
+        case 90: return 9;
+        case 180: return 90;
+        case 270: return 99;
+        default: throw new Error("Orientation invalide : " + orientation);
+    }
+}
+
+function positiveMod(dividend, divisive) {
+    return ((dividend % divisive) + divisive) % divisive;
+}
+
+export class GameEngine {
+    constructor() {
+        this.board = new Board();
+        this.players = {
+            1: new HumanPlayer(PLAYER.P1),
+            2: new HumanPlayer(PLAYER.P2)
+        };
+        this.turn = PLAYER.P1;
+        this.turnCount = 0;
+        this.referee = new Referee();
+        this.selectedPiece = null;
+        this.pendingPlacement = null;
+        this.pendingRotation = null;
+        this.isProcessingTurn = false;
+        this.sphinxFiresThisTurn = true;
+        this.board.setupStandardGame();
+        this.winner = null;
+        this.lastAction = null;
+        this.lastLaserResult = null;
+        this.remainingTurnMs = null;
+    }
+
+    handlePlayerInteraction(x, y, relX = 0.5, relY = 0.5) {
+        if (this.winner || this.isProcessingTurn) return;
+        if (this.pendingPlacement) return this.handlePendingPlacement(x, y, relX, relY);
+        if (this.pendingRotation) return this.handlePendingRotation(x, y, relX, relY);
+
+        const clickedPiece = this.board.getPiece(x, y);
+        if (!this.selectedPiece) {
+            if (!clickedPiece) return this.tryStartPlacementMode(x, y);
+            if (clickedPiece.owner === this.turn) return this.selectPiece(x, y);
+            return;
+        }
+
+        this.handleSelectionLogic(x, y, clickedPiece);
+    }
+
+    handleSelectionLogic(x, y, clickedPiece) {
+        const selX = this.selectedPiece.x;
+        const selY = this.selectedPiece.y;
+        const selectedPieceObj = this.board.getPiece(selX, selY);
+        const currentPlayer = this.players[this.turn];
+
+        if (selX === x && selY === y) return this.startRotationMode(selX, selY, selectedPieceObj);
+
+        if (selectedPieceObj.type === PIECE_TYPE.SCARAB && clickedPiece && clickedPiece.owner === this.turn) {
+            if (this.referee.canSwap(this.board, selX, selY, x, y, currentPlayer)) {
+                return this.performSwap(selX, selY, x, y, clickedPiece.type);
+            }
+        }
+
+        if (this.referee.isMoveValid(this.board, selX, selY, x, y, this.turn)) {
+            return this.performMove(selX, selY, x, y);
+        }
+
+        if (clickedPiece && clickedPiece.owner === this.turn) return this.selectPiece(x, y);
+        this.selectedPiece = null;
+    }
+
+    tryStartPlacementMode(x, y) {
+        const player = this.players[this.turn];
+        if (player.reserves > 0 && !this.referee.isCellForbiddenForSpawn(this.board, x, y, this.turn)) {
+            this.startPlacementMode(x, y);
+        }
+    }
+
+    startPlacementMode(x, y) {
+        const defaultRot = this.turn === PLAYER.P1 ? 180 : 0;
+        this.pendingPlacement = { x, y, rotation: defaultRot };
+        this.selectedPiece = null;
+    }
+
+    startRotationMode(x, y, piece) {
+        this.pendingRotation = { x, y, originalRotation: piece.rotation };
+        piece.rotate();
+    }
+
+    performMove(fromX, fromY, toX, toY) {
+        this.board.movePiece(fromX, fromY, toX, toY);
+        this.lastAction = new Move(new Cell(fromX, fromY), new Cell(toX, toY));
+        this.finishAction();
+    }
+
+    performSwap(scarabX, scarabY, targetX, targetY, targetType) {
+        const scarab = this.board.getPiece(scarabX, scarabY);
+        const target = this.board.getPiece(targetX, targetY);
+        this.board.setPiece(scarabX, scarabY, target);
+        this.board.setPiece(targetX, targetY, scarab);
+
+        const player = this.players[this.turn];
+        player.triggerCooldown(targetType);
+        if (targetType === PIECE_TYPE.SPHINX) this.sphinxFiresThisTurn = false;
+
+        this.lastAction = new Exchange(new Cell(scarabX, scarabY), new Cell(targetX, targetY));
+        this.finishAction();
+    }
+
+    selectPiece(x, y) {
+        this.selectedPiece = { x, y };
+    }
+
+    handlePendingPlacement(x, y, relX, relY) {
+        if (this.pendingPlacement.x !== x || this.pendingPlacement.y !== y) {
+            this.lastAction = null;
+            this.pendingPlacement = null;
+            return;
+        }
+
+        if (relX > 0.6 && relY > 0.6) {
+            this.board.setPiece(x, y, new Piece(PIECE_TYPE.PYRAMID, this.turn, this.pendingPlacement.rotation));
+            this.players[this.turn].decrementReserve();
+            this.lastAction = new Place({destination: new Cell(x, y), orientation: toServerOrientation(this.pendingPlacement.rotation)});
+            this.pendingPlacement = null;
+            this.finishAction();
+            return;
+        }
+
+        this.pendingPlacement.rotation = (this.pendingPlacement.rotation + 90) % 360;
+    }
+
+    handlePendingRotation(x, y, relX, relY) {
+        if (x !== this.pendingRotation.x || y !== this.pendingRotation.y) {
+            const p = this.board.getPiece(this.pendingRotation.x, this.pendingRotation.y);
+            if (p) p.rotation = this.pendingRotation.originalRotation;
+            this.pendingRotation = null;
+            this.selectedPiece = null;
+            this.lastAction = null;
+            return;
+        }
+
+        if (relX > 0.6 && relY > 0.6) {
+            const p = this.board.getPiece(x, y);
+            const diff = positiveMod(p.rotation - this.pendingRotation.originalRotation, 360);
+            this.lastAction = new Rotate(new Cell(x, y), diff === 90 ? ROTATION_TYPES.CLOCKWISE : ROTATION_TYPES.ANTICLOCKWISE);
+            this.pendingRotation = null;
+            this.finishAction();
+            return;
+        }
+
+        const p = this.board.getPiece(x, y);
+        if (!p) return;
+        switch (positiveMod(p.rotation - this.pendingRotation.originalRotation, 360)) {
+            case 90:
+                p.rotate(180);
+                break;
+            case 0:
+            case 270:
+                p.rotate();
+                break;
+            default:
+                break;
+        }
+    }
+
+    finishAction() {
+        this.selectedPiece = null;
+        this.pendingPlacement = null;
+        this.pendingRotation = null;
+        this.isProcessingTurn = true;
+        console.assert(this.lastAction && this.lastAction.isConsistent());
+        this.lastLaserResult = this.executeTurnSequence();
+        if (this.lastLaserResult.winner) this.winner = this.lastLaserResult.winner;
+        return this.lastLaserResult;
+    }
+
+    executeTurnSequence() {
+        let laserData = null;
+        const firingPlayer = this.turn;
+        if (this.sphinxFiresThisTurn) laserData = this.fireLaserForCurrentTurn();
+        this.switchTurn();
+
+        return {
+            board: this.board.grid,
+            laserPath: laserData ? laserData.path : [],
+            hits: laserData ? laserData.hits : [],
+            winner: laserData ? laserData.winner : null,
+            nextTurn: this.turn,
+            firedBy: firingPlayer
+        };
+    }
+
+    fireLaserForCurrentTurn() {
+        const currentPlayer = this.players[this.turn];
+        const { path, hits } = LaserPhysics.getPath(this.board, currentPlayer);
+        let deadPharaonOwner = null;
+
+        hits.forEach(hit => {
+            const target = hit.piece;
+            this.board.setPiece(hit.x, hit.y, null);
+            if (target.type === PIECE_TYPE.PYRAMID) this.players[this.turn].reserves++;
+            if (target.type === PIECE_TYPE.PHARAON) deadPharaonOwner = target.owner;
+        });
+
+        const winner = deadPharaonOwner !== null ? (deadPharaonOwner === PLAYER.P1 ? PLAYER.P2 : PLAYER.P1) : null;
+        return { path, hits, winner };
+    }
+
+    getState() {
+        return {
+            grid: this.board.grid,
+            turn: this.turn,
+            selectedPiece: this.selectedPiece,
+            possibleMoves: this.selectedPiece ? this.getPossibleMoves(this.selectedPiece.x, this.selectedPiece.y) : [],
+            laserPath: this.isProcessingTurn && this.lastLaserResult ? this.lastLaserResult.laserPath : [],
+            pendingPlacement: this.pendingPlacement,
+            pendingRotation: this.pendingRotation,
+            laserFiredBy: this.lastLaserResult ? this.lastLaserResult.firedBy : null,
+            players: {
+                1: { reserves: this.players[1].reserves },
+                2: { reserves: this.players[2].reserves }
+            },
+            isProcessingTurn: this.isProcessingTurn,
+            winner: this.winner,
+            remainingTurnMs: this.remainingTurnMs
+        };
+    }
+
+    switchTurn() {
+        this.turnCount++;
+        if (this.turnCount >= 100) return;
+        const nextId = this.turn === PLAYER.P1 ? PLAYER.P2 : PLAYER.P1;
+        this.players[nextId].reduceCooldowns();
+        this.turn = nextId;
+        this.sphinxFiresThisTurn = true;
+    }
+
+    restart() {
+        this.board = new Board();
+        this.board.setupStandardGame();
+        this.turn = PLAYER.P1;
+        this.turnCount = 0;
+        this.players[1] = new HumanPlayer(PLAYER.P1);
+        this.players[2] = new HumanPlayer(PLAYER.P2);
+        this.selectedPiece = null;
+        this.pendingPlacement = null;
+        this.pendingRotation = null;
+        this.isProcessingTurn = false;
+        this.sphinxFiresThisTurn = true;
+        this.winner = null;
+        this.lastLaserResult = null;
+    }
+
+    getPossibleMoves(x, y) {
+        return this.referee.getPossibleMoves(this.board, x, y);
+    }
+}

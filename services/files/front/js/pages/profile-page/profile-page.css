@@ -40,12 +40,13 @@ body.is-android {
 
 .is-android .main-section {
     grid-row: 1;
-    display: grid;
-    grid-template: 35% 15% 50% / 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 4vh 10px;
 }
 
 .is-android .profile-sec {
-    grid-row: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -127,7 +128,6 @@ body.is-android {
     display: flex;
     flex-direction: column;
     gap: 2vw;
-    grid-row: 2;
     width: 70%;
     place-self: center;
     padding: 5vw;
@@ -147,7 +147,6 @@ body.is-android {
 
 .is-android .friends {
     margin-top: 2vh;
-    grid-row: 3;
     display: flex;
     flex-direction: column;
     align-items: center;
