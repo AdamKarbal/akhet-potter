@@ -7,10 +7,14 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
+import android.app.Notification;
 import android.webkit.JavascriptInterface;
 
 import androidx.core.app.NotificationCompat;
@@ -20,10 +24,10 @@ import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
-    private static final String PLAY_REMINDER_CHANNEL_ID = "play-reminders";
+    private static final String PLAY_REMINDER_CHANNEL_ID = "play-reminders-heads-up";
     private static final int PLAY_REMINDER_NOTIFICATION_ID = 90001;
     private static final int POST_NOTIFICATIONS_REQUEST_CODE = 42;
-    private static final long PLAY_REMINDER_INTERVAL_MS = 5_000L;
+    private static final long PLAY_REMINDER_INTERVAL_MS = 15_000L;
     private static final String NOTIFICATION_PREFS = "notification-settings";
     private static final String NOTIFICATIONS_ENABLED_KEY = "notifications-enabled";
 
@@ -92,9 +96,18 @@ public class MainActivity extends BridgeActivity {
         NotificationChannel channel = new NotificationChannel(
             PLAY_REMINDER_CHANNEL_ID,
             "Rappels de jeu",
-            NotificationManager.IMPORTANCE_DEFAULT
+            NotificationManager.IMPORTANCE_HIGH
         );
         channel.setDescription("Rappels pour revenir jouer a Akhet Potter");
+        channel.enableVibration(true);
+        channel.setVibrationPattern(new long[]{0, 250, 150, 250});
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        Uri soundUri = Settings.System.DEFAULT_NOTIFICATION_URI;
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build();
+        channel.setSound(soundUri, audioAttributes);
 
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         if (notificationManager != null) {
@@ -138,7 +151,10 @@ public class MainActivity extends BridgeActivity {
             .setSmallIcon(getApplicationInfo().icon)
             .setContentTitle("Akhet Potter t'attend")
             .setContentText("Viens jouer une partie !")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent);
 
