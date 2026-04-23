@@ -225,9 +225,9 @@ function toast(data, event) {
                 transition: all 0.2s;
             ">Accepter</button>
             <button id="toast-deny" style="
-                background: rgba(80, 60, 40, 0.4);
-                color: #a08060;
-                border: 1px solid #5a3e28;
+                background: linear-gradient(135deg, #4a1010, #250505);
+                color: #ffcccc;
+                border: 1px solid #8a1f1f;
                 padding: ${isMobile ? '8px 18px' : '5px 10px'};
                 border-radius: 6px;
                 cursor: pointer;
@@ -236,11 +236,39 @@ function toast(data, event) {
                 font-weight: bold;
                 letter-spacing: 1px;
                 transition: all 0.2s;
+                box-shadow: 0 0 8px rgba(100, 10, 10, 0.4);
             ">Refuser</button>
         </div>
     `;
 
     document.body.appendChild(toastEl);
+
+    const btnAccept = toastEl.querySelector("#toast-accept");
+    const btnDeny = toastEl.querySelector("#toast-deny");
+
+    btnAccept.onmouseover = () => {
+        btnAccept.style.transform = 'scale(1.05)';
+        btnAccept.style.filter = 'brightness(1.2)';
+    };
+    btnAccept.onmouseout = () => {
+        btnAccept.style.transform = 'scale(1)';
+        btnAccept.style.filter = 'none';
+    };
+
+    btnDeny.onmouseover = () => {
+        btnDeny.style.background = 'linear-gradient(135deg, #661212, #3d0808)';
+        btnDeny.style.color = '#ffffff';
+        btnDeny.style.borderColor = '#b32424';
+        btnDeny.style.boxShadow = '0 0 12px rgba(200, 30, 30, 0.6)';
+        btnDeny.style.transform = 'scale(1.05)';
+    };
+    btnDeny.onmouseout = () => {
+        btnDeny.style.background = 'linear-gradient(135deg, #4a1010, #250505)';
+        btnDeny.style.color = '#ffcccc';
+        btnDeny.style.borderColor = '#8a1f1f';
+        btnDeny.style.boxShadow = '0 0 8px rgba(100, 10, 10, 0.4)';
+        btnDeny.style.transform = 'scale(1)';
+    };
 
     toastEl.querySelector("#toast-accept").onclick = async (e) => {
         e.target.disabled = true;
@@ -268,17 +296,17 @@ function toast(data, event) {
             case 'NEW_FRIEND_REQ':
                 const success = await RequestService.handleDecision(data.from, "deny");
                 if (success) {
-                    toastEl.innerHTML = `<div style="color:#a08060;font-family:'Agency FB';padding:4px 0;">Demande refusée.</div>`;
+                    toastEl.innerHTML = `<div style="color:#ffcccc;font-family:'Agency FB';padding:4px 0;">Demande refusée.</div>`;
                     window.dispatchEvent(new Event('friendrequests-changed'));
                 } else {
-                    toastEl.innerHTML = `<div style="color:#c5a059;font-family:'Agency FB';">Erreur : impossible de refuser</div>`;
+                    toastEl.innerHTML = `<div style="color:#ffcccc;font-family:'Agency FB';">Erreur : impossible de refuser</div>`;
                 }
                 break;
             case 'NEW_FRIENDLY_MATCH':
-                toastEl.innerHTML = `<div style="color:#a08060;font-family:'Agency FB';padding:4px 0;">Invitation refusée.</div>`;
+                toastEl.innerHTML = `<div style="color:#ffcccc;font-family:'Agency FB';padding:4px 0;">Invitation refusée.</div>`;
                 break;
             default:
-                toastEl.innerHTML = `<div style="color:#a08060;font-family:'Agency FB';padding:4px 0;">Refus enregistré.</div>`;
+                toastEl.innerHTML = `<div style="color:#ffcccc;font-family:'Agency FB';padding:4px 0;">Refus enregistré.</div>`;
         }
         setTimeout(() => toastEl.remove(), 2000);
     };

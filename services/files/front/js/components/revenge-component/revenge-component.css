@@ -89,15 +89,17 @@ button {
 }
 
 #leave-btn {
-    background: rgba(40, 25, 10, 0.6);
-    color: #8a6d3b;
-    border: 1px solid #4a3520;
+    background: linear-gradient(135deg, #4a1010, #250505);
+    color: #ffcccc;
+    border: 1px solid #8a1f1f;
+    box-shadow: 0 0 10px rgba(100, 10, 10, 0.4);
 }
 
 #leave-btn:hover {
-    background: rgba(60, 35, 15, 0.8);
-    color: #c5a059;
-    border-color: #6b4c1e;
+    background: linear-gradient(135deg, #661212, #3d0808);
+    color: #ffffff;
+    border-color: #b32424;
+    box-shadow: 0 0 15px rgba(200, 30, 30, 0.6);
     transform: scale(1.05);
 }
 

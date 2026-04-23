@@ -105,12 +105,13 @@ body {
 .add-btn:hover, #friendlyBtn:hover {
     filter: brightness(1.2);
     box-shadow: 0 0 10px rgba(197, 160, 89, 0.4);
+    transform: scale(1.05);
 }
 
-.remove-btn {
-    background: rgba(40, 25, 10, 0.6);
-    border: 1px solid #4a3520;
-    color: #8a6d3b;
+.remove-btn, .deny-btn {
+    background: linear-gradient(135deg, #4a1010, #250505);
+    border: 1px solid #8a1f1f;
+    color: #ffcccc;
     font-family: 'HarryPotter', sans-serif;
     cursor: pointer;
     border-radius: 5px;
@@ -120,10 +121,12 @@ body {
     transition: all 0.2s;
 }
 
-.remove-btn:hover {
-    background: rgba(60, 35, 15, 0.8);
-    color: #c5a059;
-    border-color: #6b4c1e;
+.remove-btn:hover, .deny-btn:hover {
+    background: linear-gradient(135deg, #661212, #3d0808);
+    color: #ffffff;
+    border-color: #b32424;
+    box-shadow: 0 0 12px rgba(200, 30, 30, 0.6);
+    transform: scale(1.05);
 }
 
 .rank-short { display: none; }
@@ -334,9 +337,11 @@ body {
     white-space: nowrap;
 }
 
-.is-android .friend-item #friendlyBtn,
-.is-android .accept-btn {
-    margin-right: clamp(4px, 1.5vw, 8px);
+.is-android .friend-item #friendlyBtn:hover,
+.is-android .accept-btn:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 10px rgba(197, 160, 89, 0.4);
+    transform: scale(1.05);
 }
 
 .is-android .friend-item .remove-btn,
@@ -344,9 +349,9 @@ body {
     order: 6 !important;
     flex-shrink: 0;
     margin-left: 0;
-    background: rgba(40, 25, 10, 0.6);
-    border: 1px solid #4a3520;
-    color: #8a6d3b;
+    background: linear-gradient(135deg, #4a1010, #250505);
+    border: 1px solid #8a1f1f;
+    color: #ffcccc;
     padding: clamp(5px, 1.5vw, 8px) clamp(8px, 2.5vw, 14px);
     font-family: 'HarryPotter';
     border-radius: 8px;
@@ -355,6 +360,15 @@ body {
     font-weight: bold;
     transition: all 0.2s;
     white-space: nowrap;
+}
+
+.is-android .friend-item .remove-btn:hover,
+.is-android .deny-btn:hover {
+    background: linear-gradient(135deg, #661212, #3d0808);
+    color: #ffffff;
+    border-color: #b32424;
+    box-shadow: 0 0 12px rgba(200, 30, 30, 0.6);
+    transform: scale(1.05);
 }
 
 .is-android .hidden-mobile { display: none !important; }

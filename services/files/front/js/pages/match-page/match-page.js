@@ -423,31 +423,35 @@ export class MatchComponent extends HTMLElement{
         <div style="font-size: ${isMobile ? '1em' : '1.4em'}; margin-bottom: ${isMobile ? '14px' : '20px'}; letter-spacing: 1px;">
             Si tu quittes la partie maintenant, cela sera comptabilisé comme déclaration de forfait. Es-tu sûr de vouloir quitter?
         </div>
-<button id="leave-btn" style="
-    background: linear-gradient(135deg, #6b4c1e, #3d2a0e);
-    color: #ffd700;
-    border: 1px solid #c5a059;
-    padding: ${isMobile ? '8px 18px' : '8px 25px'};
-    font-family: 'Agency FB', sans-serif;
-    font-weight: bold;
-    font-size: ${isMobile ? '1em' : '1.1em'};
-    border-radius: 4px;
-    cursor: pointer;
-    transition: transform 0.2s;
-">QUITTER</button>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px; flex-wrap: wrap;">
+            <button id="leave-btn" style="
+                background: linear-gradient(135deg, #4a1010, #250505);
+                color: #ffcccc;
+                border: 1px solid #8a1f1f;
+                box-shadow: 0 0 10px rgba(100, 10, 10, 0.4);
+                padding: ${isMobile ? '8px 18px' : '8px 25px'};
+                font-family: 'Agency FB', sans-serif;
+                font-weight: bold;
+                font-size: ${isMobile ? '1em' : '1.1em'};
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s;
+            ">QUITTER</button>
 
-<button id="stay-btn" style="
-    background: rgba(40, 25, 10, 0.6);
-    color: #8a6d3b;
-    border: 1px solid #4a3520;
-    padding: ${isMobile ? '8px 18px' : '8px 25px'};
-    font-family: 'Agency FB', sans-serif;
-    font-weight: bold;
-    font-size: ${isMobile ? '1em' : '1.1em'};
-    border-radius: 4px;
-    cursor: pointer;
-    transition: transform 0.2s;
-">Rester</button>
+            <button id="stay-btn" style="
+                background: linear-gradient(135deg, #0b3a1f, #051a0d);
+                color: #ccffcc;
+                border: 1px solid #1f6636;
+                box-shadow: 0 0 10px rgba(10, 100, 10, 0.4);
+                padding: ${isMobile ? '8px 18px' : '8px 25px'};
+                font-family: 'Agency FB', sans-serif;
+                font-weight: bold;
+                font-size: ${isMobile ? '1em' : '1.1em'};
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s;
+            ">RESTER</button>
+        </div>
     `;
         document.body.appendChild(toast);
 
@@ -459,10 +463,35 @@ export class MatchComponent extends HTMLElement{
         const leaveBtn = toast.querySelector("#leave-btn");
         const stayBtn = toast.querySelector("#stay-btn");
 
-        leaveBtn.onmouseover = () => leaveBtn.style.transform = 'scale(1.1)';
-        leaveBtn.onmouseout = () => leaveBtn.style.transform = 'scale(1)';
-        stayBtn.onmouseover = () => stayBtn.style.transform = 'scale(1.1)';
-        stayBtn.onmouseout = () => stayBtn.style.transform = 'scale(1)';
+        leaveBtn.onmouseover = () => {
+            leaveBtn.style.transform = 'scale(1.05)';
+            leaveBtn.style.background = 'linear-gradient(135deg, #661212, #3d0808)';
+            leaveBtn.style.borderColor = '#b32424';
+            leaveBtn.style.boxShadow = '0 0 12px rgba(200, 30, 30, 0.6)';
+            leaveBtn.style.color = '#ffffff';
+        };
+        leaveBtn.onmouseout = () => {
+            leaveBtn.style.transform = 'scale(1)';
+            leaveBtn.style.background = 'linear-gradient(135deg, #4a1010, #250505)';
+            leaveBtn.style.borderColor = '#8a1f1f';
+            leaveBtn.style.boxShadow = '0 0 10px rgba(100, 10, 10, 0.4)';
+            leaveBtn.style.color = '#ffcccc';
+        };
+
+        stayBtn.onmouseover = () => {
+            stayBtn.style.transform = 'scale(1.05)';
+            stayBtn.style.background = 'linear-gradient(135deg, #155930, #0a2e17)';
+            stayBtn.style.borderColor = '#2b8f4c';
+            stayBtn.style.boxShadow = '0 0 12px rgba(30, 200, 30, 0.6)';
+            stayBtn.style.color = '#ffffff';
+        };
+        stayBtn.onmouseout = () => {
+            stayBtn.style.transform = 'scale(1)';
+            stayBtn.style.background = 'linear-gradient(135deg, #0b3a1f, #051a0d)';
+            stayBtn.style.borderColor = '#1f6636';
+            stayBtn.style.boxShadow = '0 0 10px rgba(10, 100, 10, 0.4)';
+            stayBtn.style.color = '#ccffcc';
+        };
 
         leaveBtn.onclick = () => {
             this.isGameActive = false;
