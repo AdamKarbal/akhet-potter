@@ -1,6 +1,14 @@
 const LocalNotifications = window.Capacitor?.Plugins?.LocalNotifications;
 
 export const NotificationService = {
+    getPlugin() {
+        const plugin = window.Capacitor?.Plugins?.LocalNotifications;
+        if (!plugin) {
+            console.warn("[Notifications] Plugin LocalNotifications non trouvé.");
+        }
+        return plugin;
+    },
+
     async requestPermission() {
         if (!LocalNotifications) {
             console.log("[Notifications] Désactivées (Mode Web)");
@@ -23,19 +31,30 @@ export const NotificationService = {
     },
 
     async send(title, body, id = Math.floor(Math.random() * 10000)) {
-        await LocalNotifications.schedule({
-            notifications: [
-                {
-                    title: title,
-                    body: body,
-                    id: id,
-                    channelId: "duel-notifications",
-                    schedule: { at: new Date(Date.now() + 500) },
-                    actionTypeId: "GOTO_PAGE",
-                    extra: null
-                }
-            ]
-        });
+        const notifs = this.getPlugin();
+
+        if (!notifs) {
+            console.log("[Notifications Web Sim] :", title, body);
+            return;
+        }
+
+        try {
+            await notifs.schedule({
+                notifications: [
+                    {
+                        title: title,
+                        body: body,
+                        id: id,
+                        channelId: "duel-notifications",
+                        schedule: { at: new Date(Date.now() + 100) },
+                        actionTypeId: "GOTO_PAGE"
+                    }
+                ]
+            });
+            console.log("[Notifications] Notif envoyée avec succès");
+        } catch (err) {
+            console.error("[Notifications] Erreur schedule:", err);
+        }
     },
 
     initListeners() {

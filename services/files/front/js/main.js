@@ -491,6 +491,8 @@ async function handleSplashScreen() {
 }
 
 window.addEventListener('load', async () => {
+    await NotificationService.requestPermission();
+    NotificationService.initListeners();
     await bootstrapRealtimeConnection();
     await replayPendingFriendRequestToasts();
     updateView();
